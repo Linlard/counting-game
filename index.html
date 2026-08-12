@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>数小动物，开车车 🚗</title>
+<title>3 岁小课堂 🎨</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -16,7 +16,71 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  .game {
+  /* ===== Home ===== */
+  .home {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .home h1 {
+    font-size: 48px;
+    color: #fff;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .home > p {
+    font-size: 22px;
+    color: #fff;
+    margin-bottom: 36px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 760px;
+  }
+  .game-card {
+    background: rgba(255,255,255,0.96);
+    border: none;
+    border-radius: 24px;
+    padding: 24px 16px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transition: transform 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .game-card:active {
+    transform: translateY(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .game-card .emoji {
+    font-size: 64px;
+    line-height: 1;
+  }
+  .game-card .name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+  }
+  .game-card .desc {
+    font-size: 15px;
+    color: #777;
+  }
+
+  /* ===== Game container ===== */
+  .game-container {
     max-width: 900px;
     margin: 0 auto;
     padding: 20px;
@@ -24,129 +88,90 @@
     display: flex;
     flex-direction: column;
   }
-
-  .header {
-    text-align: center;
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.92);
+    color: #333;
+    border: none;
+    padding: 10px 18px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    font-family: inherit;
+  }
+  .back-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+  }
+  .level-display {
     color: #fff;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    margin-bottom: 16px;
-  }
-
-  .header h1 {
-    font-size: 36px;
-    margin-bottom: 8px;
-  }
-
-  .level {
     font-size: 22px;
+    font-weight: bold;
+  }
+  .level-display span {
     background: rgba(255,255,255,0.3);
     display: inline-block;
     padding: 6px 20px;
     border-radius: 20px;
-    font-weight: bold;
   }
 
-  /* 动物展示区 */
-  .animals {
-    background: rgba(255,255,255,0.92);
+  /* ===== Common stage ===== */
+  .game-stage {
+    background: rgba(255,255,255,0.94);
     border-radius: 24px;
     padding: 24px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     text-align: center;
-    min-height: 170px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
-
-  .animals-title {
+  .stage-title {
     font-size: 22px;
     color: #333;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     font-weight: bold;
   }
 
+  /* ===== Feedback ===== */
+  .feedback {
+    text-align: center;
+    font-size: 26px;
+    min-height: 38px;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-weight: bold;
+    margin-top: 8px;
+  }
+  .feedback.show {
+    animation: pop 0.4s;
+  }
+
+  /* ===== Game 1: counting (car buttons) ===== */
   .animal-row {
     font-size: 54px;
     line-height: 1.2;
     letter-spacing: 4px;
   }
-
   .animal {
     display: inline-block;
     margin: 4px;
     animation: pop 0.5s ease-out backwards;
   }
-
-  @keyframes pop {
-    0% { transform: scale(0); opacity: 0; }
-    60% { transform: scale(1.2); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  /* 赛道 */
-  .track {
-    position: relative;
-    height: 140px;
-    background: #555;
-    border-radius: 16px;
-    margin-bottom: 20px;
-    overflow: hidden;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
-  }
-
-  .road-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: repeating-linear-gradient(
-      90deg,
-      #fff 0px,
-      #fff 20px,
-      transparent 20px,
-      transparent 40px
-    );
-    transform: translateY(-50%);
-  }
-
-  .finish-flag {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 60px;
-    line-height: 1;
-    z-index: 5;
-  }
-
-  .car {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 60px;
-    transition: left 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: 10;
-    filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.3));
-  }
-
-  .car.drive {
-    animation: bounce 0.5s ease;
-  }
-
-  @keyframes bounce {
-    0%, 100% { transform: translateY(-50%); }
-    50% { transform: translateY(-75%); }
-  }
-
-  /* 数字车车选项 */
   .choices {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
   }
-
   .car-btn {
     border: 4px solid #fff;
     border-radius: 18px;
@@ -159,57 +184,146 @@
     text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
     font-family: inherit;
   }
-
   .car-btn:nth-child(1) { background: linear-gradient(180deg, #FF6B6B 0%, #FF8E53 100%); box-shadow: 0 6px 0 #C44569, 0 8px 16px rgba(0,0,0,0.2); }
   .car-btn:nth-child(2) { background: linear-gradient(180deg, #4FACFE 0%, #00F2FE 100%); box-shadow: 0 6px 0 #2E7DD7, 0 8px 16px rgba(0,0,0,0.2); }
   .car-btn:nth-child(3) { background: linear-gradient(180deg, #43E97B 0%, #38F9D7 100%); box-shadow: 0 6px 0 #2E9D5F, 0 8px 16px rgba(0,0,0,0.2); }
   .car-btn:nth-child(4) { background: linear-gradient(180deg, #FA709A 0%, #FEE140 100%); box-shadow: 0 6px 0 #C44569, 0 8px 16px rgba(0,0,0,0.2); }
   .car-btn:nth-child(5) { background: linear-gradient(180deg, #A18CD1 0%, #FBC2EB 100%); box-shadow: 0 6px 0 #6B5B95, 0 8px 16px rgba(0,0,0,0.2); }
-
-  .car-btn:active {
-    transform: translateY(4px);
-  }
+  .car-btn:active { transform: translateY(4px); }
   .car-btn:nth-child(1):active { box-shadow: 0 2px 0 #C44569, 0 4px 8px rgba(0,0,0,0.2); }
   .car-btn:nth-child(2):active { box-shadow: 0 2px 0 #2E7DD7, 0 4px 8px rgba(0,0,0,0.2); }
   .car-btn:nth-child(3):active { box-shadow: 0 2px 0 #2E9D5F, 0 4px 8px rgba(0,0,0,0.2); }
   .car-btn:nth-child(4):active { box-shadow: 0 2px 0 #C44569, 0 4px 8px rgba(0,0,0,0.2); }
   .car-btn:nth-child(5):active { box-shadow: 0 2px 0 #6B5B95, 0 4px 8px rgba(0,0,0,0.2); }
-
   .car-btn .icon {
     font-size: 36px;
     display: block;
     margin-bottom: 2px;
     line-height: 1;
   }
-
   .car-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .car-btn.wrong { animation: shake 0.4s; }
 
-  .car-btn.wrong {
-    animation: shake 0.4s;
+  /* ===== Game 2: parking ===== */
+  .car-display {
+    background: linear-gradient(180deg, #FFE53B 0%, #FF2525 100%);
+    border-radius: 24px;
+    padding: 28px 20px;
+    text-align: center;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    margin-bottom: 20px;
   }
+  .car-display .car-icon {
+    font-size: 72px;
+    line-height: 1;
+  }
+  .car-display .car-number {
+    font-size: 64px;
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
+    margin-top: 8px;
+  }
+  .parking-spots {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  .spot {
+    background: linear-gradient(180deg, #fff 0%, #f0f0f0 100%);
+    border: 4px dashed #999;
+    border-radius: 18px;
+    padding: 22px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+    font-size: 44px;
+    color: #333;
+    font-weight: bold;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .spot:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.1);
+  }
+  .spot.filled {
+    background: linear-gradient(180deg, #43E97B 0%, #38F9D7 100%) !important;
+    border: 4px solid #2E9D5F !important;
+    color: #fff !important;
+    box-shadow: 0 6px 0 #2E9D5F, 0 8px 16px rgba(0,0,0,0.2) !important;
+    cursor: default;
+    font-size: 28px;
+    line-height: 1.1;
+    white-space: pre;
+  }
+  .spot.wrong { animation: shake 0.4s; }
 
+  /* ===== Game 3: chinese character ===== */
+  .character-display {
+    background: linear-gradient(180deg, #A18CD1 0%, #FBC2EB 100%);
+    border-radius: 24px;
+    padding: 36px 20px;
+    text-align: center;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  }
+  .character-display .big-char {
+    font-size: 110px;
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+    line-height: 1;
+  }
+  .character-display .char-hint {
+    font-size: 20px;
+    color: rgba(255,255,255,0.95);
+    margin-top: 12px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  }
+  .pic-choices {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .pic-btn {
+    background: linear-gradient(180deg, #fff 0%, #f5f5f5 100%);
+    border: 4px solid #fff;
+    border-radius: 18px;
+    padding: 18px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.1);
+    font-size: 52px;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .pic-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .pic-btn.wrong { animation: shake 0.4s; }
+
+  /* ===== Animations ===== */
+  @keyframes pop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-8px); }
     75% { transform: translateX(8px); }
   }
-
-  /* 反馈 */
-  .feedback {
-    text-align: center;
-    font-size: 26px;
-    min-height: 38px;
-    color: #fff;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    font-weight: bold;
-    margin-top: 8px;
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
-  .feedback.show {
-    animation: pop 0.4s;
-  }
-
-  /* 通关 */
+  /* ===== Win overlay ===== */
   .win-overlay {
     display: none;
     position: fixed;
@@ -219,20 +333,13 @@
     justify-content: center;
     align-items: center;
   }
-
   .win-overlay.show {
     display: flex;
     animation: fadeIn 0.5s;
   }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
   .win-card {
     background: linear-gradient(135deg, #FFE53B 0%, #FF2525 100%);
-    padding: 40px 60px;
+    padding: 40px 50px;
     border-radius: 32px;
     text-align: center;
     color: #fff;
@@ -240,36 +347,32 @@
     animation: pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     max-width: 90vw;
   }
-
   .win-card h2 {
-    font-size: 52px;
-    margin-bottom: 16px;
+    font-size: 48px;
+    margin-bottom: 12px;
     text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
   }
-
   .win-card p {
-    font-size: 26px;
+    font-size: 24px;
     margin-bottom: 24px;
   }
-
-  .restart-btn {
+  .win-card button {
     background: #fff;
     color: #FF2525;
     border: none;
-    padding: 16px 32px;
-    font-size: 22px;
+    padding: 14px 28px;
+    font-size: 20px;
     font-weight: bold;
     border-radius: 16px;
     cursor: pointer;
     box-shadow: 0 6px 0 rgba(0,0,0,0.2);
     font-family: inherit;
+    margin: 6px;
   }
-
-  .restart-btn:active {
+  .win-card button:active {
     transform: translateY(4px);
     box-shadow: 0 2px 0 rgba(0,0,0,0.2);
   }
-
   .confetti {
     position: fixed;
     width: 10px;
@@ -278,79 +381,76 @@
     z-index: 200;
   }
 
-  /* 平板/手机适配 */
-  @media (max-width: 600px) {
-    .header h1 { font-size: 26px; }
-    .level { font-size: 18px; }
+  /* ===== Responsive ===== */
+  @media (max-width: 700px) {
+    .home h1 { font-size: 32px; }
+    .game-grid { grid-template-columns: 1fr; max-width: 280px; }
+    .game-card .emoji { font-size: 56px; }
     .animal-row { font-size: 40px; letter-spacing: 2px; }
     .car-btn { font-size: 22px; padding: 10px 4px; }
     .car-btn .icon { font-size: 28px; }
-    .car { font-size: 48px; }
-    .finish-flag { font-size: 48px; }
-    .choices { gap: 8px; }
-    .win-card h2 { font-size: 36px; }
+    .car-display .car-number { font-size: 56px; }
+    .car-display .car-icon { font-size: 56px; }
+    .spot { font-size: 36px; padding: 16px 4px; }
+    .spot.filled { font-size: 22px; }
+    .character-display .big-char { font-size: 80px; }
+    .pic-btn { font-size: 40px; padding: 14px 4px; }
+    .choices, .parking-spots, .pic-choices { gap: 8px; }
+    .win-card h2 { font-size: 32px; }
+    .win-card p { font-size: 18px; }
   }
 </style>
 </head>
 <body>
-<div class="game">
-  <div class="header">
-    <h1>🚗 数小动物，开车车 🚗</h1>
-    <div class="level">第 <span id="level">1</span> 关 / 共 10 关</div>
+
+<!-- ===== Home ===== -->
+<div class="home" id="home">
+  <h1>🎨 3 岁小课堂</h1>
+  <p>选一个游戏开始玩吧～</p>
+  <div class="game-grid">
+    <button class="game-card" data-game="counting">
+      <span class="emoji">🚗</span>
+      <span class="name">数小动物</span>
+      <span class="desc">数一数有几只</span>
+    </button>
+    <button class="game-card" data-game="parking">
+      <span class="emoji">🅿️</span>
+      <span class="name">停车场</span>
+      <span class="desc">阿拉伯 ↔ 中文数字</span>
+    </button>
+    <button class="game-card" data-game="chinese">
+      <span class="emoji">🐱</span>
+      <span class="name">认字</span>
+      <span class="desc">看字选动物 / 交通工具</span>
+    </button>
   </div>
+</div>
 
-  <div class="animals">
-    <div class="animals-title">数一数，有几只小动物？</div>
-    <div class="animal-row" id="animalRow"></div>
+<!-- ===== Game container ===== -->
+<div class="game-container" id="gameContainer" style="display:none">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goHome()">← 选别的游戏</button>
+    <div class="level-display"><span id="gameLevel">第 1 关</span></div>
   </div>
-
-  <div class="track">
-    <div class="road-line"></div>
-    <div class="finish-flag">🏁</div>
-    <div class="car" id="car">🚗</div>
-  </div>
-
-  <div class="choices" id="choices"></div>
-
+  <div id="gameView"></div>
   <div class="feedback" id="feedback"></div>
 </div>
 
+<!-- ===== Win overlay (shared) ===== -->
 <div class="win-overlay" id="winOverlay">
   <div class="win-card">
-    <h2>🎉 通关啦 🎉</h2>
-    <p>小司机太棒了！</p>
-    <button class="restart-btn" onclick="restart()">再玩一次</button>
+    <h2 id="winTitle">🎉 通关啦 🎉</h2>
+    <p id="winMessage">小宝贝太棒了！</p>
+    <button onclick="restartGame()">再玩一次</button>
+    <button onclick="goHome()">选别的游戏</button>
   </div>
 </div>
 
 <script>
-const ANIMALS = ['🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🦄'];
-const CARS = ['🚗', '🚙', '🚕', '🚌', '🚓'];
-
-let level = 1;
-const TOTAL_LEVELS = 10;
-let currentCount = 0;
-let currentAnimal = '';
-let currentCar = '';
-let lockInput = false;
-
-const levelRanges = [
-  [1, 3],   // L1
-  [1, 4],   // L2
-  [2, 4],   // L3
-  [2, 5],   // L4
-  [3, 5],   // L5
-  [3, 6],   // L6
-  [4, 6],   // L7
-  [4, 7],   // L8
-  [5, 8],   // L9
-  [5, 10],  // L10
-];
-
+// ===== Common helpers =====
 function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -359,122 +459,34 @@ function shuffle(arr) {
   }
   return a;
 }
-
 function speak(text) {
   if ('speechSynthesis' in window) {
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'zh-CN';
-      u.rate = 0.9;
+      u.rate = 0.85;
       window.speechSynthesis.speak(u);
     } catch (e) {}
   }
 }
-
-function setupLevel() {
-  if (level > TOTAL_LEVELS) {
-    showWin();
-    return;
-  }
-
-  document.getElementById('level').textContent = level;
-  const [min, max] = levelRanges[level - 1];
-  currentCount = rand(min, max);
-  currentAnimal = ANIMALS[rand(0, ANIMALS.length - 1)];
-  currentCar = CARS[rand(0, CARS.length - 1)];
-
-  // 显示动物
-  const row = document.getElementById('animalRow');
-  row.innerHTML = '';
-  for (let i = 0; i < currentCount; i++) {
-    const span = document.createElement('span');
-    span.className = 'animal';
-    span.textContent = currentAnimal;
-    span.style.animationDelay = `${i * 0.08}s`;
-    row.appendChild(span);
-  }
-
-  // 生成选项（包含正确答案 + 4 个干扰项）
-  const choices = new Set([currentCount]);
-  let attempts = 0;
-  while (choices.size < 5 && attempts < 50) {
-    const offset = rand(-3, 3);
-    const c = Math.max(1, Math.min(10, currentCount + offset));
-    if (c !== currentCount) choices.add(c);
-    attempts++;
-  }
-  while (choices.size < 5) {
-    choices.add(rand(1, 10));
-  }
-  const choicesArr = shuffle([...choices]).slice(0, 5);
-
-  const choicesEl = document.getElementById('choices');
-  choicesEl.innerHTML = '';
-  choicesArr.forEach(n => {
-    const btn = document.createElement('button');
-    btn.className = 'car-btn';
-    btn.innerHTML = `<span class="icon">${currentCar}</span>${n}`;
-    btn.onclick = () => handleChoice(n, btn);
-    choicesEl.appendChild(btn);
-  });
-
-  document.getElementById('feedback').textContent = '';
-  lockInput = false;
-
-  // 自动朗读题目
-  setTimeout(() => speak(`数一数，有几只小动物？`), 600);
+function showFeedback(text) {
+  const fb = document.getElementById('feedback');
+  fb.textContent = text;
+  fb.classList.remove('show');
+  void fb.offsetWidth;
+  fb.classList.add('show');
 }
-
-function handleChoice(n, btn) {
-  if (lockInput) return;
-
-  if (n === currentCount) {
-    // 答对
-    lockInput = true;
-    btn.classList.add('correct');
-    btn.style.background = 'linear-gradient(180deg, #43E97B 0%, #38F9D7 100%)';
-    btn.style.boxShadow = '0 6px 0 #2E9D5F, 0 8px 16px rgba(0,0,0,0.2)';
-
-    const car = document.getElementById('car');
-    car.style.left = `calc(${(level / TOTAL_LEVELS) * 92}% + 8px)`;
-    car.classList.add('drive');
-    setTimeout(() => car.classList.remove('drive'), 500);
-
-    const fb = document.getElementById('feedback');
-    fb.textContent = '🎉 答对啦！往前跑！';
-    fb.classList.remove('show');
-    void fb.offsetWidth;
-    fb.classList.add('show');
-
-    speak(`答对啦！有${currentCount}只。`);
-
-    document.querySelectorAll('.car-btn').forEach(b => b.disabled = true);
-
-    setTimeout(() => {
-      level++;
-      setupLevel();
-    }, 1600);
-  } else {
-    btn.classList.add('wrong');
-    const fb = document.getElementById('feedback');
-    fb.textContent = '🤔 再数一数哦';
-    fb.classList.remove('show');
-    void fb.offsetWidth;
-    fb.classList.add('show');
-    speak('再数一数哦');
-    setTimeout(() => {
-      btn.classList.remove('wrong');
-    }, 500);
-  }
+function updateLevel(level, total) {
+  document.getElementById('gameLevel').textContent = `第 ${level} 关 / 共 ${total} 关`;
 }
-
-function showWin() {
+function showWin(title, message, speakText) {
+  document.getElementById('winTitle').textContent = title;
+  document.getElementById('winMessage').textContent = message;
   document.getElementById('winOverlay').classList.add('show');
   spawnConfetti();
-  speak('通关啦，小司机太棒了！');
+  speak(speakText || title);
 }
-
 function spawnConfetti() {
   const colors = ['#FF6B6B', '#4FACFE', '#43E97B', '#FA709A', '#FFE53B', '#A18CD1'];
   for (let i = 0; i < 80; i++) {
@@ -494,14 +506,303 @@ function spawnConfetti() {
   }
 }
 
-function restart() {
+// ===== Navigation =====
+let currentGame = null;
+function goHome() {
+  document.getElementById('home').style.display = '';
+  document.getElementById('gameContainer').style.display = 'none';
   document.getElementById('winOverlay').classList.remove('show');
-  level = 1;
-  document.getElementById('car').style.left = '16px';
-  setupLevel();
+  try { window.speechSynthesis.cancel(); } catch (e) {}
+  currentGame = null;
+}
+function startGame(name) {
+  currentGame = name;
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('gameContainer').style.display = '';
+  document.getElementById('winOverlay').classList.remove('show');
+  document.getElementById('feedback').textContent = '';
+  if (name === 'counting') startCounting();
+  else if (name === 'parking') startParking();
+  else if (name === 'chinese') startChinese();
+}
+document.querySelectorAll('.game-card').forEach(card => {
+  card.addEventListener('click', () => startGame(card.dataset.game));
+});
+function restartGame() {
+  document.getElementById('winOverlay').classList.remove('show');
+  if (currentGame === 'counting') startCounting();
+  else if (currentGame === 'parking') startParking();
+  else if (currentGame === 'chinese') startChinese();
 }
 
-setupLevel();
+// ===== Game 1: Counting (existing logic, refactored) =====
+const ANIMALS = ['🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐨', '🐯', '🦁', '🐮'];
+const CARS = ['🚗', '🚙', '🚕', '🚌', '🚓'];
+const countingRanges = [
+  [1, 3], [1, 4], [2, 4], [2, 5], [3, 5],
+  [3, 6], [4, 6], [4, 7], [5, 8], [5, 10],
+];
+const counting = { level: 1, total: 10, currentCount: 0, currentAnimal: '', currentCar: '', lockInput: false };
+
+function startCounting() {
+  counting.level = 1;
+  setupCounting();
+}
+
+function setupCounting() {
+  updateLevel(counting.level, counting.total);
+  document.getElementById('feedback').textContent = '';
+
+  const [min, max] = countingRanges[counting.level - 1];
+  counting.currentCount = rand(min, max);
+  counting.currentAnimal = ANIMALS[rand(0, ANIMALS.length - 1)];
+  counting.currentCar = CARS[rand(0, CARS.length - 1)];
+
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-title">数一数，有几只小动物？</div>
+      <div class="animal-row" id="animalRow"></div>
+    </div>
+    <div class="choices" id="countingChoices"></div>
+  `;
+
+  const row = document.getElementById('animalRow');
+  row.innerHTML = '';
+  for (let i = 0; i < counting.currentCount; i++) {
+    const span = document.createElement('span');
+    span.className = 'animal';
+    span.textContent = counting.currentAnimal;
+    span.style.animationDelay = `${i * 0.08}s`;
+    row.appendChild(span);
+  }
+
+  const choices = new Set([counting.currentCount]);
+  let attempts = 0;
+  while (choices.size < 5 && attempts < 50) {
+    const offset = rand(-3, 3);
+    const c = Math.max(1, Math.min(10, counting.currentCount + offset));
+    if (c !== counting.currentCount) choices.add(c);
+    attempts++;
+  }
+  while (choices.size < 5) choices.add(rand(1, 10));
+  const arr = shuffle([...choices]).slice(0, 5);
+
+  const choicesEl = document.getElementById('countingChoices');
+  choicesEl.innerHTML = '';
+  arr.forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'car-btn';
+    btn.innerHTML = `<span class="icon">${counting.currentCar}</span>${n}`;
+    btn.onclick = () => handleCounting(n, btn);
+    choicesEl.appendChild(btn);
+  });
+
+  counting.lockInput = false;
+  setTimeout(() => speak('数一数，有几只小动物？'), 600);
+}
+
+function handleCounting(n, btn) {
+  if (counting.lockInput) return;
+  if (n === counting.currentCount) {
+    counting.lockInput = true;
+    btn.style.background = 'linear-gradient(180deg, #43E97B 0%, #38F9D7 100%)';
+    btn.style.boxShadow = '0 6px 0 #2E9D5F, 0 8px 16px rgba(0,0,0,0.2)';
+    showFeedback('🎉 答对啦！');
+    speak(`答对啦，有${counting.currentCount}只`);
+    document.querySelectorAll('#countingChoices .car-btn').forEach(b => b.disabled = true);
+    setTimeout(() => {
+      counting.level++;
+      if (counting.level > counting.total) {
+        showWin('🎉 数完啦 🎉', '小司机太棒了！', '数完啦，小司机太棒了！');
+      } else {
+        setupCounting();
+      }
+    }, 1500);
+  } else {
+    btn.classList.add('wrong');
+    showFeedback('🤔 再数一数哦');
+    speak('再数一数哦');
+    setTimeout(() => btn.classList.remove('wrong'), 500);
+  }
+}
+
+// ===== Game 2: Parking =====
+const CN_NUMS = ['一', '二', '三', '四', '五'];
+const parking = { level: 1, total: 10, target: 0, lockInput: false };
+
+function startParking() {
+  parking.level = 1;
+  setupParking();
+}
+
+function setupParking() {
+  updateLevel(parking.level, parking.total);
+  document.getElementById('feedback').textContent = '';
+
+  parking.target = rand(1, 5);
+
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-title">这辆车要停到几号车位？</div>
+      <div class="car-display">
+        <div class="car-icon">🚗</div>
+        <div class="car-number" id="carNumber">${parking.target}</div>
+      </div>
+      <div class="parking-spots" id="parkingSpots"></div>
+    </div>
+  `;
+
+  const spotsEl = document.getElementById('parkingSpots');
+  spotsEl.innerHTML = '';
+  CN_NUMS.forEach((cn, i) => {
+    const spot = document.createElement('button');
+    spot.className = 'spot';
+    spot.textContent = cn;
+    spot.dataset.value = i + 1;
+    spot.onclick = () => handleParking(spot);
+    spotsEl.appendChild(spot);
+  });
+
+  parking.lockInput = false;
+  setTimeout(() => speak('这辆车要停到几号车位？'), 600);
+}
+
+function handleParking(spot) {
+  if (parking.lockInput) return;
+  const v = parseInt(spot.dataset.value);
+  if (v === parking.target) {
+    parking.lockInput = true;
+    spot.classList.add('filled');
+    spot.textContent = `${CN_NUMS[v-1]} 🚗`;
+    showFeedback('🎉 停好啦！');
+    speak(`停到${CN_NUMS[v-1]}啦`);
+    document.querySelectorAll('#parkingSpots .spot').forEach(s => s.disabled = true);
+    setTimeout(() => {
+      parking.level++;
+      if (parking.level > parking.total) {
+        showWin('🎉 都会停啦 🎉', '小小司机太厉害！', '都会停啦，小小司机太厉害！');
+      } else {
+        setupParking();
+      }
+    }, 1500);
+  } else {
+    spot.classList.add('wrong');
+    showFeedback('🤔 再看看数字');
+    speak('再看看数字');
+    setTimeout(() => spot.classList.remove('wrong'), 500);
+  }
+}
+
+// ===== Game 3: Chinese Character Recognition =====
+const CHINESE_DATA = {
+  animals: [
+    { word: '猫', pic: '🐱' }, { word: '狗', pic: '🐶' }, { word: '兔', pic: '🐰' },
+    { word: '熊', pic: '🐻' }, { word: '狐狸', pic: '🦊' }, { word: '猪', pic: '🐷' },
+    { word: '牛', pic: '🐮' }, { word: '马', pic: '🐴' }, { word: '鸡', pic: '🐔' },
+    { word: '鸭', pic: '🦆' }, { word: '象', pic: '🐘' }, { word: '熊猫', pic: '🐼' },
+    { word: '老虎', pic: '🐯' }, { word: '狮子', pic: '🦁' }, { word: '猴', pic: '🐵' },
+  ],
+  vehicles: [
+    { word: '汽车', pic: '🚗' }, { word: '飞机', pic: '✈️' }, { word: '船', pic: '🚢' },
+    { word: '火车', pic: '🚂' }, { word: '自行车', pic: '🚲' }, { word: '公交车', pic: '🚌' },
+    { word: '出租车', pic: '🚕' }, { word: '摩托车', pic: '🏍️' }, { word: '卡车', pic: '🚚' },
+    { word: '救护车', pic: '🚑' },
+  ],
+};
+
+const chinese = { level: 1, total: 10, current: null, lockInput: false };
+
+function startChinese() {
+  chinese.level = 1;
+  setupChinese();
+}
+
+function setupChinese() {
+  updateLevel(chinese.level, chinese.total);
+  document.getElementById('feedback').textContent = '';
+
+  const all = [...CHINESE_DATA.animals, ...CHINESE_DATA.vehicles];
+  chinese.current = all[rand(0, all.length - 1)];
+  const isVehicle = CHINESE_DATA.vehicles.some(v => v.word === chinese.current.word);
+
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-title">看字，选对的图</div>
+      <div class="character-display">
+        <div class="big-char">${chinese.current.word}</div>
+        <div class="char-hint">${isVehicle ? '🚗 交通工具' : '🐾 小动物'}</div>
+      </div>
+      <div class="pic-choices" id="picChoices"></div>
+    </div>
+  `;
+
+  // 4 干扰项：2 同类 + 2 异类
+  const same = isVehicle
+    ? CHINESE_DATA.vehicles.filter(v => v.word !== chinese.current.word)
+    : CHINESE_DATA.animals.filter(a => a.word !== chinese.current.word);
+  const other = isVehicle ? CHINESE_DATA.animals : CHINESE_DATA.vehicles;
+  const sameShuffled = shuffle(same);
+  const otherShuffled = shuffle(other);
+
+  const distractors = [
+    sameShuffled[0],
+    otherShuffled[0],
+    sameShuffled[1] || otherShuffled[1],
+    otherShuffled[1] || sameShuffled[2] || otherShuffled[0],
+  ];
+  // 补足到 4 个（防同类不足）
+  while (distractors.length < 4) {
+    const candidate = otherShuffled[distractors.length] || sameShuffled[distractors.length];
+    if (candidate && !distractors.includes(candidate)) distractors.push(candidate);
+    else break;
+  }
+
+  const options = shuffle([chinese.current, ...distractors]).slice(0, 5);
+  // 防万一补足
+  while (options.length < 5) {
+    const pool = isVehicle ? CHINESE_DATA.animals : CHINESE_DATA.vehicles;
+    const extra = pool[rand(0, pool.length - 1)];
+    if (!options.includes(extra)) options.push(extra);
+  }
+
+  const choicesEl = document.getElementById('picChoices');
+  choicesEl.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'pic-btn';
+    btn.textContent = opt.pic;
+    btn.onclick = () => handleChinese(opt, btn);
+    choicesEl.appendChild(btn);
+  });
+
+  chinese.lockInput = false;
+  setTimeout(() => speak(chinese.current.word), 600);
+}
+
+function handleChinese(opt, btn) {
+  if (chinese.lockInput) return;
+  if (opt.word === chinese.current.word) {
+    chinese.lockInput = true;
+    btn.style.background = 'linear-gradient(180deg, #43E97B 0%, #38F9D7 100%)';
+    btn.style.borderColor = '#2E9D5F';
+    showFeedback('🎉 对啦！');
+    speak(`对啦，是${chinese.current.word}`);
+    document.querySelectorAll('#picChoices .pic-btn').forEach(b => b.disabled = true);
+    setTimeout(() => {
+      chinese.level++;
+      if (chinese.level > chinese.total) {
+        showWin('🎉 全认完啦 🎉', '小宝贝认识好多字！', '全认完啦，小宝贝认识好多字！');
+      } else {
+        setupChinese();
+      }
+    }, 1500);
+  } else {
+    btn.classList.add('wrong');
+    showFeedback('🤔 再看看字');
+    speak('再看看字');
+    setTimeout(() => btn.classList.remove('wrong'), 500);
+  }
+}
 </script>
 </body>
 </html>
