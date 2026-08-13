@@ -809,7 +809,7 @@ function flyAnimalToTrain(btnEl, animalPic, trainCarEl) {
   }, { once: true });
 }
 
-function flyCarToSpot(carDisplayEl, spotEl, cnNum) {
+function flyCarToSpot(carDisplayEl, spotEl) {
   const cdRect = carDisplayEl.getBoundingClientRect();
   const spRect = spotEl.getBoundingClientRect();
   const flyer = document.createElement('div');
@@ -830,11 +830,7 @@ function flyCarToSpot(carDisplayEl, spotEl, cnNum) {
     flyer.style.transform = `translate(${dx}px,${dy}px) scale(0.6)`;
     flyer.style.opacity   = '0.5';
   });
-  flyer.addEventListener('transitionend', () => {
-    flyer.remove();
-    spotEl.classList.add('filled');
-    spotEl.textContent = `${cnNum} 🚗`;
-  }, { once: true });
+  flyer.addEventListener('transitionend', () => flyer.remove(), { once: true });
 }
 
 function departTrain() {
@@ -1027,10 +1023,21 @@ function handleCounting(n, btn) {
 // ===== Game 2: Parking =====
 const CN_NUMS = ['一', '二', '三', '四', '五', '六', '七'];
 const parkingRanges = {
-  easy:   { spots: 3, min: 1, max: 3 },
-  medium: { spots: 5, min: 1, max: 5 },
-  hard:   { spots: 7, min: 1, max: 7 },
+  easy:   { min: 1,  max: 10 },
+  medium: { min: 1,  max: 20 },
+  hard:   { min: 20, max: 30 },
 };
+
+// 中文数字生成（1-99）
+const CHN_DIGITS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+function numberToChinese(n) {
+  if (n === 10) return '十';
+  if (n < 10) return CHN_DIGITS[n];
+  if (n < 20) return '十' + (n > 10 ? CHN_DIGITS[n - 10] : '');
+  const tens = Math.floor(n / 10);
+  const ones = n % 10;
+  return CHN_DIGITS[tens] + '十' + (ones > 0 ? CHN_DIGITS[ones] : '');
+}
 const parking = { level: 1, total: 10, target: 0, lockInput: false };
 
 function startParking() {
@@ -1044,31 +1051,49 @@ function setupParking() {
 
   const range = parkingRanges[settings.difficulty];
   parking.target = rand(range.min, range.max);
+  const cnNum = numberToChinese(parking.target);
 
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
-      <div class="stage-title">这辆车要停到几号车位？</div>
+      <div class="stage-title">几号？</div>
       <div class="car-display">
         <div class="car-icon">🚗</div>
-        <div class="car-number" id="carNumber">${parking.target}</div>
+        <div class="car-number" id="carNumber">${cnNum}</div>
       </div>
       <div class="parking-spots" id="parkingSpots"></div>
     </div>
   `;
 
+  // 5 个阿拉伯数字选项（含正确答案 + 4 干扰）
+  const options = new Set([parking.target]);
+  let attempts = 0;
+  while (options.size < 5 && attempts < 100) {
+    const offset = rand(-3, 3);
+    if (offset === 0) { attempts++; continue; }
+    const candidate = parking.target + offset;
+    if (candidate >= range.min && candidate <= range.max) {
+      options.add(candidate);
+    }
+    attempts++;
+  }
+  while (options.size < 5) {
+    options.add(rand(range.min, range.max));
+  }
+  const optArr = shuffle([...options]).slice(0, 5);
+
   const spotsEl = document.getElementById('parkingSpots');
   spotsEl.innerHTML = '';
-  CN_NUMS.slice(0, range.spots).forEach((cn, i) => {
+  optArr.forEach(n => {
     const spot = document.createElement('button');
     spot.className = 'spot';
-    spot.textContent = cn;
-    spot.dataset.value = i + 1;
+    spot.textContent = n;
+    spot.dataset.value = n;
     spot.onclick = () => handleParking(spot);
     spotsEl.appendChild(spot);
   });
 
   parking.lockInput = false;
-  setTimeout(() => speak('这辆车要停到几号车位？'), 600);
+  setTimeout(() => speak(`${cnNum}是几？`), 600);
 }
 
 function handleParking(spot) {
@@ -1076,16 +1101,12 @@ function handleParking(spot) {
   const v = parseInt(spot.dataset.value);
   if (v === parking.target) {
     parking.lockInput = true;
-    showFeedback('🎉 停好啦！');
-    speak(`停到${CN_NUMS[v-1]}啦`);
+    spot.classList.add('filled');
+    showFeedback('🎉 答对啦！');
+    speak(`${numberToChinese(parking.target)}就是${parking.target}`);
     document.querySelectorAll('#parkingSpots .spot').forEach(s => s.disabled = true);
     const carDisplay = document.querySelector('.car-display');
-    if (carDisplay) {
-      flyCarToSpot(carDisplay, spot, CN_NUMS[v-1]);
-    } else {
-      spot.classList.add('filled');
-      spot.textContent = `${CN_NUMS[v-1]} 🚗`;
-    }
+    if (carDisplay) flyCarToSpot(carDisplay, spot);
     setTimeout(() => {
       parking.level++;
       if (parking.level > parking.total) {
