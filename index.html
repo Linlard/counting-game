@@ -458,6 +458,137 @@
     .win-card h2 { font-size: 32px; }
     .win-card p { font-size: 18px; }
   }
+
+  /* ===== Train (game 3) ===== */
+  .train {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+    padding: 12px;
+    background: rgba(255,255,255,0.92);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    font-size: 36px;
+    overflow: hidden;
+  }
+  .train-engine {
+    font-size: 42px;
+    display: inline-block;
+    animation: chug 0.6s ease-in-out infinite alternate;
+  }
+  @keyframes chug {
+    from { transform: translateY(0) rotate(-2deg); }
+    to   { transform: translateY(-3px) rotate(2deg); }
+  }
+  .train-car {
+    width: 60px;
+    height: 60px;
+    border: 3px dashed rgba(0,0,0,0.25);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    background: rgba(255,255,255,0.6);
+    transition: background 0.3s, border-color 0.3s, transform 0.3s;
+  }
+  .train-car.filled {
+    border-style: solid;
+    border-color: #43E97B;
+    background: linear-gradient(180deg, #E0FFE5 0%, #B8F5C9 100%);
+    transform: scale(1.05);
+  }
+  .train.departing {
+    animation: trainDepart 1.6s ease-in-out forwards;
+  }
+  @keyframes trainDepart {
+    0%   { transform: translateX(0); opacity: 1; }
+    55%  { transform: translateX(80%); opacity: 0.85; }
+    56%  { transform: translateX(-100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+
+  /* ===== Game 1: drive-off ===== */
+  .car-btn.correct .icon {
+    display: inline-block;
+    animation: driveOff 1.1s ease-in forwards;
+  }
+  @keyframes driveOff {
+    0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+    25%  { transform: translate(0, -10px) scale(1.5); opacity: 1; }
+    100% { transform: translate(80vw, -40vh) scale(0.5); opacity: 0; }
+  }
+  .car-btn.faded {
+    opacity: 0.25;
+    transform: scale(0.85);
+    transition: all 0.4s ease-out;
+  }
+
+  /* ===== Game 2: parking spot filled ===== */
+  .spot.filled {
+    background: linear-gradient(180deg, #43E97B 0%, #38F9D7 100%) !important;
+    color: #fff !important;
+    font-weight: bold;
+    border-color: #2E9D5F !important;
+    transform: scale(1.05);
+    box-shadow: 0 4px 0 #2E9D5F, 0 6px 12px rgba(0,0,0,0.2);
+  }
+  .pic-btn.correct {
+    background: linear-gradient(180deg, #43E97B 0%, #38F9D7 100%) !important;
+    border-color: #2E9D5F !important;
+    transform: scale(1.08);
+    box-shadow: 0 4px 0 #2E9D5F, 0 6px 12px rgba(0,0,0,0.2);
+  }
+
+  /* ===== Flying elements ===== */
+  .flyer {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    transition: transform 0.7s ease-in, opacity 0.7s ease-in;
+  }
+
+  /* ===== Easter egg (win) ===== */
+  @keyframes fireworkSpark {
+    0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0.3); opacity: 0; }
+  }
+  .firework-spark {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    z-index: 9997;
+    pointer-events: none;
+    animation: fireworkSpark 1.2s ease-out forwards;
+  }
+  @keyframes animalCelebrate {
+    0%   { transform: translateX(-120px) rotate(0deg); }
+    100% { transform: translateX(calc(100vw + 120px)) rotate(720deg); }
+  }
+  .animal-celebrate {
+    position: fixed;
+    left: -120px;
+    z-index: 9996;
+    pointer-events: none;
+    animation: animalCelebrate linear forwards;
+  }
+  @keyframes trainCelebrateRun {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(calc(100vw + 400px)); }
+  }
+  .train-celebrate {
+    position: fixed;
+    left: -300px;
+    bottom: 25%;
+    font-size: 56px;
+    z-index: 9998;
+    pointer-events: none;
+    white-space: nowrap;
+    animation: trainCelebrateRun 4.5s linear forwards;
+  }
 </style>
 </head>
 <body>
@@ -502,6 +633,14 @@
   </div>
   <div id="gameView"></div>
   <div class="feedback" id="feedback"></div>
+  <div class="train" id="train" style="display:none">
+    <span class="train-engine">🚂</span>
+    <div class="train-car" data-slot="0"></div>
+    <div class="train-car" data-slot="1"></div>
+    <div class="train-car" data-slot="2"></div>
+    <div class="train-car" data-slot="3"></div>
+    <div class="train-car" data-slot="4"></div>
+  </div>
 </div>
 
 <!-- ===== Win overlay (shared) ===== -->
@@ -604,6 +743,9 @@ function showWin(title, message, speakText) {
   document.getElementById('winMessage').textContent = message;
   document.getElementById('winOverlay').classList.add('show');
   spawnConfetti();
+  spawnFireworks();
+  flyAnimalsAround();
+  trainCelebrate();
   speak(speakText || title);
 }
 function spawnConfetti() {
@@ -625,12 +767,144 @@ function spawnConfetti() {
   }
 }
 
+// ===== Train state (game 3) =====
+const trainCars = [null, null, null, null, null];
+
+function resetTrain() {
+  trainCars.fill(null);
+  const train = document.getElementById('train');
+  if (!train) return;
+  train.classList.remove('departing');
+  train.querySelectorAll('.train-car').forEach(c => {
+    c.classList.remove('filled');
+    c.textContent = '';
+  });
+}
+
+function flyAnimalToTrain(btnEl, animalPic, trainCarEl) {
+  const btnRect = btnEl.getBoundingClientRect();
+  const carRect = trainCarEl.getBoundingClientRect();
+  const flyer = document.createElement('div');
+  flyer.className = 'flyer';
+  flyer.textContent = animalPic;
+  flyer.style.left = (btnRect.left + btnRect.width / 2 - 24) + 'px';
+  flyer.style.top  = (btnRect.top  + btnRect.height / 2 - 24) + 'px';
+  flyer.style.width  = '48px';
+  flyer.style.height = '48px';
+  flyer.style.fontSize   = '40px';
+  flyer.style.textAlign  = 'center';
+  flyer.style.lineHeight = '48px';
+  document.body.appendChild(flyer);
+  const dx = carRect.left + carRect.width / 2 - (btnRect.left + btnRect.width / 2);
+  const dy = carRect.top  + carRect.height / 2 - (btnRect.top  + btnRect.height / 2);
+  flyer.offsetHeight;
+  requestAnimationFrame(() => {
+    flyer.style.transform = `translate(${dx}px,${dy}px) scale(0.6)`;
+    flyer.style.opacity   = '0.5';
+  });
+  flyer.addEventListener('transitionend', () => {
+    flyer.remove();
+    trainCarEl.classList.add('filled');
+    trainCarEl.textContent = animalPic;
+  }, { once: true });
+}
+
+function flyCarToSpot(carDisplayEl, spotEl, cnNum) {
+  const cdRect = carDisplayEl.getBoundingClientRect();
+  const spRect = spotEl.getBoundingClientRect();
+  const flyer = document.createElement('div');
+  flyer.className = 'flyer';
+  flyer.textContent = '🚗';
+  flyer.style.left = (cdRect.left + cdRect.width / 2 - 30) + 'px';
+  flyer.style.top  = (cdRect.top  + cdRect.height / 2 - 30) + 'px';
+  flyer.style.width  = '60px';
+  flyer.style.height = '60px';
+  flyer.style.fontSize   = '50px';
+  flyer.style.textAlign  = 'center';
+  flyer.style.lineHeight = '60px';
+  document.body.appendChild(flyer);
+  const dx = spRect.left + spRect.width / 2 - (cdRect.left + cdRect.width / 2);
+  const dy = spRect.top  + spRect.height / 2 - (cdRect.top  + cdRect.height / 2);
+  flyer.offsetHeight;
+  requestAnimationFrame(() => {
+    flyer.style.transform = `translate(${dx}px,${dy}px) scale(0.6)`;
+    flyer.style.opacity   = '0.5';
+  });
+  flyer.addEventListener('transitionend', () => {
+    flyer.remove();
+    spotEl.classList.add('filled');
+    spotEl.textContent = `${cnNum} 🚗`;
+  }, { once: true });
+}
+
+function departTrain() {
+  const train = document.getElementById('train');
+  showFeedback('🚂 火车要开啦！');
+  speak('呜——呜——');
+  train.classList.add('departing');
+  setTimeout(() => {
+    train.classList.remove('departing');
+    resetTrain();
+    setupChinese();
+  }, 1600);
+}
+
+// ===== Easter egg (win) =====
+function spawnFireworks() {
+  const colors = ['#FF6B6B','#FFB347','#43E97B','#4FACFE','#A18CD1','#FFE53B'];
+  for (let i = 0; i < 12; i++) {
+    setTimeout(() => {
+      const x = rand(80, window.innerWidth - 80);
+      const y = rand(80, window.innerHeight - 240);
+      for (let j = 0; j < 16; j++) {
+        const spark = document.createElement('div');
+        spark.className = 'firework-spark';
+        spark.style.background = colors[rand(0, colors.length - 1)];
+        spark.style.left = x + 'px';
+        spark.style.top  = y + 'px';
+        const angle = (j / 16) * Math.PI * 2;
+        const dist  = rand(50, 110);
+        spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+        spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 1300);
+      }
+    }, i * 220);
+  }
+}
+
+function flyAnimalsAround() {
+  const animals = ['🐶','🐱','🐰','🐻','🐼','🦊','🐨','🐯','🦁','🐮','🐷','🐔','🦆','🐘','🐵','🚗','🚙','🚕','🚌','✈️','🚢','🚂','🚲','🚀'];
+  for (let i = 0; i < 14; i++) {
+    setTimeout(() => {
+      const a = document.createElement('div');
+      a.className = 'animal-celebrate';
+      a.textContent = animals[rand(0, animals.length - 1)];
+      a.style.fontSize = rand(30, 60) + 'px';
+      a.style.top = rand(40, window.innerHeight - 80) + 'px';
+      a.style.animationDuration = rand(4, 7) + 's';
+      document.body.appendChild(a);
+      setTimeout(() => a.remove(), (rand(4, 7) + 0.3) * 1000);
+    }, i * 250);
+  }
+}
+
+function trainCelebrate() {
+  const train = document.createElement('div');
+  train.className = 'train-celebrate';
+  train.textContent = '🚂🚌🚙🚕🚗';
+  document.body.appendChild(train);
+  setTimeout(() => train.remove(), 4700);
+}
+
 // ===== Navigation =====
 let currentGame = null;
 function goHome() {
   document.getElementById('home').style.display = '';
   document.getElementById('gameContainer').style.display = 'none';
   document.getElementById('winOverlay').classList.remove('show');
+  document.getElementById('train').style.display = 'none';
+  resetTrain();
   try { window.speechSynthesis.cancel(); } catch (e) {}
   currentGame = null;
 }
@@ -640,6 +914,7 @@ function startGame(name) {
   document.getElementById('gameContainer').style.display = '';
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('feedback').textContent = '';
+  document.getElementById('train').style.display = (name === 'chinese') ? '' : 'none';
   if (name === 'counting') startCounting();
   else if (name === 'parking') startParking();
   else if (name === 'chinese') startChinese();
@@ -726,11 +1001,13 @@ function handleCounting(n, btn) {
   if (counting.lockInput) return;
   if (n === counting.currentCount) {
     counting.lockInput = true;
-    btn.style.background = 'linear-gradient(180deg, #43E97B 0%, #38F9D7 100%)';
-    btn.style.boxShadow = '0 6px 0 #2E9D5F, 0 8px 16px rgba(0,0,0,0.2)';
+    btn.classList.add('correct');
     showFeedback('🎉 答对啦！');
     speak(`答对啦，有${counting.currentCount}只`);
-    document.querySelectorAll('#countingChoices .car-btn').forEach(b => b.disabled = true);
+    document.querySelectorAll('#countingChoices .car-btn').forEach(b => {
+      b.disabled = true;
+      if (b !== btn) b.classList.add('faded');
+    });
     setTimeout(() => {
       counting.level++;
       if (counting.level > counting.total) {
@@ -799,11 +1076,16 @@ function handleParking(spot) {
   const v = parseInt(spot.dataset.value);
   if (v === parking.target) {
     parking.lockInput = true;
-    spot.classList.add('filled');
-    spot.textContent = `${CN_NUMS[v-1]} 🚗`;
     showFeedback('🎉 停好啦！');
     speak(`停到${CN_NUMS[v-1]}啦`);
     document.querySelectorAll('#parkingSpots .spot').forEach(s => s.disabled = true);
+    const carDisplay = document.querySelector('.car-display');
+    if (carDisplay) {
+      flyCarToSpot(carDisplay, spot, CN_NUMS[v-1]);
+    } else {
+      spot.classList.add('filled');
+      spot.textContent = `${CN_NUMS[v-1]} 🚗`;
+    }
     setTimeout(() => {
       parking.level++;
       if (parking.level > parking.total) {
@@ -846,6 +1128,7 @@ const chineseRanges = {
 
 function startChinese() {
   chinese.level = 1;
+  resetTrain();
   setupChinese();
 }
 
@@ -922,15 +1205,24 @@ function handleChinese(opt, btn) {
   if (chinese.lockInput) return;
   if (opt.word === chinese.current.word) {
     chinese.lockInput = true;
-    btn.style.background = 'linear-gradient(180deg, #43E97B 0%, #38F9D7 100%)';
-    btn.style.borderColor = '#2E9D5F';
+    btn.classList.add('correct');
     showFeedback('🎉 对啦！');
     speak(`对啦，是${chinese.current.word}`);
     document.querySelectorAll('#picChoices .pic-btn').forEach(b => b.disabled = true);
+    // 动物飞到火车
+    const slotIdx = trainCars.indexOf(null);
+    if (slotIdx >= 0) {
+      trainCars[slotIdx] = opt.pic;
+      const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
+      if (carEl) flyAnimalToTrain(btn, opt.pic, carEl);
+    }
+    const isLastInGroup = (slotIdx === 4);
     setTimeout(() => {
       chinese.level++;
       if (chinese.level > chinese.total) {
         showWin('🎉 全认完啦 🎉', '小宝贝认识好多字！', '全认完啦，小宝贝认识好多字！');
+      } else if (isLastInGroup) {
+        departTrain();
       } else {
         setupChinese();
       }
