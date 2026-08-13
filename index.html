@@ -125,6 +125,60 @@
     border-radius: 20px;
   }
 
+  /* ===== Toolbar (music + difficulty) ===== */
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 0 4px;
+    flex-wrap: wrap;
+  }
+  .toolbar-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar-spacer { width: 56px; }
+  .toggle-btn {
+    background: rgba(255,255,255,0.92);
+    color: #333;
+    border: none;
+    padding: 10px 14px;
+    font-size: 26px;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    font-family: inherit;
+    min-width: 56px;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  .toggle-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+  }
+  .toggle-btn.muted { opacity: 0.55; }
+  .diff-btn {
+    background: rgba(255,255,255,0.7);
+    color: #333;
+    border: 2px solid transparent;
+    padding: 8px 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.1s, all 0.2s;
+  }
+  .diff-btn:active { transform: translateY(2px); }
+  .diff-btn.active {
+    background: linear-gradient(180deg, #FFB347 0%, #FF8C42 100%);
+    color: #fff;
+    border-color: #FF6B35;
+    box-shadow: 0 3px 0 #CC5500, 0 4px 8px rgba(0,0,0,0.15);
+  }
+
   /* ===== Common stage ===== */
   .game-stage {
     background: rgba(255,255,255,0.94);
@@ -157,13 +211,18 @@
 
   /* ===== Game 1: counting (car buttons) ===== */
   .animal-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px 10px;
+    justify-items: center;
+    align-items: center;
+    margin: 16px auto;
+    max-width: 460px;
     font-size: 54px;
     line-height: 1.2;
-    letter-spacing: 4px;
   }
   .animal {
-    display: inline-block;
-    margin: 4px;
+    display: block;
     animation: pop 0.5s ease-out backwards;
   }
   .choices {
@@ -432,6 +491,15 @@
     <button class="back-btn" onclick="goHome()">← 选别的游戏</button>
     <div class="level-display"><span id="gameLevel">第 1 关</span></div>
   </div>
+  <div class="toolbar">
+    <button class="toggle-btn" id="musicToggle" title="音乐开关" aria-label="音乐开关" aria-pressed="true">🔊</button>
+    <div class="toolbar-group">
+      <button class="diff-btn" data-diff="easy">简单</button>
+      <button class="diff-btn active" data-diff="medium">中等</button>
+      <button class="diff-btn" data-diff="hard">困难</button>
+    </div>
+    <div class="toolbar-spacer"></div>
+  </div>
   <div id="gameView"></div>
   <div class="feedback" id="feedback"></div>
 </div>
@@ -459,7 +527,58 @@ function shuffle(arr) {
   }
   return a;
 }
+
+// ===== Settings (localStorage) =====
+const SETTINGS_KEY = 'countingGameSettings_v1';
+let settings = {
+  musicOn: true,
+  difficulty: 'medium',
+};
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    if (saved) Object.assign(settings, JSON.parse(saved));
+  } catch (e) {}
+}
+function saveSettings() {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch (e) {}
+}
+function updateMusicBtn() {
+  const btn = document.getElementById('musicToggle');
+  if (!btn) return;
+  btn.textContent = settings.musicOn ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !settings.musicOn);
+  btn.setAttribute('aria-pressed', settings.musicOn ? 'true' : 'false');
+}
+function updateDiffBtns() {
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.diff === settings.difficulty);
+  });
+}
+function toggleMusic() {
+  settings.musicOn = !settings.musicOn;
+  if (!settings.musicOn) {
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+  }
+  saveSettings();
+  updateMusicBtn();
+}
+function setDifficulty(diff) {
+  if (!['easy', 'medium', 'hard'].includes(diff)) return;
+  settings.difficulty = diff;
+  saveSettings();
+  updateDiffBtns();
+  if (typeof currentGame !== 'undefined' && currentGame) {
+    if (currentGame === 'counting') startCounting();
+    else if (currentGame === 'parking') startParking();
+    else if (currentGame === 'chinese') startChinese();
+  }
+}
+
 function speak(text) {
+  if (!settings.musicOn) return;
   if ('speechSynthesis' in window) {
     try {
       window.speechSynthesis.cancel();
@@ -538,10 +657,11 @@ function restartGame() {
 // ===== Game 1: Counting (existing logic, refactored) =====
 const ANIMALS = ['🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐨', '🐯', '🦁', '🐮'];
 const CARS = ['🚗', '🚙', '🚕', '🚌', '🚓'];
-const countingRanges = [
-  [1, 3], [1, 4], [2, 4], [2, 5], [3, 5],
-  [3, 6], [4, 6], [4, 7], [5, 8], [5, 10],
-];
+const countingRanges = {
+  easy:   { min: 2,  max: 5 },
+  medium: { min: 6,  max: 10 },
+  hard:   { min: 10, max: 20 },
+};
 const counting = { level: 1, total: 10, currentCount: 0, currentAnimal: '', currentCar: '', lockInput: false };
 
 function startCounting() {
@@ -553,7 +673,8 @@ function setupCounting() {
   updateLevel(counting.level, counting.total);
   document.getElementById('feedback').textContent = '';
 
-  const [min, max] = countingRanges[counting.level - 1];
+  const range = countingRanges[settings.difficulty];
+  const min = range.min, max = range.max;
   counting.currentCount = rand(min, max);
   counting.currentAnimal = ANIMALS[rand(0, ANIMALS.length - 1)];
   counting.currentCar = CARS[rand(0, CARS.length - 1)];
@@ -627,7 +748,12 @@ function handleCounting(n, btn) {
 }
 
 // ===== Game 2: Parking =====
-const CN_NUMS = ['一', '二', '三', '四', '五'];
+const CN_NUMS = ['一', '二', '三', '四', '五', '六', '七'];
+const parkingRanges = {
+  easy:   { spots: 4, min: 1, max: 3 },
+  medium: { spots: 5, min: 1, max: 5 },
+  hard:   { spots: 5, min: 1, max: 7 },
+};
 const parking = { level: 1, total: 10, target: 0, lockInput: false };
 
 function startParking() {
@@ -639,7 +765,8 @@ function setupParking() {
   updateLevel(parking.level, parking.total);
   document.getElementById('feedback').textContent = '';
 
-  parking.target = rand(1, 5);
+  const range = parkingRanges[settings.difficulty];
+  parking.target = rand(range.min, range.max);
 
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
@@ -654,7 +781,7 @@ function setupParking() {
 
   const spotsEl = document.getElementById('parkingSpots');
   spotsEl.innerHTML = '';
-  CN_NUMS.forEach((cn, i) => {
+  CN_NUMS.slice(0, range.spots).forEach((cn, i) => {
     const spot = document.createElement('button');
     spot.className = 'spot';
     spot.textContent = cn;
@@ -711,6 +838,11 @@ const CHINESE_DATA = {
 };
 
 const chinese = { level: 1, total: 10, current: null, lockInput: false };
+const chineseRanges = {
+  easy:   { poolSize: 10, options: 4 },
+  medium: { poolSize: 25, options: 5 },
+  hard:   { poolSize: 25, options: 6 },
+};
 
 function startChinese() {
   chinese.level = 1;
@@ -721,8 +853,11 @@ function setupChinese() {
   updateLevel(chinese.level, chinese.total);
   document.getElementById('feedback').textContent = '';
 
-  const all = [...CHINESE_DATA.animals, ...CHINESE_DATA.vehicles];
-  chinese.current = all[rand(0, all.length - 1)];
+  const range = chineseRanges[settings.difficulty];
+  const pool = range.poolSize <= 10
+    ? CHINESE_DATA.animals.slice(0, 10)
+    : [...CHINESE_DATA.animals, ...CHINESE_DATA.vehicles];
+  chinese.current = pool[rand(0, pool.length - 1)];
   const isVehicle = CHINESE_DATA.vehicles.some(v => v.word === chinese.current.word);
 
   document.getElementById('gameView').innerHTML = `
@@ -736,7 +871,8 @@ function setupChinese() {
     </div>
   `;
 
-  // 4 干扰项：2 同类 + 2 异类
+  // 干扰项：优先同类、再异类，数量按 range.options
+  const numDistractors = range.options - 1;
   const same = isVehicle
     ? CHINESE_DATA.vehicles.filter(v => v.word !== chinese.current.word)
     : CHINESE_DATA.animals.filter(a => a.word !== chinese.current.word);
@@ -744,25 +880,28 @@ function setupChinese() {
   const sameShuffled = shuffle(same);
   const otherShuffled = shuffle(other);
 
-  const distractors = [
-    sameShuffled[0],
-    otherShuffled[0],
-    sameShuffled[1] || otherShuffled[1],
-    otherShuffled[1] || sameShuffled[2] || otherShuffled[0],
-  ];
-  // 补足到 4 个（防同类不足）
-  while (distractors.length < 4) {
-    const candidate = otherShuffled[distractors.length] || sameShuffled[distractors.length];
-    if (candidate && !distractors.includes(candidate)) distractors.push(candidate);
-    else break;
+  const distractors = [];
+  const halfSame = Math.ceil(numDistractors / 2);
+  for (let i = 0; i < halfSame && i < sameShuffled.length; i++) {
+    distractors.push(sameShuffled[i]);
+  }
+  for (let i = 0; i < numDistractors - distractors.length && i < otherShuffled.length; i++) {
+    distractors.push(otherShuffled[i]);
+  }
+  // 补足
+  const fallback = shuffle([...same, ...other]);
+  let fi = 0;
+  while (distractors.length < numDistractors && fi < fallback.length) {
+    if (!distractors.find(d => d.word === fallback[fi].word)) distractors.push(fallback[fi]);
+    fi++;
   }
 
-  const options = shuffle([chinese.current, ...distractors]).slice(0, 5);
+  const options = shuffle([chinese.current, ...distractors]).slice(0, range.options);
   // 防万一补足
-  while (options.length < 5) {
-    const pool = isVehicle ? CHINESE_DATA.animals : CHINESE_DATA.vehicles;
-    const extra = pool[rand(0, pool.length - 1)];
-    if (!options.includes(extra)) options.push(extra);
+  while (options.length < range.options) {
+    const extraPool = isVehicle ? CHINESE_DATA.animals : CHINESE_DATA.vehicles;
+    const extra = extraPool[rand(0, extraPool.length - 1)];
+    if (!options.find(o => o.word === extra.word)) options.push(extra);
   }
 
   const choicesEl = document.getElementById('picChoices');
@@ -803,6 +942,15 @@ function handleChinese(opt, btn) {
     setTimeout(() => btn.classList.remove('wrong'), 500);
   }
 }
+
+// ===== Bootstrap =====
+loadSettings();
+updateMusicBtn();
+updateDiffBtns();
+document.getElementById('musicToggle').addEventListener('click', toggleMusic);
+document.querySelectorAll('.diff-btn').forEach(b => {
+  b.addEventListener('click', () => setDifficulty(b.dataset.diff));
+});
 </script>
 </body>
 </html>
