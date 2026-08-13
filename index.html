@@ -1122,8 +1122,8 @@ const CHINESE_DATA = {
 const chinese = { level: 1, total: 10, current: null, lockInput: false };
 const chineseRanges = {
   easy:   { poolSize: 10, options: 4 },
-  medium: { poolSize: 25, options: 5 },
-  hard:   { poolSize: 25, options: 6 },
+  medium: { poolSize: 15, options: 5 },
+  hard:   { poolSize: 20, options: 5 },
 };
 
 function startChinese() {
@@ -1137,9 +1137,16 @@ function setupChinese() {
   document.getElementById('feedback').textContent = '';
 
   const range = chineseRanges[settings.difficulty];
-  const pool = range.poolSize <= 10
-    ? CHINESE_DATA.animals.slice(0, 10)
-    : [...CHINESE_DATA.animals, ...CHINESE_DATA.vehicles];
+  const allWords = [...CHINESE_DATA.animals, ...CHINESE_DATA.vehicles];
+
+  // 简单：前 10 个动物；中等/困难：从全部 25 字里随机取 poolSize 个
+  let pool;
+  if (range.poolSize <= 10) {
+    pool = CHINESE_DATA.animals.slice(0, 10);
+  } else {
+    pool = shuffle(allWords).slice(0, range.poolSize);
+  }
+
   chinese.current = pool[rand(0, pool.length - 1)];
   const isVehicle = CHINESE_DATA.vehicles.some(v => v.word === chinese.current.word);
 
@@ -1154,37 +1161,22 @@ function setupChinese() {
     </div>
   `;
 
-  // 干扰项：优先同类、再异类，数量按 range.options
+  // 干扰项：直接从 pool 里抽（确保 word 数严格 = poolSize）
   const numDistractors = range.options - 1;
-  const same = isVehicle
-    ? CHINESE_DATA.vehicles.filter(v => v.word !== chinese.current.word)
-    : CHINESE_DATA.animals.filter(a => a.word !== chinese.current.word);
-  const other = isVehicle ? CHINESE_DATA.animals : CHINESE_DATA.vehicles;
-  const sameShuffled = shuffle(same);
-  const otherShuffled = shuffle(other);
+  const candidates = pool.filter(item => item.word !== chinese.current.word);
+  const distractors = shuffle(candidates).slice(0, numDistractors);
 
-  const distractors = [];
-  const halfSame = Math.ceil(numDistractors / 2);
-  for (let i = 0; i < halfSame && i < sameShuffled.length; i++) {
-    distractors.push(sameShuffled[i]);
-  }
-  for (let i = 0; i < numDistractors - distractors.length && i < otherShuffled.length; i++) {
-    distractors.push(otherShuffled[i]);
-  }
-  // 补足
-  const fallback = shuffle([...same, ...other]);
-  let fi = 0;
-  while (distractors.length < numDistractors && fi < fallback.length) {
-    if (!distractors.find(d => d.word === fallback[fi].word)) distractors.push(fallback[fi]);
-    fi++;
+  // 兜底补足（理论上不会触发）
+  while (distractors.length < numDistractors) {
+    const extra = allWords[rand(0, allWords.length - 1)];
+    if (!distractors.some(d => d.word === extra.word)) distractors.push(extra);
   }
 
+  // 拼选项：chinese.current + distractors，shuffle 后切到 options 个
   const options = shuffle([chinese.current, ...distractors]).slice(0, range.options);
-  // 防万一补足
   while (options.length < range.options) {
-    const extraPool = isVehicle ? CHINESE_DATA.animals : CHINESE_DATA.vehicles;
-    const extra = extraPool[rand(0, extraPool.length - 1)];
-    if (!options.find(o => o.word === extra.word)) options.push(extra);
+    const extra = allWords[rand(0, allWords.length - 1)];
+    if (!options.some(o => o.word === extra.word)) options.push(extra);
   }
 
   const choicesEl = document.getElementById('picChoices');
