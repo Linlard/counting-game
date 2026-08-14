@@ -359,18 +359,24 @@
   }
   .cloud {
     position: absolute;
-    font-size: 40px;
-    opacity: 0.85;
-    animation: cloudDrift 22s linear infinite;
+    opacity: 0.92;
+    animation: cloudDrift 24s linear infinite;
   }
-  .cloud-1 { top: 20px;  left: -60px;  animation-delay: 0s; }
-  .cloud-2 { top: 60px;  left: -80px;  animation-delay: -7s; font-size: 50px; }
-  .cloud-3 { top: 110px; left: -100px; animation-delay: -14s; font-size: 35px; }
+  .cloud-1 { top: 20px;  left: -120px; animation-delay: 0s; }
+  .cloud-2 { top: 70px;  left: -140px; animation-delay: -8s; }
+  .cloud-3 { top: 120px; left: -100px; animation-delay: -16s; }
+  .cloud-svg {
+    display: block;
+    width: 120px;
+    height: 60px;
+  }
+  .cloud-2 .cloud-svg { width: 150px; height: 75px; }
+  .cloud-3 .cloud-svg { width: 95px;  height: 50px; }
   @keyframes cloudDrift {
     from { transform: translateX(0); }
-    to   { transform: translateX(600px); }
+    to   { transform: translateX(700px); }
   }
-  /* 小鸟飞过（来回） */
+  /* 小鸟飞过（来回 + 拍翅） */
   .birds {
     position: absolute;
     inset: 0;
@@ -379,35 +385,46 @@
   }
   .bird {
     position: absolute;
-    font-size: 22px;
     animation: birdFly 14s linear infinite;
   }
-  .bird-1 { top: 40px;  left: -40px; animation-delay: 0s; }
-  .bird-2 { top: 80px;  left: -40px; animation-delay: -5s; font-size: 18px; }
-  .bird-3 { top: 140px; left: -40px; animation-delay: -10s; font-size: 20px; }
+  .bird-1 { top: 45px;  left: -50px; animation-delay: 0s; }
+  .bird-2 { top: 85px;  left: -50px; animation-delay: -5s; }
+  .bird-3 { top: 140px; left: -50px; animation-delay: -10s; }
+  .bird-svg {
+    width: 42px;
+    height: 30px;
+    display: block;
+    transform-origin: center 70%;
+    animation: birdFlap 0.35s ease-in-out infinite;
+  }
+  @keyframes birdFlap {
+    0%, 100% { transform: scaleY(1); }
+    50%      { transform: scaleY(0.45); }
+  }
   @keyframes birdFly {
     0%   { transform: translateX(0) scaleX(1); }
-    49%  { transform: translateX(600px) scaleX(1); }
-    50%  { transform: translateX(600px) scaleX(-1); }
+    49%  { transform: translateX(700px) scaleX(1); }
+    50%  { transform: translateX(700px) scaleX(-1); }
     99%  { transform: translateX(0) scaleX(-1); }
     100% { transform: translateX(0) scaleX(1); }
   }
-  /* 飞机提示区 */
+  /* 飞机提示区（SVG 卡通飞机） */
   .airplane-display {
     position: relative;
     text-align: center;
     margin: 30px 0 24px;
     z-index: 5;
   }
-  .airplane {
-    font-size: 84px;
+  .airplane-svg-static {
+    width: 140px;
+    height: 70px;
     display: inline-block;
-    animation: airplaneHover 2.5s ease-in-out infinite;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.18));
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.22));
+    animation: airplaneBob 2.5s ease-in-out infinite;
   }
-  @keyframes airplaneHover {
-    0%, 100% { transform: translateY(0) rotate(-8deg); }
-    50%      { transform: translateY(-12px) rotate(-8deg); }
+  @keyframes airplaneBob {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50%      { transform: translateY(-10px) rotate(-3deg); }
   }
   .airplane-number {
     font-size: 56px;
@@ -625,7 +642,7 @@
     .car-btn { font-size: 22px; padding: 10px 4px; }
     .car-btn .icon { font-size: 28px; }
     .airplane-number { font-size: 48px; }
-    .airplane { font-size: 64px; }
+    .airplane-svg-static { width: 100px; height: 50px; }
     .airport { font-size: 32px; padding: 14px 4px; }
     .sky-scene { min-height: 200px; padding: 12px 14px 16px; }
     .character-display .big-char { font-size: 80px; }
@@ -716,14 +733,15 @@
     flex-direction: column;
     align-items: center;
     pointer-events: none;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
   }
-  .airplane-flyer .airplane-emoji {
-    font-size: 70px;
-    line-height: 1;
+  .airplane-flyer .airplane-svg {
+    width: 110px;
+    height: 55px;
+    display: block;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.3));
   }
   .airplane-flyer .airplane-num {
-    font-size: 28px;
+    font-size: 26px;
     color: #fff;
     font-weight: bold;
     text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
@@ -994,24 +1012,57 @@ function flyAirplaneToAirport(airplaneEl, airportEl) {
   const pRect = airportEl.getBoundingClientRect();
   const cnNum = document.getElementById('airplaneNumber')?.textContent || '';
 
+  // 隐藏原飞机避免视觉重叠
+  airplaneEl.style.transition = 'opacity 0.25s ease-in';
+  airplaneEl.style.opacity = '0';
+
   const flyer = document.createElement('div');
   flyer.className = 'flyer airplane-flyer';
-  flyer.innerHTML = `<div class="airplane-emoji">✈️</div><div class="airplane-num">${cnNum}</div>`;
-  flyer.style.left = (aRect.left + aRect.width/2 - 40) + 'px';
-  flyer.style.top  = (aRect.top  + aRect.height/2 - 40) + 'px';
+  flyer.innerHTML = `
+    <svg class="airplane-svg" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
+      <rect x="22" y="26" width="80" height="18" rx="9" fill="#FF8E53"/>
+      <rect x="22" y="26" width="80" height="9" fill="#FFA876"/>
+      <path d="M 102 26 L 124 35 L 102 44 Z" fill="#FF6B35"/>
+      <path d="M 50 35 L 38 14 L 70 35 L 70 35 L 38 56 Z" fill="#E55525"/>
+      <path d="M 26 35 L 16 18 L 32 35 L 32 35 L 16 52 Z" fill="#E55525"/>
+      <circle cx="70" cy="35" r="3" fill="#FFF" stroke="#333" stroke-width="0.8"/>
+      <circle cx="80" cy="35" r="3" fill="#FFF" stroke="#333" stroke-width="0.8"/>
+      <circle cx="90" cy="35" r="3" fill="#FFF" stroke="#333" stroke-width="0.8"/>
+      <line x1="60" y1="44" x2="60" y2="54" stroke="#333" stroke-width="1.5"/>
+      <line x1="54" y1="54" x2="66" y2="54" stroke="#333" stroke-width="1.5"/>
+      <line x1="85" y1="44" x2="85" y2="54" stroke="#333" stroke-width="1.5"/>
+      <line x1="79" y1="54" x2="91" y2="54" stroke="#333" stroke-width="1.5"/>
+    </svg>
+    <div class="airplane-num">${cnNum}</div>
+  `;
+  flyer.style.left = (aRect.left + aRect.width/2 - 55) + 'px';
+  flyer.style.top  = (aRect.top  + aRect.height/2 - 30) + 'px';
   document.body.appendChild(flyer);
 
   const dx = pRect.left + pRect.width/2 - (aRect.left + aRect.width/2);
   const dy = pRect.top  + pRect.height/2 - (aRect.top  + aRect.height/2);
+  const svg = flyer.querySelector('.airplane-svg');
 
-  // 飞机缓慢下降落到目标机场（1.0s），同时缩小 + 淡出
-  flyer.style.transition = 'transform 1.0s cubic-bezier(0.5, 0, 0.5, 1), opacity 0.3s ease-in';
+  // 阶段 1（0.8s）：倾斜下飞到目标上方（弧线接近，28°）
+  svg.style.transition = 'transform 0.8s cubic-bezier(0.45, 0, 0.4, 1)';
   requestAnimationFrame(() => {
-    flyer.style.transform = `translate(${dx}px, ${dy}px) scale(0.55)`;
-    flyer.style.opacity = '0';
+    svg.style.transform = `translate(${dx * 0.85}px, ${dy * 0.55}px) rotate(28deg) scale(0.88)`;
   });
 
-  setTimeout(() => flyer.remove(), 1100);
+  // 阶段 2（0.4s）：拉平 + 触地，机场同时亮起
+  setTimeout(() => {
+    svg.style.transition = 'transform 0.4s cubic-bezier(0.3, 0, 0.4, 1)';
+    svg.style.transform = `translate(${dx}px, ${dy}px) rotate(0deg) scale(0.7)`;
+    airportEl.classList.add('landed');
+  }, 820);
+
+  // 阶段 3（0.4s）：飞机淡出
+  setTimeout(() => {
+    flyer.style.transition = 'opacity 0.4s ease-in';
+    flyer.style.opacity = '0';
+  }, 1250);
+
+  setTimeout(() => flyer.remove(), 1700);
 }
 
 function departTrain() {
@@ -1416,7 +1467,6 @@ function handleParking(airport) {
   const v = parseInt(airport.dataset.value);
   if (v === parking.target) {
     parking.lockInput = true;
-    airport.classList.add('landed');
     showFeedback('🎉 答对啦！');
     speak(`${numberToChinese(parking.target)}就是${parking.target}`);
     document.querySelectorAll('#airports .airport').forEach(a => a.disabled = true);
@@ -1429,7 +1479,7 @@ function handleParking(airport) {
       } else {
         setupParking();
       }
-    }, 1500);
+    }, 1800);
   } else {
     airport.classList.add('wrong');
     showFeedback('🤔 再看看数字');
