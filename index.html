@@ -376,38 +376,6 @@
     from { transform: translateX(0); }
     to   { transform: translateX(700px); }
   }
-  /* 小鸟飞过（来回 + 拍翅） */
-  .birds {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-  }
-  .bird {
-    position: absolute;
-    animation: birdFly 14s linear infinite;
-  }
-  .bird-1 { top: 45px;  left: -50px; animation-delay: 0s; }
-  .bird-2 { top: 85px;  left: -50px; animation-delay: -5s; }
-  .bird-3 { top: 140px; left: -50px; animation-delay: -10s; }
-  .bird-svg {
-    width: 42px;
-    height: 30px;
-    display: block;
-    transform-origin: center 70%;
-    animation: birdFlap 0.35s ease-in-out infinite;
-  }
-  @keyframes birdFlap {
-    0%, 100% { transform: scaleY(1); }
-    50%      { transform: scaleY(0.45); }
-  }
-  @keyframes birdFly {
-    0%   { transform: translateX(0) scaleX(1); }
-    49%  { transform: translateX(700px) scaleX(1); }
-    50%  { transform: translateX(700px) scaleX(-1); }
-    99%  { transform: translateX(0) scaleX(-1); }
-    100% { transform: translateX(0) scaleX(1); }
-  }
   /* 飞机提示区（SVG 卡通飞机） */
   .airplane-display {
     position: relative;
@@ -461,10 +429,10 @@
     gap: 4px;
   }
   .airport-plane-svg {
-    width: 80px;
-    height: 40px;
+    width: 110px;
+    height: 55px;
     display: block;
-    opacity: 0.7;
+    opacity: 0.75;
   }
   .airport-num {
     font-size: 34px;
@@ -657,7 +625,7 @@
     .car-btn .icon { font-size: 28px; }
     .airplane-number { font-size: 48px; }
     .airplane-svg-static { width: 130px; height: 65px; }
-    .airport-plane-svg { width: 60px; height: 30px; }
+    .airport-plane-svg { width: 85px; height: 42px; }
     .airport-num { font-size: 28px; }
     .sky-scene { min-height: 200px; padding: 12px 14px 16px; }
     .character-display .big-char { font-size: 80px; }
@@ -1430,11 +1398,6 @@ function setupParking() {
           <div class="cloud cloud-1">☁️</div>
           <div class="cloud cloud-2">☁️</div>
           <div class="cloud cloud-3">☁️</div>
-        </div>
-        <div class="birds">
-          <div class="bird bird-1">🐦</div>
-          <div class="bird bird-2">🐦</div>
-          <div class="bird bird-3">🐦</div>
         </div>
         <div class="airplane-display">
           <div class="airplane">✈️</div>
