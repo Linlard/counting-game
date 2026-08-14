@@ -85,7 +85,7 @@
   .game-container {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 12px 20px 16px;
     min-height: auto;
     display: flex;
     flex-direction: column;
@@ -94,7 +94,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     flex-wrap: wrap;
     gap: 10px;
   }
@@ -185,16 +185,16 @@
   .game-stage {
     background: linear-gradient(180deg, #fff 0%, #fff8e1 100%);
     border: 4px solid #5d4037;
-    border-radius: 24px;
-    padding: 24px;
-    margin-bottom: 16px;
+    border-radius: 20px;
+    padding: 14px;
+    margin-bottom: 10px;
     text-align: center;
-    box-shadow: 0 8px 0 #5d4037, 0 12px 24px rgba(0,0,0,0.18);
+    box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.18);
   }
   .stage-title {
-    font-size: 26px;
+    font-size: 22px;
     color: #5d4037;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     font-weight: 900;
     text-shadow: 2px 2px 0 rgba(255,255,255,0.7);
   }
@@ -202,16 +202,16 @@
   /* ===== Feedback ===== */
   .feedback {
     text-align: center;
-    font-size: 26px;
-    min-height: 38px;
+    font-size: 22px;
+    min-height: 30px;
     color: #d35400;
     font-weight: 900;
-    margin: 12px auto;
+    margin: 6px auto;
     background: linear-gradient(180deg, #fff 0%, #fff8e1 100%);
     border: 4px solid #5d4037;
-    border-radius: 18px;
-    box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.15);
-    padding: 8px 18px;
+    border-radius: 16px;
+    box-shadow: 0 5px 0 #5d4037, 0 8px 16px rgba(0,0,0,0.15);
+    padding: 6px 16px;
     max-width: 80%;
   }
   .feedback.show {
@@ -222,13 +222,13 @@
   .animal-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 6px 10px;
+    gap: 4px 8px;
     justify-items: center;
     align-items: center;
-    margin: 16px auto;
+    margin: 8px auto;
     max-width: 460px;
-    font-size: 54px;
-    line-height: 1.2;
+    font-size: 44px;
+    line-height: 1.1;
   }
   .animal {
     display: block;
@@ -238,15 +238,15 @@
   .choices {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    margin-bottom: 8px;
+    gap: 10px;
+    margin-bottom: 6px;
   }
   .car-btn {
     border: 4px solid #5d4037;
-    border-radius: 18px;
-    padding: 18px 6px;
+    border-radius: 16px;
+    padding: 10px 4px;
     color: #fff;
-    font-size: 34px;
+    font-size: 28px;
     font-weight: 900;
     cursor: pointer;
     transition: transform 0.1s, box-shadow 0.1s;
@@ -276,15 +276,15 @@
   /* ===== Road + Parking lot (game 1) ===== */
   .road-stage {
     position: relative;
-    margin-top: 12px;
-    height: 245px;
+    margin-top: 8px;
+    height: 180px;
   }
   .road {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
-    height: 80px;
+    height: 70px;
     z-index: 2;
     background: linear-gradient(180deg, #555 0%, #2a2a2a 100%);
     border-radius: 0 0 16px 16px;
@@ -306,16 +306,16 @@
     right: 0;
     top: 0;
     width: 380px;
-    height: 150px;
+    height: 100px;
     z-index: 2;
-    padding: 12px;
+    padding: 8px;
     background: linear-gradient(180deg, #E8E8E8 0%, #B8B8B8 100%);
     border-radius: 12px 0 0 0;
     border-left: 4px solid #888;
     border-bottom: 4px solid #888;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   }
   .lot-row {
@@ -326,13 +326,13 @@
   .lot-spot {
     flex: 1;
     border: 3px solid #5d4037;
-    border-radius: 12px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 30px;
+    font-size: 24px;
     background: linear-gradient(180deg, #fff 0%, #fff8e1 100%);
-    box-shadow: 0 4px 0 #5d4037, 0 8px 16px rgba(0,0,0,0.12);
+    box-shadow: 0 3px 0 #5d4037, 0 6px 12px rgba(0,0,0,0.12);
   }
   .lot-spot.target {
     border-color: #f57f17;
