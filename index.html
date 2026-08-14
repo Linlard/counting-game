@@ -263,49 +263,11 @@
   .car-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .car-btn.wrong { animation: shake 0.4s; }
 
-  /* ===== Road (game 1) ===== */
+  /* ===== Road + Parking lot (game 1) ===== */
   .road-stage {
     position: relative;
     margin-top: 12px;
     height: 200px;
-  }
-  /* 大山 - road 后方背景 */
-  .mountain {
-    position: absolute;
-    top: 0;
-    right: -20px;
-    width: 340px;
-    height: 200px;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .mountain::before {
-    /* 山主体 */
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, #7A9B6A 0%, #557A48 55%, #365D2A 100%);
-    clip-path: polygon(
-      0% 100%,
-      5% 70%,
-      22% 35%,
-      48% 5%,
-      72% 28%,
-      92% 58%,
-      100% 78%,
-      100% 100%
-    );
-  }
-  .mountain::after {
-    /* 雪顶 */
-    content: '';
-    position: absolute;
-    left: 33%;
-    top: 0;
-    width: 100px;
-    height: 28px;
-    background: rgba(255,255,255,0.93);
-    clip-path: polygon(0% 100%, 15% 60%, 40% 20%, 55% 0%, 75% 25%, 90% 60%, 100% 100%);
   }
   .road {
     position: absolute;
@@ -328,60 +290,44 @@
     background: repeating-linear-gradient(90deg, #FFD700 0, #FFD700 28px, transparent 28px, transparent 56px);
     transform: translateY(-50%);
   }
-  /* 山洞口 - 尖顶半圆（高速公路隧道口风格） */
-  .road-tunnel {
+  /* 停车场 - road 右上方 */
+  .parking-lot {
     position: absolute;
-    right: 30px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 140px;
-    height: 115px;
-    pointer-events: none;
-    z-index: 3;
+    right: 0;
+    top: 0;
+    width: 320px;
+    height: 105px;
+    z-index: 2;
+    background: linear-gradient(180deg, #E8E8E8 0%, #B8B8B8 100%);
+    border-radius: 12px 0 0 0;
+    border-left: 4px solid #888;
+    border-bottom: 4px solid #888;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   }
-  /* 隧道外圈（岩石/混凝土边） */
-  .road-tunnel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, #7A6550 0%, #5C4830 50%, #3A2A18 100%);
-    clip-path: polygon(
-      0% 100%,
-      0% 50%,
-      6% 32%,
-      20% 14%,
-      42% 3%,
-      50% 0%,
-      58% 3%,
-      80% 14%,
-      94% 32%,
-      100% 50%,
-      100% 100%
-    );
+  .lot-spot {
+    width: 58px;
+    height: 72px;
+    border: 3px dashed #999;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    background: rgba(255,255,255,0.5);
   }
-  /* 黑色洞口（中央微亮 = 隧道远处光） */
-  .road-tunnel::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 108px;
-    height: 88px;
-    background: radial-gradient(ellipse at 50% 50%, #2a1a08 28%, #000 78%);
-    clip-path: polygon(
-      0% 100%,
-      0% 50%,
-      6% 32%,
-      20% 14%,
-      42% 3%,
-      50% 0%,
-      58% 3%,
-      80% 14%,
-      94% 32%,
-      100% 50%,
-      100% 100%
-    );
+  .lot-spot.target {
+    border-color: #2E9D5F;
+    border-style: solid;
+    background: linear-gradient(180deg, #E0FFE5 0%, #B8F5C9 100%);
+  }
+  .lot-spot.filled {
+    border-style: solid;
+    border-color: #999;
+    background: linear-gradient(180deg, #fff 0%, #f0f0f0 100%);
   }
 
   /* ===== Game 2: parking ===== */
@@ -1069,10 +1015,13 @@ function setupCounting() {
     </div>
     <div class="choices" id="countingChoices"></div>
     <div class="road-stage">
-      <div class="mountain"></div>
-      <div class="road">
-        <div class="road-tunnel"></div>
+      <div class="parking-lot">
+        <div class="lot-spot filled">🚙</div>
+        <div class="lot-spot target" id="parkingTarget"></div>
+        <div class="lot-spot filled">🚕</div>
+        <div class="lot-spot filled">🚓</div>
       </div>
+      <div class="road"></div>
     </div>
   `;
 
@@ -1121,7 +1070,7 @@ function handleCounting(n, btn) {
       b.disabled = true;
       if (b !== btn) b.classList.add('faded');
     });
-    flyCarToTunnel(btn);
+    flyCarToParkingLot(btn);
     setTimeout(() => {
       counting.level++;
       if (counting.level > counting.total) {
@@ -1129,7 +1078,7 @@ function handleCounting(n, btn) {
       } else {
         setupCounting();
       }
-    }, 1500);
+    }, 2500);
   } else {
     btn.classList.add('wrong');
     showFeedback('🤔 再数一数哦');
@@ -1138,18 +1087,21 @@ function handleCounting(n, btn) {
   }
 }
 
-// 答对动画：小车先掉到下方马路，再沿马路慢慢冲进山洞
-function flyCarToTunnel(btnEl) {
+// 答对动画：小车先掉到马路，沿路开到停车场入口，再抬起进入车位（不消失）
+function flyCarToParkingLot(btnEl) {
   const btnRect = btnEl.getBoundingClientRect();
   const road = document.querySelector('.road');
   if (!road) return;
   const roadRect = road.getBoundingClientRect();
+  const target = document.getElementById('parkingTarget');
+  if (!target) return;
+  const targetRect = target.getBoundingClientRect();
 
   const iconEl = btnEl.querySelector('.icon');
   const carEmoji = iconEl ? iconEl.textContent : '🚗';
 
   const flyer = document.createElement('div');
-  flyer.className = 'flyer car-tunnel-flyer';
+  flyer.className = 'flyer car-flyer';
   flyer.textContent = carEmoji;
   flyer.style.fontSize = '60px';
   flyer.style.lineHeight = '1';
@@ -1160,25 +1112,40 @@ function flyCarToTunnel(btnEl) {
   const startX = btnRect.left + btnRect.width/2;
   const startY = btnRect.top  + btnRect.height/2;
   const roadY  = roadRect.top + roadRect.height/2;
+  const targetX = targetRect.left + targetRect.width/2;
+  const targetY = targetRect.top + targetRect.height/2;
   const dyToRoad = roadY - startY;
-  const finalX  = window.innerWidth + 60;
-  const dxToTunnel = finalX - startX;
+  const dxToTarget = targetX - startX;
+  const dyToTarget = targetY - roadY;
 
-  // 阶段 1：垂直掉落到马路（500ms，不放大）
+  // 阶段 1：垂直掉落到马路（500ms）
   flyer.style.transition = 'transform 0.5s cubic-bezier(0.5, 0, 0.5, 1)';
   requestAnimationFrame(() => {
     flyer.style.transform = `translate(0, ${dyToRoad}px) scale(1)`;
   });
 
-  // 阶段 2：沿马路慢慢冲进山洞（1100ms，大小保持不变）
+  // 阶段 2：沿马路向右开到停车场入口下方（1100ms）
   setTimeout(() => {
-    flyer.style.transition = 'transform 1.1s linear, opacity 1.1s ease-in';
-    flyer.style.transform = `translate(${dxToTunnel}px, ${dyToRoad}px) scale(1)`;
-    flyer.style.opacity   = '0';
+    flyer.style.transition = 'transform 1.1s linear';
+    flyer.style.transform = `translate(${dxToTarget}px, ${dyToRoad}px) scale(1)`;
   }, 520);
 
-  // 清理
-  setTimeout(() => flyer.remove(), 1700);
+  // 阶段 3：从马路抬起进入车位（500ms）
+  setTimeout(() => {
+    flyer.style.transition = 'transform 0.5s ease-out';
+    flyer.style.transform = `translate(${dxToTarget}px, ${dyToRoad + dyToTarget}px) scale(1)`;
+  }, 1620);
+
+  // 阶段 4：停稳后，flyer 淡出，车 emoji 落入车位
+  setTimeout(() => {
+    flyer.style.transition = 'opacity 0.2s';
+    flyer.style.opacity = '0';
+    setTimeout(() => {
+      flyer.remove();
+      target.textContent = carEmoji;
+      target.classList.add('filled');
+    }, 200);
+  }, 2150);
 }
 
 // ===== Game 2: Parking =====
