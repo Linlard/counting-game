@@ -1021,11 +1021,10 @@ function handleCounting(n, btn) {
 }
 
 // ===== Game 2: Parking =====
-const CN_NUMS = ['一', '二', '三', '四', '五', '六', '七'];
 const parkingRanges = {
-  easy:   { min: 1,  max: 10 },
-  medium: { min: 1,  max: 20 },
-  hard:   { min: 20, max: 30 },
+  easy:   { min: 1,  max: 9 },    // 十以下
+  medium: { min: 1,  max: 19 },   // 二十以下
+  hard:   { min: 20, max: 99 },   // 二十以上
 };
 
 // 中文数字生成（1-99）
