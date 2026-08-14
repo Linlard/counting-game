@@ -416,8 +416,8 @@
     z-index: 5;
   }
   .airplane-svg-static {
-    width: 140px;
-    height: 70px;
+    width: 180px;
+    height: 90px;
     display: inline-block;
     filter: drop-shadow(0 6px 10px rgba(0,0,0,0.22));
     animation: airplaneBob 2.5s ease-in-out infinite;
@@ -445,17 +445,30 @@
     background: linear-gradient(180deg, #fff 0%, #e8e8e8 100%);
     border: 4px dashed #999;
     border-radius: 14px;
-    padding: 18px 4px;
-    text-align: center;
+    padding: 10px 4px 12px;
     cursor: pointer;
     transition: transform 0.1s, box-shadow 0.1s;
     box-shadow: 0 4px 0 rgba(0,0,0,0.1);
-    font-size: 40px;
     color: #333;
     font-weight: bold;
     font-family: inherit;
     line-height: 1;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .airport-plane-svg {
+    width: 80px;
+    height: 40px;
+    display: block;
+    opacity: 0.7;
+  }
+  .airport-num {
+    font-size: 34px;
+    line-height: 1;
   }
   .airport::before {
     /* 跑道标记线 */
@@ -480,6 +493,7 @@
     box-shadow: 0 6px 0 #2E9D5F, 0 8px 16px rgba(0,0,0,0.2) !important;
     cursor: default;
   }
+  .airport.landed .airport-plane-svg { opacity: 1; }
 
   /* ===== Game 3: chinese character ===== */
   .character-display {
@@ -642,8 +656,9 @@
     .car-btn { font-size: 22px; padding: 10px 4px; }
     .car-btn .icon { font-size: 28px; }
     .airplane-number { font-size: 48px; }
-    .airplane-svg-static { width: 100px; height: 50px; }
-    .airport { font-size: 32px; padding: 14px 4px; }
+    .airplane-svg-static { width: 130px; height: 65px; }
+    .airport-plane-svg { width: 60px; height: 30px; }
+    .airport-num { font-size: 28px; }
     .sky-scene { min-height: 200px; padding: 12px 14px 16px; }
     .character-display .big-char { font-size: 80px; }
     .pic-btn { font-size: 40px; padding: 14px 4px; }
@@ -735,8 +750,8 @@
     pointer-events: none;
   }
   .airplane-flyer .airplane-svg {
-    width: 110px;
-    height: 55px;
+    width: 140px;
+    height: 70px;
     display: block;
     filter: drop-shadow(0 6px 10px rgba(0,0,0,0.3));
   }
@@ -1452,7 +1467,19 @@ function setupParking() {
   optArr.forEach(n => {
     const airport = document.createElement('button');
     airport.className = 'airport';
-    airport.textContent = n;
+    airport.innerHTML = `
+      <svg class="airport-plane-svg" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
+        <rect x="22" y="26" width="80" height="18" rx="9" fill="#FF8E53"/>
+        <rect x="22" y="26" width="80" height="9" fill="#FFA876"/>
+        <path d="M 102 26 L 124 35 L 102 44 Z" fill="#FF6B35"/>
+        <path d="M 50 35 L 38 14 L 70 35 L 70 35 L 38 56 Z" fill="#E55525"/>
+        <path d="M 26 35 L 16 18 L 32 35 L 32 35 L 16 52 Z" fill="#E55525"/>
+        <circle cx="70" cy="35" r="3" fill="#FFF" stroke="#333" stroke-width="0.8"/>
+        <circle cx="80" cy="35" r="3" fill="#FFF" stroke="#333" stroke-width="0.8"/>
+        <circle cx="90" cy="35" r="3" fill="#FFF" stroke="#333" stroke-width="0.8"/>
+      </svg>
+      <span class="airport-num">${n}</span>
+    `;
     airport.dataset.value = n;
     airport.onclick = () => handleParking(airport);
     airportsEl.appendChild(airport);
