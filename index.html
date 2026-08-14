@@ -81,7 +81,7 @@
 
   /* ===== Game container ===== */
   .game-container {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 20px;
     min-height: 100vh;
@@ -267,7 +267,7 @@
   .road-stage {
     position: relative;
     margin-top: 12px;
-    height: 200px;
+    height: 245px;
   }
   .road {
     position: absolute;
@@ -290,39 +290,48 @@
     background: repeating-linear-gradient(90deg, #FFD700 0, #FFD700 28px, transparent 28px, transparent 56px);
     transform: translateY(-50%);
   }
-  /* 停车场 - road 右上方 */
+  /* 停车场 - 10 个车位（2 行 × 5），状态累积 */
   .parking-lot {
     position: absolute;
     right: 0;
     top: 0;
-    width: 320px;
-    height: 105px;
+    width: 380px;
+    height: 150px;
     z-index: 2;
+    padding: 12px;
     background: linear-gradient(180deg, #E8E8E8 0%, #B8B8B8 100%);
     border-radius: 12px 0 0 0;
     border-left: 4px solid #888;
     border-bottom: 4px solid #888;
     display: flex;
-    align-items: center;
-    justify-content: space-around;
-    padding: 0 12px;
+    flex-direction: column;
+    gap: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   }
+  .lot-row {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
   .lot-spot {
-    width: 58px;
-    height: 72px;
+    flex: 1;
     border: 3px dashed #999;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 36px;
+    font-size: 28px;
     background: rgba(255,255,255,0.5);
   }
   .lot-spot.target {
     border-color: #2E9D5F;
     border-style: solid;
     background: linear-gradient(180deg, #E0FFE5 0%, #B8F5C9 100%);
+    animation: targetPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes targetPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
   }
   .lot-spot.filled {
     border-style: solid;
@@ -432,6 +441,37 @@
     box-shadow: 0 2px 0 rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
   }
   .pic-btn.wrong { animation: shake 0.4s; }
+
+  /* ===== Orientation hint (portrait) ===== */
+  .orientation-hint {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    z-index: 99999;
+    color: white;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+  .orientation-hint .rotate-icon {
+    font-size: 100px;
+    animation: rotateHint 2s ease-in-out infinite;
+  }
+  @keyframes rotateHint {
+    0%, 100% { transform: rotate(0); }
+    50%      { transform: rotate(-90deg); }
+  }
+  .orientation-hint p {
+    font-size: 28px;
+    margin-top: 30px;
+    font-weight: bold;
+  }
+  @media (orientation: portrait) {
+    .orientation-hint { display: flex; }
+  }
 
   /* ===== Animations ===== */
   @keyframes pop {
@@ -995,12 +1035,26 @@ const counting = { level: 1, total: 10, currentCount: 0, currentAnimal: '', curr
 
 function startCounting() {
   counting.level = 1;
+  // 重置停车场（每次进入游戏从空开始）
+  document.querySelectorAll('.parking-lot .lot-spot').forEach(s => {
+    s.textContent = '';
+    s.className = 'lot-spot';
+  });
   setupCounting();
 }
 
 function setupCounting() {
   updateLevel(counting.level, counting.total);
   document.getElementById('feedback').textContent = '';
+
+  // 记录当前停车场状态（用于 innerHTML 替换后恢复）
+  const oldLot = document.querySelector('.parking-lot');
+  const savedSpots = oldLot
+    ? Array.from(oldLot.querySelectorAll('.lot-spot')).map(s => ({
+        text: s.textContent,
+        cls: s.className,
+      }))
+    : null;
 
   const range = countingRanges[settings.difficulty];
   const min = range.min, max = range.max;
@@ -1016,14 +1070,40 @@ function setupCounting() {
     <div class="choices" id="countingChoices"></div>
     <div class="road-stage">
       <div class="parking-lot">
-        <div class="lot-spot filled">🚙</div>
-        <div class="lot-spot target" id="parkingTarget"></div>
-        <div class="lot-spot filled">🚕</div>
-        <div class="lot-spot filled">🚓</div>
+        <div class="lot-row">
+          <div class="lot-spot" data-slot="1"></div>
+          <div class="lot-spot" data-slot="2"></div>
+          <div class="lot-spot" data-slot="3"></div>
+          <div class="lot-spot" data-slot="4"></div>
+          <div class="lot-spot" data-slot="5"></div>
+        </div>
+        <div class="lot-row">
+          <div class="lot-spot" data-slot="6"></div>
+          <div class="lot-spot" data-slot="7"></div>
+          <div class="lot-spot" data-slot="8"></div>
+          <div class="lot-spot" data-slot="9"></div>
+          <div class="lot-spot" data-slot="10"></div>
+        </div>
       </div>
       <div class="road"></div>
     </div>
   `;
+
+  // 恢复停车场状态（不重置，让车累积）
+  const newLot = document.querySelector('.parking-lot');
+  if (newLot) {
+    const newSpots = newLot.querySelectorAll('.lot-spot');
+    if (savedSpots) {
+      for (let i = 0; i < newSpots.length && i < savedSpots.length; i++) {
+        newSpots[i].textContent = savedSpots[i].text;
+        newSpots[i].className = savedSpots[i].cls;
+      }
+    }
+    // 确保始终有一个空位被高亮为目标
+    if (!newLot.querySelector('.lot-spot.target') && newLot.querySelector('.lot-spot:not(.filled)')) {
+      markNextEmptyAsTarget();
+    }
+  }
 
   const row = document.getElementById('animalRow');
   row.innerHTML = '';
@@ -1093,7 +1173,7 @@ function flyCarToParkingLot(btnEl) {
   const road = document.querySelector('.road');
   if (!road) return;
   const roadRect = road.getBoundingClientRect();
-  const target = document.getElementById('parkingTarget');
+  const target = document.querySelector('.lot-spot.target');
   if (!target) return;
   const targetRect = target.getBoundingClientRect();
 
@@ -1136,16 +1216,29 @@ function flyCarToParkingLot(btnEl) {
     flyer.style.transform = `translate(${dxToTarget}px, ${dyToRoad + dyToTarget}px) scale(1)`;
   }, 1620);
 
-  // 阶段 4：停稳后，flyer 淡出，车 emoji 落入车位
+  // 阶段 4：停稳后，flyer 淡出，车 emoji 落入车位，并把目标移到下一个空位
   setTimeout(() => {
     flyer.style.transition = 'opacity 0.2s';
     flyer.style.opacity = '0';
     setTimeout(() => {
       flyer.remove();
       target.textContent = carEmoji;
+      target.classList.remove('target');
       target.classList.add('filled');
+      markNextEmptyAsTarget();
     }, 200);
   }, 2150);
+}
+
+// 把当前第一个空车位标记为目标（高亮 + 脉动）
+function markNextEmptyAsTarget() {
+  const spots = document.querySelectorAll('.parking-lot .lot-spot');
+  for (const spot of spots) {
+    if (!spot.classList.contains('filled')) {
+      spot.classList.add('target');
+      return;
+    }
+  }
 }
 
 // ===== Game 2: Parking =====
@@ -1384,5 +1477,11 @@ document.querySelectorAll('.diff-btn').forEach(b => {
   b.addEventListener('click', () => setDifficulty(b.dataset.diff));
 });
 </script>
+
+<!-- ===== 横屏提示（手机竖屏时显示） ===== -->
+<div class="orientation-hint">
+  <div class="rotate-icon">📱</div>
+  <p>请把手机横过来玩</p>
+</div>
 </body>
 </html>
