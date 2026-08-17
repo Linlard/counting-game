@@ -181,6 +181,27 @@
     box-shadow: 0 3px 0 #CC5500, 0 4px 8px rgba(0,0,0,0.15);
   }
 
+  /* Chinese theme toggle (game 3) */
+  .theme-btn {
+    background: rgba(255,255,255,0.7);
+    color: #333;
+    border: 2px solid transparent;
+    padding: 8px 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.1s, all 0.2s;
+  }
+  .theme-btn:active { transform: translateY(2px); }
+  .theme-btn.active {
+    background: linear-gradient(180deg, #43E97B 0%, #38F9D7 100%);
+    color: #fff;
+    border-color: #2E9D5F;
+    box-shadow: 0 3px 0 #2E9D5F, 0 4px 8px rgba(0,0,0,0.15);
+  }
+
   /* ===== Common stage ===== */
   .game-stage {
     background: linear-gradient(180deg, #fff 0%, #fff8e1 100%);
@@ -810,6 +831,10 @@
       <button class="diff-btn active" data-diff="medium">中等</button>
       <button class="diff-btn" data-diff="hard">困难</button>
     </div>
+    <div class="toolbar-group" id="chineseThemeGroup" style="display:none">
+      <button class="theme-btn active" data-theme="animals">🐾 动物</button>
+      <button class="theme-btn" data-theme="vehicles">🚗 车车</button>
+    </div>
     <div class="toolbar-spacer"></div>
   </div>
   <div id="gameView"></div>
@@ -830,7 +855,6 @@
     <h2 id="winTitle">🎉 通关啦 🎉</h2>
     <p id="winMessage">小宝贝太棒了！</p>
     <button onclick="restartGame()">再玩一次</button>
-    <button onclick="goHome()">选别的游戏</button>
   </div>
 </div>
 
@@ -853,6 +877,7 @@ const SETTINGS_KEY = 'countingGameSettings_v1';
 let settings = {
   musicOn: true,
   difficulty: 'medium',
+  chineseTheme: 'animals',
 };
 function loadSettings() {
   try {
@@ -894,6 +919,20 @@ function setDifficulty(diff) {
     if (currentGame === 'counting') startCounting();
     else if (currentGame === 'parking') startParking();
     else if (currentGame === 'chinese') startChinese();
+  }
+}
+function updateChineseThemeBtns() {
+  document.querySelectorAll('.theme-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.theme === settings.chineseTheme);
+  });
+}
+function setChineseTheme(theme) {
+  if (!['animals', 'vehicles'].includes(theme)) return;
+  settings.chineseTheme = theme;
+  saveSettings();
+  updateChineseThemeBtns();
+  if (typeof currentGame !== 'undefined' && currentGame === 'chinese') {
+    startChinese();
   }
 }
 
@@ -1115,6 +1154,7 @@ function goHome() {
   document.getElementById('gameContainer').style.display = 'none';
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('train').style.display = 'none';
+  document.getElementById('chineseThemeGroup').style.display = 'none';
   resetTrain();
   try { window.speechSynthesis.cancel(); } catch (e) {}
   currentGame = null;
@@ -1126,6 +1166,7 @@ function startGame(name) {
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('feedback').textContent = '';
   document.getElementById('train').style.display = (name === 'chinese') ? '' : 'none';
+  document.getElementById('chineseThemeGroup').style.display = (name === 'chinese') ? '' : 'none';
   if (name === 'counting') startCounting();
   else if (name === 'parking') startParking();
   else if (name === 'chinese') startChinese();
@@ -1141,7 +1182,7 @@ function restartGame() {
 }
 
 // ===== Game 1: Counting (existing logic, refactored) =====
-const ANIMALS = ['🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐨', '🐯', '🦁', '🐮'];
+const ANIMALS = ['🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🦆', '🐘', '🐴', '🐑', '🐧', '🐬'];
 const CARS = ['🚗', '🚙', '🚕', '🚌', '🚓'];
 const countingRanges = {
   easy:   { min: 2,  max: 5 },
@@ -1486,12 +1527,18 @@ const CHINESE_DATA = {
     { word: '牛', pic: '🐮' }, { word: '马', pic: '🐴' }, { word: '鸡', pic: '🐔' },
     { word: '鸭', pic: '🦆' }, { word: '象', pic: '🐘' }, { word: '熊猫', pic: '🐼' },
     { word: '老虎', pic: '🐯' }, { word: '狮子', pic: '🦁' }, { word: '猴', pic: '🐵' },
+    { word: '羊', pic: '🐑' }, { word: '青蛙', pic: '🐸' }, { word: '长颈鹿', pic: '🦒' },
+    { word: '企鹅', pic: '🐧' }, { word: '松鼠', pic: '🐿️' }, { word: '海豚', pic: '🐬' },
+    { word: '猫头鹰', pic: '🦉' }, { word: '鹅', pic: '🦢' }, { word: '蛇', pic: '🐍' },
+    { word: '考拉', pic: '🐨' },
   ],
   vehicles: [
     { word: '汽车', pic: '🚗' }, { word: '飞机', pic: '✈️' }, { word: '船', pic: '🚢' },
     { word: '火车', pic: '🚂' }, { word: '自行车', pic: '🚲' }, { word: '公交车', pic: '🚌' },
     { word: '出租车', pic: '🚕' }, { word: '摩托车', pic: '🏍️' }, { word: '卡车', pic: '🚚' },
-    { word: '救护车', pic: '🚑' },
+    { word: '救护车', pic: '🚑' }, { word: '地铁', pic: '🚇' }, { word: '高铁', pic: '🚄' },
+    { word: '帆船', pic: '⛵' }, { word: '直升机', pic: '🚁' }, { word: '消防车', pic: '🚒' },
+    { word: '警车', pic: '🚓' }, { word: '火箭', pic: '🚀' }, { word: '热气球', pic: '🎈' },
   ],
 };
 
@@ -1513,25 +1560,27 @@ function setupChinese() {
   document.getElementById('feedback').textContent = '';
 
   const range = chineseRanges[settings.difficulty];
-  const allWords = [...CHINESE_DATA.animals, ...CHINESE_DATA.vehicles];
+  // 按 chineseTheme 选择题库（纯动物 或 纯交通工具）
+  const themePool = settings.chineseTheme === 'vehicles'
+    ? CHINESE_DATA.vehicles
+    : CHINESE_DATA.animals;
 
-  // 简单：前 10 个动物；中等/困难：从全部 25 字里随机取 poolSize 个
+  // 简单：取前 poolSize 个；中等/困难：随机取 poolSize 个（不超过题库总数）
+  const poolSize = Math.min(range.poolSize, themePool.length);
   let pool;
   if (range.poolSize <= 10) {
-    pool = CHINESE_DATA.animals.slice(0, 10);
+    pool = themePool.slice(0, poolSize);
   } else {
-    pool = shuffle(allWords).slice(0, range.poolSize);
+    pool = shuffle(themePool).slice(0, poolSize);
   }
 
   chinese.current = pool[rand(0, pool.length - 1)];
-  const isVehicle = CHINESE_DATA.vehicles.some(v => v.word === chinese.current.word);
 
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
       <div class="stage-title">看字，选对的图</div>
       <div class="character-display">
         <div class="big-char">${chinese.current.word}</div>
-        <div class="char-hint">${isVehicle ? '🚗 交通工具' : '🐾 小动物'}</div>
       </div>
       <div class="pic-choices" id="picChoices"></div>
     </div>
@@ -1544,14 +1593,14 @@ function setupChinese() {
 
   // 兜底补足（理论上不会触发）
   while (distractors.length < numDistractors) {
-    const extra = allWords[rand(0, allWords.length - 1)];
+    const extra = themePool[rand(0, themePool.length - 1)];
     if (!distractors.some(d => d.word === extra.word)) distractors.push(extra);
   }
 
   // 拼选项：chinese.current + distractors，shuffle 后切到 options 个
-  const options = shuffle([chinese.current, ...distractors]).slice(0, range.options);
+  let options = shuffle([chinese.current, ...distractors]).slice(0, range.options);
   while (options.length < range.options) {
-    const extra = allWords[rand(0, allWords.length - 1)];
+    const extra = themePool[rand(0, themePool.length - 1)];
     if (!options.some(o => o.word === extra.word)) options.push(extra);
   }
 
@@ -1607,9 +1656,13 @@ function handleChinese(opt, btn) {
 loadSettings();
 updateMusicBtn();
 updateDiffBtns();
+updateChineseThemeBtns();
 document.getElementById('musicToggle').addEventListener('click', toggleMusic);
 document.querySelectorAll('.diff-btn').forEach(b => {
   b.addEventListener('click', () => setDifficulty(b.dataset.diff));
+});
+document.querySelectorAll('.theme-btn').forEach(b => {
+  b.addEventListener('click', () => setChineseTheme(b.dataset.theme));
 });
 </script>
 </body>
