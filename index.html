@@ -305,21 +305,21 @@
   .game-container.alphabet-layout .feedback { order: 5; }
   .game-container.alphabet-layout #train {
     margin-top: 0;
-    margin-bottom: 10px;
-    padding: 14px 18px;
-    font-size: 44px;
+    margin-bottom: 14px;
+    padding: 18px 22px;
+    font-size: 56px;
     border-width: 5px;
-    box-shadow: 0 7px 0 #5d4037, 0 12px 22px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 0 #5d4037, 0 14px 24px rgba(0,0,0,0.22);
   }
   .game-container.alphabet-layout .train-engine {
-    font-size: 60px;
+    font-size: 84px;
   }
   .game-container.alphabet-layout .train-car {
-    width: 72px;
-    height: 84px;
-    font-size: 44px;
-    border-width: 3px;
-    border-radius: 14px;
+    width: 96px;
+    height: 110px;
+    font-size: 60px;
+    border-width: 3.5px;
+    border-radius: 16px;
   }
   .game-container.alphabet-layout .alphabet-display {
     padding: 14px 16px 10px;
@@ -332,6 +332,37 @@
   .game-container.alphabet-layout .alphabet-display .stage-hint {
     font-size: 14px;
     margin-top: 4px;
+  }
+
+  /* Target car: 下一个要填的车厢（虚框脉动 + 显示目标字母） */
+  .train-car.target {
+    border-style: dashed !important;
+    border-color: #FFA500 !important;
+    background: linear-gradient(180deg, #FFFAE5 0%, #FFE89E 100%) !important;
+    animation: target-pulse 1.4s ease-in-out infinite;
+  }
+  .game-container.alphabet-layout .train-car.target {
+    border-width: 4px !important;
+  }
+  @keyframes target-pulse {
+    0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.55); }
+    50%      { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 165, 0, 0); }
+  }
+
+  /* Mobile responsive for big train */
+  @media (max-width: 600px) {
+    .game-container.alphabet-layout #train {
+      padding: 12px 12px;
+      font-size: 38px;
+    }
+    .game-container.alphabet-layout .train-engine { font-size: 56px; }
+    .game-container.alphabet-layout .train-car {
+      width: 62px;
+      height: 78px;
+      font-size: 36px;
+      border-width: 2.5px;
+      border-radius: 12px;
+    }
   }
 
   /* Long train celebration for alphabet game */
@@ -1110,13 +1141,19 @@ function setupAlphabet() {
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
       <div class="stage-title">${modeLabel} · 第 ${alphabet.level} / ${alphabet.total} 个字母</div>
-      <div class="alphabet-display">
-        <div class="big-letter">${alphabet.currentLetter}</div>
-        <div class="stage-hint">点对字母，火车头拉走</div>
-      </div>
       <div class="alphabet-choices" id="alphabetChoices"></div>
     </div>
   `;
+
+  // 把目标字母放到火车的下一节空车厢里（虚框脉动提示）
+  const targetSlot = trainCars.indexOf(null);
+  if (targetSlot >= 0) {
+    const targetCarEl = document.querySelector(`.train-car[data-slot="${targetSlot}"]`);
+    if (targetCarEl) {
+      targetCarEl.textContent = alphabet.currentLetter;
+      targetCarEl.classList.add('target');
+    }
+  }
 
   // 6 选 1：正确字母 + 相邻 5 个干扰
   const correctIdx = ALPHABET.indexOf(alphabet.currentLetter);
@@ -1161,7 +1198,10 @@ function handleAlphabet(letter, btn) {
     if (slotIdx >= 0) {
       trainCars[slotIdx] = alphabet.currentLetter;
       const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
-      if (carEl) flyLetterToTrain(btn, alphabet.currentLetter, carEl);
+      if (carEl) {
+        carEl.classList.remove('target');
+        flyLetterToTrain(btn, alphabet.currentLetter, carEl);
+      }
     }
 
     const isLastInGroup = (slotIdx === 3);
