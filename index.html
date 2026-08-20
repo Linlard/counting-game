@@ -44,7 +44,7 @@
   }
   .game-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
     width: 100%;
     max-width: 760px;
@@ -200,6 +200,104 @@
     color: #fff;
     border-color: #2E9D5F;
     box-shadow: 0 3px 0 #2E9D5F, 0 4px 8px rgba(0,0,0,0.15);
+  }
+
+  /* Alphabet mode toggle (game 4) */
+  .mode-btn {
+    background: rgba(255,255,255,0.7);
+    color: #333;
+    border: 2px solid transparent;
+    padding: 8px 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.1s, all 0.2s;
+  }
+  .mode-btn:active { transform: translateY(2px); }
+  .mode-btn.active {
+    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+    color: #fff;
+    border-color: #CC8400;
+    box-shadow: 0 3px 0 #CC8400, 0 4px 8px rgba(0,0,0,0.15);
+  }
+
+  /* ===== Game 4: alphabet train ===== */
+  .alphabet-display {
+    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+    border: 4px solid #5d4037;
+    border-radius: 20px;
+    padding: 18px 16px 14px;
+    text-align: center;
+    box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.2);
+    margin-bottom: 4px;
+  }
+  .alphabet-display .big-letter {
+    font-size: 110px;
+    color: #fff;
+    font-weight: 900;
+    font-family: 'Comic Sans MS', 'Marker Felt', 'PingFang SC', cursive;
+    text-shadow: 4px 4px 0 rgba(0,0,0,0.25);
+    line-height: 1;
+    letter-spacing: 4px;
+  }
+  .alphabet-display .stage-hint {
+    font-size: 17px;
+    color: rgba(255,255,255,0.95);
+    margin-top: 6px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  }
+  .alphabet-choices {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .alphabet-btn {
+    background: linear-gradient(180deg, #fff 0%, #f5f0e8 100%);
+    border: 4px solid #5d4037;
+    border-radius: 14px;
+    padding: 14px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 5px 0 #5d4037, 0 6px 12px rgba(0,0,0,0.15);
+    font-size: 42px;
+    font-weight: 900;
+    font-family: 'Comic Sans MS', 'Marker Felt', cursive;
+    color: #5d4037;
+    line-height: 1;
+  }
+  .alphabet-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #5d4037, 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .alphabet-btn.wrong { animation: shake 0.4s; }
+  .alphabet-btn.correct {
+    background: linear-gradient(180deg, #43E97B 0%, #38F9D7 100%) !important;
+    border-color: #2E9D5F !important;
+    color: #fff !important;
+    transform: scale(1.08);
+    box-shadow: 0 4px 0 #2E9D5F, 0 6px 12px rgba(0,0,0,0.2);
+  }
+
+  /* Long train celebration for alphabet game */
+  .train-celebrate.alphabet-celebrate {
+    font-size: 30px;
+    animation: trainCelebrateRun 12s linear forwards;
+  }
+  .train-celebrate.alphabet-celebrate .a-car {
+    display: inline-block;
+    padding: 1px 7px;
+    margin: 0 1px;
+    border: 2.5px solid #5d4037;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.18);
   }
 
   /* ===== Common stage ===== */
@@ -815,6 +913,11 @@
       <span class="name">认字</span>
       <span class="desc">看字选动物 / 交通工具</span>
     </button>
+    <button class="game-card" data-game="alphabet">
+      <span class="emoji">🚂</span>
+      <span class="name">字母火车</span>
+      <span class="desc">A→Z / Z→A 顺序背</span>
+    </button>
   </div>
 </div>
 
@@ -835,6 +938,10 @@
       <button class="theme-btn active" data-theme="animals">🐾 动物</button>
       <button class="theme-btn" data-theme="vehicles">🚗 车车</button>
     </div>
+    <div class="toolbar-group" id="alphabetModeGroup" style="display:none">
+      <button class="mode-btn active" data-mode="forward">正序 A→Z</button>
+      <button class="mode-btn" data-mode="reverse">反序 Z→A</button>
+    </div>
     <div class="toolbar-spacer"></div>
   </div>
   <div id="gameView"></div>
@@ -845,7 +952,6 @@
     <div class="train-car" data-slot="1"></div>
     <div class="train-car" data-slot="2"></div>
     <div class="train-car" data-slot="3"></div>
-    <div class="train-car" data-slot="4"></div>
   </div>
 </div>
 
@@ -878,6 +984,7 @@ let settings = {
   musicOn: true,
   difficulty: 'medium',
   chineseTheme: 'animals',
+  alphabetMode: 'forward',
 };
 function loadSettings() {
   try {
@@ -919,6 +1026,250 @@ function setDifficulty(diff) {
     if (currentGame === 'counting') startCounting();
     else if (currentGame === 'parking') startParking();
     else if (currentGame === 'chinese') startChinese();
+    else if (currentGame === 'alphabet') startAlphabet();
+  }
+}
+
+// ===== Game 4: Alphabet Train =====
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const alphabet = {
+  mode: 'forward',
+  level: 1,
+  total: 26,
+  currentLetter: 'A',
+  lockInput: false
+};
+
+function startAlphabet() {
+  alphabet.level = 1;
+  resetTrain();
+  setupAlphabet();
+}
+
+function setupAlphabet() {
+  updateLevel(alphabet.level, alphabet.total);
+  document.getElementById('feedback').textContent = '';
+
+  const order = settings.alphabetMode === 'reverse'
+    ? [...ALPHABET].reverse()
+    : ALPHABET;
+  alphabet.currentLetter = order[alphabet.level - 1];
+  const modeLabel = settings.alphabetMode === 'reverse' ? '反序' : '正序';
+
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-title">${modeLabel} · 第 ${alphabet.level} / ${alphabet.total} 个字母</div>
+      <div class="alphabet-display">
+        <div class="big-letter">${alphabet.currentLetter}</div>
+        <div class="stage-hint">点对字母，火车头拉走</div>
+      </div>
+      <div class="alphabet-choices" id="alphabetChoices"></div>
+    </div>
+  `;
+
+  // 6 选 1：正确字母 + 相邻 5 个干扰
+  const correctIdx = ALPHABET.indexOf(alphabet.currentLetter);
+  const options = new Set([alphabet.currentLetter]);
+  let attempts = 0;
+  while (options.size < 6 && attempts < 100) {
+    const offset = rand(-3, 3);
+    if (offset === 0) { attempts++; continue; }
+    const candidateIdx = correctIdx + offset;
+    if (candidateIdx >= 0 && candidateIdx < 26) {
+      options.add(ALPHABET[candidateIdx]);
+    }
+    attempts++;
+  }
+  while (options.size < 6) options.add(ALPHABET[rand(0, 25)]);
+  const optArr = shuffle([...options]).slice(0, 6);
+
+  const choicesEl = document.getElementById('alphabetChoices');
+  choicesEl.innerHTML = '';
+  optArr.forEach(letter => {
+    const btn = document.createElement('button');
+    btn.className = 'alphabet-btn';
+    btn.textContent = letter;
+    btn.onclick = () => handleAlphabet(letter, btn);
+    choicesEl.appendChild(btn);
+  });
+
+  alphabet.lockInput = false;
+  setTimeout(() => speakEnglish(alphabet.currentLetter), 600);
+}
+
+function handleAlphabet(letter, btn) {
+  if (alphabet.lockInput) return;
+  if (letter === alphabet.currentLetter) {
+    alphabet.lockInput = true;
+    btn.classList.add('correct');
+    showFeedback(`🎉 ${alphabet.currentLetter} 对啦！`);
+    speakEnglish(alphabet.currentLetter);
+    document.querySelectorAll('#alphabetChoices .alphabet-btn').forEach(b => b.disabled = true);
+
+    const slotIdx = trainCars.indexOf(null);
+    if (slotIdx >= 0) {
+      trainCars[slotIdx] = alphabet.currentLetter;
+      const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
+      if (carEl) flyLetterToTrain(btn, alphabet.currentLetter, carEl);
+    }
+
+    const isLastInGroup = (slotIdx === 3);
+    setTimeout(() => {
+      alphabet.level++;
+      if (alphabet.level > alphabet.total) {
+        const orderLabel = settings.alphabetMode === 'reverse' ? 'Z 到 A' : 'A 到 Z';
+        showWin(
+          `🎉 ${orderLabel} 都学会啦 🎉`,
+          `认识了 ${alphabet.total} 个字母！`,
+          `${orderLabel} 都学会啦`
+        );
+        alphabetTrainCelebrate();
+      } else if (isLastInGroup) {
+        departTrain();
+      } else {
+        setupAlphabet();
+      }
+    }, 1500);
+  } else {
+    btn.classList.add('wrong');
+    showFeedback('🤔 再想想哦');
+    speakEnglish('try again');
+    setTimeout(() => btn.classList.remove('wrong'), 500);
+  }
+}
+
+function flyLetterToTrain(btnEl, letter, trainCarEl) {
+  const btnRect = btnEl.getBoundingClientRect();
+  const carRect = trainCarEl.getBoundingClientRect();
+  const flyer = document.createElement('div');
+  flyer.className = 'flyer';
+  flyer.textContent = letter;
+  flyer.style.left = (btnRect.left + btnRect.width / 2 - 24) + 'px';
+  flyer.style.top  = (btnRect.top  + btnRect.height / 2 - 24) + 'px';
+  flyer.style.width  = '48px';
+  flyer.style.height = '48px';
+  flyer.style.fontSize   = '36px';
+  flyer.style.fontWeight = '900';
+  flyer.style.fontFamily = "'Comic Sans MS', 'Marker Felt', cursive";
+  flyer.style.color = '#fff';
+  flyer.style.textShadow = '2px 2px 0 rgba(0,0,0,0.3)';
+  flyer.style.textAlign  = 'center';
+  flyer.style.lineHeight = '48px';
+  document.body.appendChild(flyer);
+  const dx = carRect.left + carRect.width / 2 - (btnRect.left + btnRect.width / 2);
+  const dy = carRect.top  + carRect.height / 2 - (btnRect.top  + btnRect.height / 2);
+  flyer.offsetHeight;
+  requestAnimationFrame(() => {
+    flyer.style.transform = `translate(${dx}px,${dy}px) scale(0.7)`;
+    flyer.style.opacity   = '0.6';
+  });
+  flyer.addEventListener('transitionend', () => {
+    flyer.remove();
+    trainCarEl.classList.add('filled');
+    trainCarEl.textContent = letter;
+    trainCarEl.style.color = '#5d4037';
+    trainCarEl.style.fontWeight = '900';
+    trainCarEl.style.fontSize = '30px';
+    trainCarEl.style.fontFamily = "'Comic Sans MS', 'Marker Felt', cursive";
+  }, { once: true });
+}
+
+function alphabetTrainCelebrate() {
+  const train = document.createElement('div');
+  train.className = 'train-celebrate alphabet-celebrate';
+  const letters = settings.alphabetMode === 'reverse'
+    ? 'ZYXWVUTSRQPONMLKJIHGFEDCBA'
+    : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const colors = ['#FF6B6B','#4FACFE','#43E97B','#FA709A','#FFE53B','#A18CD1'];
+  let html = '🚂';
+  for (let i = 0; i < letters.length; i++) {
+    const color = colors[i % 6];
+    html += `<span class="a-car" style="background:${color}">${letters[i]}</span>`;
+  }
+  train.innerHTML = html;
+  document.body.appendChild(train);
+  setTimeout(() => train.remove(), 12500);
+}
+
+// ===== Web Audio for train sounds =====
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) {}
+  }
+  return _audioCtx;
+}
+
+function playTrainHorn() {
+  if (!settings.musicOn) return;
+  try {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch (e) {}
+}
+
+function playTrainChug() {
+  if (!settings.musicOn) return;
+  try {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const bufferSize = Math.floor(ctx.sampleRate * 0.4);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.2 * (1 - i / bufferSize);
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    noise.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start();
+    noise.stop(ctx.currentTime + 0.4);
+  } catch (e) {}
+}
+
+function speakEnglish(text) {
+  if (!settings.musicOn) return;
+  if ('speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = 0.7;
+      u.pitch = 1.1;
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+}
+
+function updateAlphabetModeBtns() {
+  document.querySelectorAll('#alphabetModeGroup .mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === settings.alphabetMode);
+  });
+}
+function setAlphabetMode(mode) {
+  if (!['forward', 'reverse'].includes(mode)) return;
+  settings.alphabetMode = mode;
+  saveSettings();
+  updateAlphabetModeBtns();
+  if (typeof currentGame !== 'undefined' && currentGame === 'alphabet') {
+    startAlphabet();
   }
 }
 function updateChineseThemeBtns() {
@@ -987,8 +1338,8 @@ function spawnConfetti() {
   }
 }
 
-// ===== Train state (game 3) =====
-const trainCars = [null, null, null, null, null];
+// ===== Train state (game 3 + game 4) =====
+const trainCars = [null, null, null, null];
 
 function resetTrain() {
   trainCars.fill(null);
@@ -1090,12 +1441,19 @@ function flyAirplaneToAirport(airplaneEl, airportEl) {
 function departTrain() {
   const train = document.getElementById('train');
   showFeedback('🚂 火车要开啦！');
-  speak('呜——呜——');
+  if (currentGame === 'alphabet') {
+    speakEnglish('choo choo');
+    playTrainHorn();
+  } else {
+    speak('呜——呜——');
+  }
+  playTrainChug();
   train.classList.add('departing');
   setTimeout(() => {
     train.classList.remove('departing');
     resetTrain();
-    setupChinese();
+    if (currentGame === 'alphabet') setupAlphabet();
+    else setupChinese();
   }, 1600);
 }
 
@@ -1155,6 +1513,7 @@ function goHome() {
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('train').style.display = 'none';
   document.getElementById('chineseThemeGroup').style.display = 'none';
+  document.getElementById('alphabetModeGroup').style.display = 'none';
   resetTrain();
   try { window.speechSynthesis.cancel(); } catch (e) {}
   currentGame = null;
@@ -1165,11 +1524,13 @@ function startGame(name) {
   document.getElementById('gameContainer').style.display = '';
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('feedback').textContent = '';
-  document.getElementById('train').style.display = (name === 'chinese') ? '' : 'none';
+  document.getElementById('train').style.display = (name === 'chinese' || name === 'alphabet') ? '' : 'none';
   document.getElementById('chineseThemeGroup').style.display = (name === 'chinese') ? '' : 'none';
+  document.getElementById('alphabetModeGroup').style.display = (name === 'alphabet') ? '' : 'none';
   if (name === 'counting') startCounting();
   else if (name === 'parking') startParking();
   else if (name === 'chinese') startChinese();
+  else if (name === 'alphabet') startAlphabet();
 }
 document.querySelectorAll('.game-card').forEach(card => {
   card.addEventListener('click', () => startGame(card.dataset.game));
@@ -1179,6 +1540,7 @@ function restartGame() {
   if (currentGame === 'counting') startCounting();
   else if (currentGame === 'parking') startParking();
   else if (currentGame === 'chinese') startChinese();
+  else if (currentGame === 'alphabet') startAlphabet();
 }
 
 // ===== Game 1: Counting (existing logic, refactored) =====
@@ -1633,7 +1995,7 @@ function handleChinese(opt, btn) {
       const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
       if (carEl) flyAnimalToTrain(btn, opt.pic, carEl);
     }
-    const isLastInGroup = (slotIdx === 4);
+    const isLastInGroup = (slotIdx === 3);
     setTimeout(() => {
       chinese.level++;
       if (chinese.level > chinese.total) {
@@ -1657,12 +2019,16 @@ loadSettings();
 updateMusicBtn();
 updateDiffBtns();
 updateChineseThemeBtns();
+updateAlphabetModeBtns();
 document.getElementById('musicToggle').addEventListener('click', toggleMusic);
 document.querySelectorAll('.diff-btn').forEach(b => {
   b.addEventListener('click', () => setDifficulty(b.dataset.diff));
 });
 document.querySelectorAll('.theme-btn').forEach(b => {
   b.addEventListener('click', () => setChineseTheme(b.dataset.theme));
+});
+document.querySelectorAll('#alphabetModeGroup .mode-btn').forEach(b => {
+  b.addEventListener('click', () => setAlphabetMode(b.dataset.mode));
 });
 </script>
 </body>
