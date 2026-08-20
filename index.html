@@ -980,8 +980,8 @@
       <span class="desc">看字选动物 / 交通工具</span>
     </button>
     <button class="game-card" data-game="alphabet">
-      <span class="emoji">🚂</span>
-      <span class="name">字母火车</span>
+      <span class="emoji">🚇</span>
+      <span class="name">字母地铁</span>
       <span class="desc">A→Z / Z→A 顺序背</span>
     </button>
   </div>
@@ -1013,11 +1013,11 @@
   <div id="gameView"></div>
   <div class="feedback" id="feedback"></div>
   <div class="train" id="train" style="display:none">
+    <span class="train-engine">🚇</span>
     <div class="train-car" data-slot="0"></div>
     <div class="train-car" data-slot="1"></div>
     <div class="train-car" data-slot="2"></div>
     <div class="train-car" data-slot="3"></div>
-    <span class="train-engine">🚂</span>
   </div>
 </div>
 
@@ -1241,12 +1241,11 @@ function alphabetTrainCelebrate() {
     ? 'ZYXWVUTSRQPONMLKJIHGFEDCBA'
     : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const colors = ['#FF6B6B','#4FACFE','#43E97B','#FA709A','#FFE53B','#A18CD1'];
-  let html = '';
+  let html = '🚇';
   for (let i = 0; i < letters.length; i++) {
     const color = colors[i % 6];
     html += `<span class="a-car" style="background:${color}">${letters[i]}</span>`;
   }
-  html += '🚂';
   train.innerHTML = html;
   document.body.appendChild(train);
   setTimeout(() => train.remove(), 12500);
@@ -1501,7 +1500,7 @@ function flyAirplaneToAirport(airplaneEl, airportEl) {
 
 function departTrain() {
   const train = document.getElementById('train');
-  showFeedback('🚂 火车要开啦！');
+  showFeedback('🚇 地铁要开啦！');
   if (currentGame === 'alphabet') {
     speakEnglish('choo choo');
     playTrainHorn();
@@ -1561,7 +1560,7 @@ function flyAnimalsAround() {
 function trainCelebrate() {
   const train = document.createElement('div');
   train.className = 'train-celebrate';
-  train.textContent = '🚌🚙🚕🚗🚂';
+  train.textContent = '🚇🚇🚇🚇🚇';
   document.body.appendChild(train);
   setTimeout(() => train.remove(), 4700);
 }
