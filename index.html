@@ -863,13 +863,12 @@
     transform: scale(1.05);
   }
   .train.departing {
-    animation: trainDepart 1.6s ease-in-out forwards;
+    animation: trainDepart 1.4s ease-in forwards;
   }
   @keyframes trainDepart {
-    0%   { transform: translateX(0); opacity: 1; }
-    55%  { transform: translateX(80%); opacity: 0.85; }
-    56%  { transform: translateX(-100%); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
+    0%   { transform: translateX(0);     opacity: 1; }
+    85%  { transform: translateX(110%);  opacity: 1; }
+    100% { transform: translateX(140%);  opacity: 0; }
   }
 
   /* ===== Game 1: drive-off (replaced by flyCarToTunnel JS) ===== */
@@ -1014,11 +1013,11 @@
   <div id="gameView"></div>
   <div class="feedback" id="feedback"></div>
   <div class="train" id="train" style="display:none">
-    <span class="train-engine">🚂</span>
     <div class="train-car" data-slot="0"></div>
     <div class="train-car" data-slot="1"></div>
     <div class="train-car" data-slot="2"></div>
     <div class="train-car" data-slot="3"></div>
+    <span class="train-engine">🚂</span>
   </div>
 </div>
 
@@ -1242,11 +1241,12 @@ function alphabetTrainCelebrate() {
     ? 'ZYXWVUTSRQPONMLKJIHGFEDCBA'
     : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const colors = ['#FF6B6B','#4FACFE','#43E97B','#FA709A','#FFE53B','#A18CD1'];
-  let html = '🚂';
+  let html = '';
   for (let i = 0; i < letters.length; i++) {
     const color = colors[i % 6];
     html += `<span class="a-car" style="background:${color}">${letters[i]}</span>`;
   }
+  html += '🚂';
   train.innerHTML = html;
   document.body.appendChild(train);
   setTimeout(() => train.remove(), 12500);
@@ -1515,7 +1515,7 @@ function departTrain() {
     resetTrain();
     if (currentGame === 'alphabet') setupAlphabet();
     else setupChinese();
-  }, 1600);
+  }, 1400);
 }
 
 // ===== Easter egg (win) =====
@@ -1561,7 +1561,7 @@ function flyAnimalsAround() {
 function trainCelebrate() {
   const train = document.createElement('div');
   train.className = 'train-celebrate';
-  train.textContent = '🚂🚌🚙🚕🚗';
+  train.textContent = '🚌🚙🚕🚗🚂';
   document.body.appendChild(train);
   setTimeout(() => train.remove(), 4700);
 }
