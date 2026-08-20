@@ -252,35 +252,86 @@
   .alphabet-choices {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 12px;
     margin-top: 12px;
   }
+  /* Keyboard keycap style for choice buttons */
   .alphabet-btn {
-    background: linear-gradient(180deg, #fff 0%, #f5f0e8 100%);
-    border: 4px solid #5d4037;
-    border-radius: 14px;
-    padding: 14px 4px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s;
-    box-shadow: 0 5px 0 #5d4037, 0 6px 12px rgba(0,0,0,0.15);
-    font-size: 42px;
+    background: linear-gradient(180deg, #ffffff 0%, #d8d8d8 100%);
+    border: 2px solid #888;
+    border-radius: 12px;
+    box-shadow:
+      0 6px 0 #5a5a5a,
+      0 8px 14px rgba(0,0,0,0.22),
+      inset 0 1px 0 rgba(255,255,255,0.9),
+      inset 0 -2px 0 rgba(0,0,0,0.08);
+    padding: 18px 4px;
+    font-size: 38px;
     font-weight: 900;
     font-family: 'Comic Sans MS', 'Marker Felt', cursive;
-    color: #5d4037;
+    color: #2c2c2c;
     line-height: 1;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: transform 0.08s, box-shadow 0.08s;
+    position: relative;
   }
   .alphabet-btn:active {
-    transform: translateY(4px);
-    box-shadow: 0 2px 0 #5d4037, 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(5px);
+    box-shadow:
+      0 1px 0 #5a5a5a,
+      0 2px 4px rgba(0,0,0,0.18),
+      inset 0 1px 0 rgba(255,255,255,0.9),
+      inset 0 -1px 0 rgba(0,0,0,0.08);
   }
   .alphabet-btn.wrong { animation: shake 0.4s; }
   .alphabet-btn.correct {
-    background: linear-gradient(180deg, #43E97B 0%, #38F9D7 100%) !important;
+    background: linear-gradient(180deg, #43E97B 0%, #2db867 100%) !important;
     border-color: #2E9D5F !important;
     color: #fff !important;
     transform: scale(1.08);
-    box-shadow: 0 4px 0 #2E9D5F, 0 6px 12px rgba(0,0,0,0.2);
+    box-shadow:
+      0 4px 0 #1e7a47,
+      0 6px 12px rgba(0,0,0,0.22),
+      inset 0 1px 0 rgba(255,255,255,0.4) !important;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+  }
+
+  /* ===== Alphabet layout: train on top, big ===== */
+  .game-container.alphabet-layout .top-bar { order: 1; }
+  .game-container.alphabet-layout .toolbar  { order: 2; }
+  .game-container.alphabet-layout #train   { order: 3; }
+  .game-container.alphabet-layout #gameView { order: 4; }
+  .game-container.alphabet-layout .feedback { order: 5; }
+  .game-container.alphabet-layout #train {
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding: 14px 18px;
+    font-size: 44px;
+    border-width: 5px;
+    box-shadow: 0 7px 0 #5d4037, 0 12px 22px rgba(0,0,0,0.2);
+  }
+  .game-container.alphabet-layout .train-engine {
+    font-size: 60px;
+  }
+  .game-container.alphabet-layout .train-car {
+    width: 72px;
+    height: 84px;
+    font-size: 44px;
+    border-width: 3px;
+    border-radius: 14px;
+  }
+  .game-container.alphabet-layout .alphabet-display {
+    padding: 14px 16px 10px;
+    margin-bottom: 4px;
+  }
+  .game-container.alphabet-layout .alphabet-display .big-letter {
+    font-size: 72px;
+    letter-spacing: 3px;
+  }
+  .game-container.alphabet-layout .alphabet-display .stage-hint {
+    font-size: 14px;
+    margin-top: 4px;
   }
 
   /* Long train celebration for alphabet game */
@@ -1167,10 +1218,6 @@ function flyLetterToTrain(btnEl, letter, trainCarEl) {
     flyer.remove();
     trainCarEl.classList.add('filled');
     trainCarEl.textContent = letter;
-    trainCarEl.style.color = '#5d4037';
-    trainCarEl.style.fontWeight = '900';
-    trainCarEl.style.fontSize = '30px';
-    trainCarEl.style.fontFamily = "'Comic Sans MS', 'Marker Felt', cursive";
   }, { once: true });
 }
 
@@ -1514,6 +1561,7 @@ function goHome() {
   document.getElementById('train').style.display = 'none';
   document.getElementById('chineseThemeGroup').style.display = 'none';
   document.getElementById('alphabetModeGroup').style.display = 'none';
+  document.getElementById('gameContainer').classList.remove('alphabet-layout');
   resetTrain();
   try { window.speechSynthesis.cancel(); } catch (e) {}
   currentGame = null;
@@ -1527,6 +1575,7 @@ function startGame(name) {
   document.getElementById('train').style.display = (name === 'chinese' || name === 'alphabet') ? '' : 'none';
   document.getElementById('chineseThemeGroup').style.display = (name === 'chinese') ? '' : 'none';
   document.getElementById('alphabetModeGroup').style.display = (name === 'alphabet') ? '' : 'none';
+  document.getElementById('gameContainer').classList.toggle('alphabet-layout', name === 'alphabet');
   if (name === 'counting') startCounting();
   else if (name === 'parking') startParking();
   else if (name === 'chinese') startChinese();
