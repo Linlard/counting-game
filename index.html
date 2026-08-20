@@ -334,21 +334,6 @@
     margin-top: 4px;
   }
 
-  /* Target car: 下一个要填的车厢（虚框脉动 + 显示目标字母） */
-  .train-car.target {
-    border-style: dashed !important;
-    border-color: #FFA500 !important;
-    background: linear-gradient(180deg, #FFFAE5 0%, #FFE89E 100%) !important;
-    animation: target-pulse 1.4s ease-in-out infinite;
-  }
-  .game-container.alphabet-layout .train-car.target {
-    border-width: 4px !important;
-  }
-  @keyframes target-pulse {
-    0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.55); }
-    50%      { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 165, 0, 0); }
-  }
-
   /* Mobile responsive for big train */
   @media (max-width: 600px) {
     .game-container.alphabet-layout #train {
@@ -1145,16 +1130,6 @@ function setupAlphabet() {
     </div>
   `;
 
-  // 把目标字母放到火车的下一节空车厢里（虚框脉动提示）
-  const targetSlot = trainCars.indexOf(null);
-  if (targetSlot >= 0) {
-    const targetCarEl = document.querySelector(`.train-car[data-slot="${targetSlot}"]`);
-    if (targetCarEl) {
-      targetCarEl.textContent = alphabet.currentLetter;
-      targetCarEl.classList.add('target');
-    }
-  }
-
   // 6 选 1：正确字母 + 相邻 5 个干扰
   const correctIdx = ALPHABET.indexOf(alphabet.currentLetter);
   const options = new Set([alphabet.currentLetter]);
@@ -1199,7 +1174,6 @@ function handleAlphabet(letter, btn) {
       trainCars[slotIdx] = alphabet.currentLetter;
       const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
       if (carEl) {
-        carEl.classList.remove('target');
         flyLetterToTrain(btn, alphabet.currentLetter, carEl);
       }
     }
