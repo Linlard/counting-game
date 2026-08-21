@@ -1151,46 +1151,73 @@ function setDifficulty(diff) {
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const alphabet = {
   mode: 'forward',
-  level: 1,
-  total: 26,
-  currentLetter: 'A',
-  lockInput: false
+  windowIdx: 0,        // 0-based: 0=A(forward)/Z(reverse), 22=W/D
+  totalWindows: 23,    // 23 groups: A→W or Z→D
+  lockInput: false,
+  filledCount: 0,      // how many of cars 1-3 are filled in current window
+  windowLetters: []    // 4-letter window: [first, second, third, fourth]
 };
 
 function startAlphabet() {
-  alphabet.level = 1;
+  alphabet.windowIdx = 0;
   resetTrain();
   setupAlphabet();
 }
 
 function setupAlphabet() {
-  updateLevel(alphabet.level, alphabet.total);
+  updateLevel(alphabet.windowIdx + 1, alphabet.totalWindows);
   document.getElementById('feedback').textContent = '';
+  alphabet.filledCount = 0;
 
   const order = settings.alphabetMode === 'reverse'
     ? [...ALPHABET].reverse()
     : ALPHABET;
-  alphabet.currentLetter = order[alphabet.level - 1];
-  const modeLabel = settings.alphabetMode === 'reverse' ? '反序' : '正序';
+  const w = alphabet.windowIdx;
+  alphabet.windowLetters = [
+    order[w], order[w + 1], order[w + 2], order[w + 3]
+  ];
 
+  // 车 0 直接显示第 1 个字母（提示），车 1-3 空着等玩家填
+  trainCars[0] = alphabet.windowLetters[0];
+  trainCars[1] = null;
+  trainCars[2] = null;
+  trainCars[3] = null;
+  for (let i = 0; i <= 3; i++) {
+    const el = document.querySelector(`.train-car[data-slot="${i}"]`);
+    if (!el) continue;
+    if (i === 0) {
+      el.textContent = alphabet.windowLetters[0];
+      el.classList.add('filled');
+    } else {
+      el.textContent = '';
+      el.classList.remove('filled');
+    }
+  }
+
+  const modeLabel = settings.alphabetMode === 'reverse' ? '反序' : '正序';
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
-      <div class="stage-title">${modeLabel} · 第 ${alphabet.level} / ${alphabet.total} 个字母</div>
+      <div class="stage-title">${modeLabel} · 第 ${alphabet.windowIdx + 1} / ${alphabet.totalWindows} 组</div>
       <div class="alphabet-choices" id="alphabetChoices"></div>
     </div>
   `;
 
-  // 6 选 1：正确字母 + 相邻 5 个干扰
-  const correctIdx = ALPHABET.indexOf(alphabet.currentLetter);
-  const options = new Set([alphabet.currentLetter]);
+  // 6 个按钮：3 个目标字母 + 3 个干扰
+  const targetLetters = [
+    alphabet.windowLetters[1],
+    alphabet.windowLetters[2],
+    alphabet.windowLetters[3]
+  ];
+  const options = new Set(targetLetters);
+  const firstIdx = ALPHABET.indexOf(alphabet.windowLetters[0]);
   let attempts = 0;
-  while (options.size < 6 && attempts < 100) {
-    const offset = rand(-3, 3);
-    if (offset === 0) { attempts++; continue; }
-    const candidateIdx = correctIdx + offset;
-    if (candidateIdx >= 0 && candidateIdx < 26) {
-      options.add(ALPHABET[candidateIdx]);
-    }
+  while (options.size < 6 && attempts < 200) {
+    const offset = rand(-4, 4);
+    const candidateIdx = firstIdx + offset;
+    if (candidateIdx < 0 || candidateIdx >= 26) { attempts++; continue; }
+    const candidate = ALPHABET[candidateIdx];
+    if (alphabet.windowLetters.includes(candidate)) { attempts++; continue; }
+    options.add(candidate);
     attempts++;
   }
   while (options.size < 6) options.add(ALPHABET[rand(0, 25)]);
@@ -1202,49 +1229,54 @@ function setupAlphabet() {
     const btn = document.createElement('button');
     btn.className = 'alphabet-btn';
     btn.textContent = letter;
+    btn.dataset.letter = letter;
     btn.onclick = () => handleAlphabet(letter, btn);
     choicesEl.appendChild(btn);
   });
 
   alphabet.lockInput = false;
-  setTimeout(() => speakEnglish(alphabet.currentLetter), 600);
+  setTimeout(() => speakEnglish(alphabet.windowLetters[0]), 600);
 }
 
 function handleAlphabet(letter, btn) {
   if (alphabet.lockInput) return;
-  if (letter === alphabet.currentLetter) {
+  const expected = alphabet.windowLetters[alphabet.filledCount + 1];
+
+  if (letter === expected) {
     alphabet.lockInput = true;
     btn.classList.add('correct');
-    showFeedback(`🎉 ${alphabet.currentLetter} 对啦！`);
-    speakEnglish(alphabet.currentLetter);
-    document.querySelectorAll('#alphabetChoices .alphabet-btn').forEach(b => b.disabled = true);
+    showFeedback(`🎉 ${letter} 对啦！`);
+    speakEnglish(letter);
 
-    const slotIdx = trainCars.indexOf(null);
-    if (slotIdx >= 0) {
-      trainCars[slotIdx] = alphabet.currentLetter;
-      const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
-      if (carEl) {
-        flyLetterToTrain(btn, alphabet.currentLetter, carEl);
-      }
-    }
+    // 把字母送到下一个空车厢（车 1 / 2 / 3）
+    const slotIdx = alphabet.filledCount + 1;
+    trainCars[slotIdx] = letter;
+    const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
+    if (carEl) flyLetterToTrain(btn, letter, carEl);
+    alphabet.filledCount++;
 
-    const isLastInGroup = (slotIdx === 3);
     setTimeout(() => {
-      alphabet.level++;
-      if (alphabet.level > alphabet.total) {
-        const orderLabel = settings.alphabetMode === 'reverse' ? 'Z 到 A' : 'A 到 Z';
-        showWin(
-          `🎉 ${orderLabel} 都学会啦 🎉`,
-          `认识了 ${alphabet.total} 个字母！`,
-          `${orderLabel} 都学会啦`
-        );
-        alphabetTrainCelebrate();
-      } else if (isLastInGroup) {
-        departTrain();
-      } else {
-        setupAlphabet();
+      // 选项不变，对的选项消掉（占位保留，按钮隐藏）
+      btn.style.visibility = 'hidden';
+      btn.style.pointerEvents = 'none';
+      alphabet.lockInput = false;
+
+      if (alphabet.filledCount >= 3) {
+        // 当前窗口填满，地铁开走 → 下一组窗口
+        alphabet.windowIdx++;
+        if (alphabet.windowIdx >= alphabet.totalWindows) {
+          const orderLabel = settings.alphabetMode === 'reverse' ? 'Z 到 A' : 'A 到 Z';
+          showWin(
+            `🎉 ${orderLabel} 都学会啦 🎉`,
+            `滑过了 ${alphabet.totalWindows} 组字母接龙！`,
+            `${orderLabel} 都学会啦`
+          );
+          alphabetTrainCelebrate();
+        } else {
+          departTrain();
+        }
       }
-    }, 1500);
+    }, 1100);
   } else {
     btn.classList.add('wrong');
     showFeedback('🤔 再想想哦');
