@@ -370,33 +370,32 @@
     box-shadow: 0 3px 0 rgba(0,0,0,0.18);
   }
 
-  /* ===== Game 5: Number Memory ===== */
-  .memory-frame {
+  /* ===== Game 5 V2: Number Memory (重写版) ===== */
+  .nm-frame {
     width: 100%;
     min-height: 380px;
     background: linear-gradient(180deg, #B3E5FC 0%, #81D4FA 100%);
     border: 4px solid #5d4037;
     border-radius: 18px;
-    display: grid;
-    /* grid-template-columns 在 JS 里根据张数设置 */
-    justify-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     align-content: center;
-    gap: 18px;
-    padding: 26px;
+    gap: 16px;
+    padding: 24px;
     margin: 12px 0;
     box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.18);
-    overflow: hidden;
   }
-  .memory-card {
-    width: 92px;
-    height: 112px;
+  .nm-card {
+    width: 88px;
+    height: 104px;
     background: linear-gradient(180deg, #FFE53B 0%, #FFA500 100%);
     border: 3px solid #5d4037;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 42px;
+    font-size: 40px;
     font-weight: 900;
     color: #fff;
     text-shadow: 2px 2px 0 rgba(0,0,0,0.35);
@@ -406,12 +405,12 @@
     transition: transform 0.25s, background 0.3s, color 0.2s;
     user-select: none;
   }
-  .memory-card.face-down {
+  .nm-card.face-down {
     background: linear-gradient(180deg, #8E5FCF 0%, #5d3a8c 100%);
     color: rgba(255,255,255,0.35);
     border-color: #4a3578;
   }
-  .memory-card.revealed {
+  .nm-card.revealed {
     background: linear-gradient(180deg, #43E97B 0%, #2db867 100%) !important;
     border-color: #2E9D5F !important;
     color: #fff !important;
@@ -419,10 +418,10 @@
     box-shadow: 0 4px 0 #1e7a47, 0 6px 12px rgba(0,0,0,0.22);
     pointer-events: none;
   }
-  .memory-card.wrong-shake {
+  .nm-card.wrong-shake {
     animation: shake 0.4s;
   }
-  .memory-hint {
+  .nm-hint {
     text-align: center;
     font-size: 17px;
     color: #5d4037;
@@ -434,7 +433,7 @@
     display: inline-block;
     border: 2px solid #5d4037;
   }
-  /* Memory layout: smaller train cars to fit more */
+  /* V2 layout: smaller train cars to fit more */
   .game-container.memory-layout #train   { order: 3; }
   .game-container.memory-layout #gameView { order: 4; }
   .game-container.memory-layout .feedback { order: 5; }
@@ -453,15 +452,15 @@
     border-radius: 10px;
   }
   @media (max-width: 600px) {
-    .memory-frame {
-      min-height: 360px;
+    .nm-frame {
+      min-height: 340px;
       padding: 14px;
       gap: 10px;
     }
-    .memory-card {
-      width: 72px;
-      height: 88px;
-      font-size: 34px;
+    .nm-card {
+      width: 68px;
+      height: 82px;
+      font-size: 30px;
     }
     .game-container.memory-layout .train-car {
       width: 40px;
@@ -1112,8 +1111,8 @@
     </button>
     <button class="game-card" data-game="memory">
       <span class="emoji">🧠</span>
-      <span class="name">数字记忆</span>
-      <span class="desc">看位置 → 按顺序点</span>
+      <span class="name">数字记忆 V2</span>
+      <span class="desc">随机数字 → 从小到大点</span>
     </button>
   </div>
 </div>
@@ -1515,136 +1514,123 @@ function speakEnglish(text) {
   }
 }
 
-// ===== Game 5: Number Memory =====
-const MEMORY_COUNTS = { easy: 5, medium: 7, hard: 9 };
-const MEMORY_POOL_SIZES = { easy: 9, medium: 12, hard: 18 };
-const CN_NUMS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九',
+// ===== Game 5 V2: Number Memory (重写版) =====
+const NM_COUNTS = { easy: 5, medium: 7, hard: 9 };
+const NM_POOL = { easy: 9, medium: 12, hard: 18 };
+const NM_CN = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九',
   '十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十'];
-const memory = {
+const nm = {
   count: 5,
-  current: 1,
-  lockInput: true,
-  memorizeTimer: null,
-  cards: [],
-  targetSequence: []   // 升序点击序列：从生成的随机数排序得到
+  done: 0,            // 已点对数量
+  lock: true,          // 记忆期锁定
+  timer: null,
+  cards: [],           // {value, el}
+  order: []            // 升序点击序列
 };
 
 function startMemory() {
-  memory.count = MEMORY_COUNTS[settings.difficulty] || 5;
-  memory.current = 1;
-  memory.lockInput = true;
-
-  setupMemoryTrain(memory.count);
-
-  document.getElementById('gameLevel').textContent = `第 ${memory.current} / ${memory.count} 个`;
+  nm.count = NM_COUNTS[settings.difficulty] || 5;
+  nm.done = 0;
+  nm.lock = true;
+  setupNMTrain(nm.count);
+  document.getElementById('gameLevel').textContent = `第 ${nm.done + 1} / ${nm.count} 个`;
   document.getElementById('feedback').textContent = '';
-
-  renderMemoryGame();
-
-  if (memory.memorizeTimer) clearTimeout(memory.memorizeTimer);
-  memory.memorizeTimer = setTimeout(flipCardsFaceDown, 5000);
+  renderNM();
+  if (nm.timer) clearTimeout(nm.timer);
+  nm.timer = setTimeout(flipNMCards, 5000);
 }
 
-function setupMemoryTrain(numCars) {
+function setupNMTrain(n) {
   const train = document.getElementById('train');
   train.querySelectorAll('.train-car').forEach(c => c.remove());
-  for (let i = 0; i < numCars; i++) {
+  for (let i = 0; i < n; i++) {
     const car = document.createElement('div');
     car.className = 'train-car';
     car.dataset.slot = i;
     train.appendChild(car);
   }
   trainCars.length = 0;
-  for (let i = 0; i < numCars; i++) trainCars.push(null);
+  for (let i = 0; i < n; i++) trainCars.push(null);
   resetTrain();
 }
 
-function renderMemoryGame() {
+function renderNM() {
   const diffLabel = settings.difficulty === 'easy' ? '简单 5 张' :
                     settings.difficulty === 'hard' ? '困难 9 张' :
                     '中等 7 张';
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
-      <div class="stage-title">数字记忆 · ${diffLabel}</div>
-      <div class="memory-frame" id="memoryFrame"></div>
-      <div class="memory-hint" id="memoryHint">👀 看好位置，5 秒后翻面</div>
+      <div class="stage-title">数字记忆 V2 · ${diffLabel}</div>
+      <div class="nm-frame" id="nmFrame"></div>
+      <div class="nm-hint" id="nmHint">👀 看好数字和位置，5 秒后翻面</div>
     </div>
   `;
 
-  const frame = document.getElementById('memoryFrame');
-  memory.cards = [];
+  const frame = document.getElementById('nmFrame');
+  nm.cards = [];
 
-  // 强制列数：5 张→3 列、7 张→4 列、9 张→3 列
-  const cols = memory.count === 7 ? 4 : 3;
-  frame.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-
-  // 数字从更大的池里随机抽（不是 1-N），避免肉眼"接龙"感
-  const poolSize = MEMORY_POOL_SIZES[settings.difficulty] || (memory.count + 4);
+  // 从池里随机抽 N 个不重复数字（绝不可能是 1-N 顺序）
+  const poolSize = NM_POOL[settings.difficulty] || 12;
   const pool = [];
   for (let i = 1; i <= poolSize; i++) pool.push(i);
   shuffle(pool);
-  const cardNumbers = pool.slice(0, memory.count);
+  const nums = pool.slice(0, nm.count);
+  nm.order = [...nums].sort((a, b) => a - b);  // 点击顺序：从小到大
+  shuffle(nums);  // 卡片位置再打乱
 
-  // 升序序列作为点击顺序 —— 玩家要按从小到大点
-  memory.targetSequence = [...cardNumbers].sort((a, b) => a - b);
-
-  // 数字再打乱一次分配到各 cell
-  shuffle(cardNumbers);
-
-  for (const num of cardNumbers) {
+  nums.forEach(num => {
     const card = document.createElement('div');
-    card.className = 'memory-card';
+    card.className = 'nm-card';
     card.dataset.value = num;
     card.textContent = num;
-    // 每张卡片随机错落：位置偏移 + 轻微旋转
+    // 轻微错落：位置偏移 + 旋转，避免规整感
     const dx = (Math.random() - 0.5) * 14;
     const dy = (Math.random() - 0.5) * 12;
     const rot = (Math.random() - 0.5) * 8;
     card.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;
-    card.onclick = () => handleMemoryClick(num, card);
+    card.onclick = () => handleNMCard(num, card);
     frame.appendChild(card);
-    memory.cards.push({ value: num, el: card });
-  }
+    nm.cards.push({ value: num, el: card });
+  });
 }
 
-function flipCardsFaceDown() {
-  memory.cards.forEach(({ el }) => {
+function flipNMCards() {
+  nm.cards.forEach(({ el }) => {
     el.classList.add('face-down');
     el.textContent = '?';
   });
-  const hintEl = document.getElementById('memoryHint');
-  if (hintEl) hintEl.textContent = '🖱️ 从最小的数字开始，按顺序点';
-  memory.lockInput = false;
+  const hint = document.getElementById('nmHint');
+  if (hint) hint.textContent = '🖱️ 从最小的数字开始，按顺序点';
+  nm.lock = false;
 }
 
-function handleMemoryClick(value, card) {
-  if (memory.lockInput) return;
+function handleNMCard(value, card) {
+  if (nm.lock) return;
   if (!card.classList.contains('face-down')) return;
-
-  const expected = memory.targetSequence[memory.current - 1];
+  const expected = nm.order[nm.done];
 
   if (value === expected) {
-    memory.lockInput = true;
+    nm.lock = true;
     card.classList.remove('face-down');
     card.classList.add('revealed');
     card.textContent = value;
     showFeedback(`🎉 ${value} 对啦！`);
-    speak(CN_NUMS[value] || String(value));
+    speak(NM_CN[value] || String(value));
 
-    const slotIdx = trainCars.indexOf(null);
-    if (slotIdx >= 0) {
-      trainCars[slotIdx] = value;
-      const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
-      if (carEl) flyNumberToTrain(card, value, carEl);
+    const slot = trainCars.indexOf(null);
+    if (slot >= 0) {
+      trainCars[slot] = value;
+      const carEl = document.querySelector(`.train-car[data-slot="${slot}"]`);
+      if (carEl) flyNMCard(card, value, carEl);
     }
-    memory.current++;
+    nm.done++;
 
     setTimeout(() => {
-      memory.lockInput = false;
-      if (memory.current > memory.count) {
+      nm.lock = false;
+      if (nm.done >= nm.count) {
         departMemoryTrain();
       } else {
-        document.getElementById('gameLevel').textContent = `第 ${memory.current} / ${memory.count} 个`;
+        document.getElementById('gameLevel').textContent = `第 ${nm.done + 1} / ${nm.count} 个`;
       }
     }, 1000);
   } else {
@@ -1653,14 +1639,14 @@ function handleMemoryClick(value, card) {
   }
 }
 
-function flyNumberToTrain(cardEl, number, trainCarEl) {
-  const cardRect = cardEl.getBoundingClientRect();
-  const carRect = trainCarEl.getBoundingClientRect();
+function flyNMCard(cardEl, number, trainCarEl) {
+  const c = cardEl.getBoundingClientRect();
+  const t = trainCarEl.getBoundingClientRect();
   const flyer = document.createElement('div');
   flyer.className = 'flyer';
   flyer.textContent = number;
-  flyer.style.left = (cardRect.left + cardRect.width / 2 - 24) + 'px';
-  flyer.style.top  = (cardRect.top + cardRect.height / 2 - 24) + 'px';
+  flyer.style.left = (c.left + c.width / 2 - 24) + 'px';
+  flyer.style.top  = (c.top + c.height / 2 - 24) + 'px';
   flyer.style.width = '48px';
   flyer.style.height = '48px';
   flyer.style.fontSize = '36px';
@@ -1671,8 +1657,8 @@ function flyNumberToTrain(cardEl, number, trainCarEl) {
   flyer.style.textAlign = 'center';
   flyer.style.lineHeight = '48px';
   document.body.appendChild(flyer);
-  const dx = carRect.left + carRect.width / 2 - (cardRect.left + cardRect.width / 2);
-  const dy = carRect.top + carRect.height / 2 - (cardRect.top + cardRect.height / 2);
+  const dx = t.left + t.width / 2 - (c.left + c.width / 2);
+  const dy = t.top + t.height / 2 - (c.top + c.height / 2);
   flyer.offsetHeight;
   requestAnimationFrame(() => {
     flyer.style.transform = `translate(${dx}px,${dy}px) scale(0.7)`;
@@ -1690,10 +1676,7 @@ function flyNumberToTrain(cardEl, number, trainCarEl) {
 }
 
 function departMemoryTrain() {
-  if (memory.memorizeTimer) {
-    clearTimeout(memory.memorizeTimer);
-    memory.memorizeTimer = null;
-  }
+  if (nm.timer) { clearTimeout(nm.timer); nm.timer = null; }
   showFeedback('🚇 出发！');
   speakEnglish('choo choo');
   playTrainHorn();
