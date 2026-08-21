@@ -1196,12 +1196,12 @@ function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
+  // 原地 Fisher-Yates 打乱（同时返回数组，兼容两种用法）
+  for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return a;
+  return arr;
 }
 
 // ===== Metro SVG (side view): 成都地铁风格 — 白底红斜带 + 圆头 + LED 灯条 + 白门竖窗 =====
@@ -1516,7 +1516,6 @@ function speakEnglish(text) {
 
 // ===== Game 5 V2: Number Memory (重写版) =====
 const NM_COUNTS = { easy: 5, medium: 7, hard: 9 };
-const NM_POOL = { easy: 9, medium: 12, hard: 18 };
 const NM_CN = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九',
   '十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十'];
 const nm = {
@@ -1569,14 +1568,11 @@ function renderNM() {
   const frame = document.getElementById('nmFrame');
   nm.cards = [];
 
-  // 从池里随机抽 N 个不重复数字（绝不可能是 1-N 顺序）
-  const poolSize = NM_POOL[settings.difficulty] || 12;
-  const pool = [];
-  for (let i = 1; i <= poolSize; i++) pool.push(i);
-  shuffle(pool);
-  const nums = pool.slice(0, nm.count);
-  nm.order = [...nums].sort((a, b) => a - b);  // 点击顺序：从小到大
-  shuffle(nums);  // 卡片位置再打乱
+  // 数字就是 1..N，排列乱序（杰要求：354692718 这种）
+  const nums = Array.from({ length: nm.count }, (_, i) => i + 1);
+  shuffle(nums);
+  nm.order = [...nums].sort((a, b) => a - b);  // 点击顺序：1..N 升序
+  shuffle(nums);  // 再打乱一次，保证卡片位置乱序
 
   nums.forEach(num => {
     const card = document.createElement('div');
