@@ -377,11 +377,11 @@
     background: linear-gradient(180deg, #B3E5FC 0%, #81D4FA 100%);
     border: 4px solid #5d4037;
     border-radius: 18px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    /* 列数在 JS 里按张数设置 */
+    justify-items: center;
     align-content: center;
-    gap: 16px;
+    gap: 18px;
     padding: 24px;
     margin: 12px 0;
     box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.18);
@@ -1568,6 +1568,10 @@ function renderNM() {
   const frame = document.getElementById('nmFrame');
   nm.cards = [];
 
+  // 均匀网格：5 张→3 列 2 行、7 张→4 列 2 行、9 张→3 列 3 行
+  const cols = nm.count === 7 ? 4 : 3;
+  frame.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+
   // 数字就是 1..N，排列乱序（杰要求：354692718 这种）
   const nums = Array.from({ length: nm.count }, (_, i) => i + 1);
   shuffle(nums);
@@ -1579,11 +1583,9 @@ function renderNM() {
     card.className = 'nm-card';
     card.dataset.value = num;
     card.textContent = num;
-    // 轻微错落：位置偏移 + 旋转，避免规整感
-    const dx = (Math.random() - 0.5) * 14;
-    const dy = (Math.random() - 0.5) * 12;
-    const rot = (Math.random() - 0.5) * 8;
-    card.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;
+    // 轻微旋转增加自然感（不位移，保持格子均匀）
+    const rot = (Math.random() - 0.5) * 6;
+    card.style.transform = `rotate(${rot.toFixed(1)}deg)`;
     card.onclick = () => handleNMCard(num, card);
     frame.appendChild(card);
     nm.cards.push({ value: num, el: card });
