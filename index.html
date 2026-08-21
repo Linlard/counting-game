@@ -1080,6 +1080,31 @@
     white-space: nowrap;
     animation: trainCelebrateRun 4.5s linear forwards;
   }
+  /* Game 5 win: many metros sweeping left → right */
+  @keyframes metroSweep {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(calc(260vw)); }
+  }
+  .metro-sweep {
+    position: fixed;
+    left: -140px;
+    font-size: 42px;
+    z-index: 9999;
+    pointer-events: none;
+    white-space: nowrap;
+    animation: metroSweep linear forwards;
+  }
+  .metro-sweep .a-car {
+    display: inline-block;
+    padding: 2px 9px;
+    margin: 0 2px;
+    border: 2.5px solid #5d4037;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.18);
+  }
 </style>
 </head>
 <body>
@@ -1684,6 +1709,7 @@ function departMemoryTrain() {
   speakEnglish('choo choo');
   playTrainHorn();
   playTrainChug();
+  metroSweepCelebrate();  // 通关彩蛋：很多地铁从左往右跑
   const train = document.getElementById('train');
   train.classList.add('departing');
   setTimeout(() => {
@@ -1691,6 +1717,36 @@ function departMemoryTrain() {
     resetTrain();
     startMemory();
   }, 2000);
+}
+
+// 通关彩蛋：多列彩色地铁，不同高度/速度/延迟，从左往右驶过屏幕
+function metroSweepCelebrate() {
+  const colors = ['#FF6B6B', '#4FACFE', '#43E97B', '#FA709A', '#FFE53B', '#A18CD1'];
+  const lanes = [
+    { cars: 5, bottom: '18%', dur: 5.5, delay: 0    },
+    { cars: 4, bottom: '30%', dur: 4.5, delay: 0.3  },
+    { cars: 6, bottom: '42%', dur: 6.2, delay: 0.6  },
+    { cars: 3, bottom: '54%', dur: 4.0, delay: 0.9  },
+    { cars: 5, bottom: '66%', dur: 5.8, delay: 1.2  },
+    { cars: 4, bottom: '24%', dur: 5.0, delay: 1.5  },
+    { cars: 6, bottom: '48%', dur: 6.5, delay: 1.8  },
+    { cars: 3, bottom: '60%', dur: 4.8, delay: 2.1  },
+  ];
+  lanes.forEach((l, idx) => {
+    const metro = document.createElement('div');
+    metro.className = 'metro-sweep';
+    metro.style.bottom = l.bottom;
+    metro.style.animationDuration = l.dur + 's';
+    metro.style.animationDelay = l.delay + 's';
+    let html = '<span class="metro-icon">' + METRO_SVG_HTML + '</span>';
+    for (let c = 0; c < l.cars; c++) {
+      const color = colors[(idx + c) % 6];
+      html += `<span class="a-car" style="background:${color}">${c + 1}</span>`;
+    }
+    metro.innerHTML = html;
+    document.body.appendChild(metro);
+    setTimeout(() => metro.remove(), (l.delay + l.dur + 0.5) * 1000);
+  });
 }
 
 function updateAlphabetModeBtns() {
