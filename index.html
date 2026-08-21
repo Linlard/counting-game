@@ -367,6 +367,106 @@
     box-shadow: 0 3px 0 rgba(0,0,0,0.18);
   }
 
+  /* ===== Game 5: Number Memory ===== */
+  .memory-frame {
+    width: 100%;
+    max-width: 460px;
+    height: 320px;
+    background: linear-gradient(180deg, #B3E5FC 0%, #81D4FA 100%);
+    border: 4px solid #5d4037;
+    border-radius: 18px;
+    position: relative;
+    margin: 12px auto;
+    box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.18);
+    overflow: hidden;
+  }
+  .memory-card {
+    position: absolute;
+    width: 78px;
+    height: 96px;
+    background: linear-gradient(180deg, #FFE53B 0%, #FFA500 100%);
+    border: 3px solid #5d4037;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+    font-family: 'Comic Sans MS', 'Marker Felt', cursive;
+    box-shadow: 0 4px 0 #5d4037, 0 6px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.25s, background 0.3s, color 0.2s;
+    user-select: none;
+  }
+  .memory-card.face-down {
+    background: linear-gradient(180deg, #8E5FCF 0%, #5d3a8c 100%);
+    color: rgba(255,255,255,0.35);
+    border-color: #4a3578;
+  }
+  .memory-card.revealed {
+    background: linear-gradient(180deg, #43E97B 0%, #2db867 100%) !important;
+    border-color: #2E9D5F !important;
+    color: #fff !important;
+    transform: scale(1.1);
+    box-shadow: 0 4px 0 #1e7a47, 0 6px 12px rgba(0,0,0,0.22);
+    pointer-events: none;
+  }
+  .memory-card.wrong-shake {
+    animation: shake 0.4s;
+  }
+  .memory-hint {
+    text-align: center;
+    font-size: 17px;
+    color: #5d4037;
+    font-weight: bold;
+    margin-top: 10px;
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.65);
+    border-radius: 12px;
+    display: inline-block;
+    border: 2px solid #5d4037;
+  }
+  /* Memory layout: smaller train cars to fit more */
+  .game-container.memory-layout #train   { order: 3; }
+  .game-container.memory-layout #gameView { order: 4; }
+  .game-container.memory-layout .feedback { order: 5; }
+  .game-container.memory-layout #train {
+    margin-bottom: 14px;
+    padding: 10px 14px;
+  }
+  .game-container.memory-layout .train-engine {
+    font-size: 56px;
+  }
+  .game-container.memory-layout .train-car {
+    width: 54px;
+    height: 68px;
+    font-size: 30px;
+    border-width: 2.5px;
+    border-radius: 10px;
+  }
+  @media (max-width: 600px) {
+    .memory-card {
+      width: 60px;
+      height: 76px;
+      font-size: 30px;
+    }
+    .memory-frame {
+      height: 280px;
+    }
+    .game-container.memory-layout .train-car {
+      width: 40px;
+      height: 52px;
+      font-size: 22px;
+      border-width: 2px;
+      border-radius: 8px;
+    }
+    .game-container.memory-layout .train-engine {
+      font-size: 42px;
+    }
+  }
+
   /* ===== Common stage ===== */
   .game-stage {
     background: linear-gradient(180deg, #fff 0%, #fff8e1 100%);
@@ -1002,6 +1102,11 @@
       <span class="name">字母地铁</span>
       <span class="desc">A→Z / Z→A 顺序背</span>
     </button>
+    <button class="game-card" data-game="memory">
+      <span class="emoji">🧠</span>
+      <span class="name">数字记忆</span>
+      <span class="desc">看位置 → 按顺序点</span>
+    </button>
   </div>
 </div>
 
@@ -1144,6 +1249,7 @@ function setDifficulty(diff) {
     else if (currentGame === 'parking') startParking();
     else if (currentGame === 'chinese') startChinese();
     else if (currentGame === 'alphabet') startAlphabet();
+    else if (currentGame === 'memory') startMemory();
   }
 }
 
@@ -1399,6 +1505,195 @@ function speakEnglish(text) {
       window.speechSynthesis.speak(u);
     } catch (e) {}
   }
+}
+
+// ===== Game 5: Number Memory =====
+const MEMORY_COUNTS = { easy: 5, medium: 7, hard: 9 };
+const CN_NUMS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+const memory = {
+  count: 5,
+  current: 1,
+  lockInput: true,
+  memorizeTimer: null,
+  cards: []
+};
+
+function startMemory() {
+  memory.count = MEMORY_COUNTS[settings.difficulty] || 5;
+  memory.current = 1;
+  memory.lockInput = true;
+
+  setupMemoryTrain(memory.count);
+
+  updateLevel(memory.current, memory.count);
+  document.getElementById('feedback').textContent = '';
+
+  renderMemoryGame();
+
+  if (memory.memorizeTimer) clearTimeout(memory.memorizeTimer);
+  memory.memorizeTimer = setTimeout(flipCardsFaceDown, 5000);
+}
+
+function setupMemoryTrain(numCars) {
+  const train = document.getElementById('train');
+  train.querySelectorAll('.train-car').forEach(c => c.remove());
+  for (let i = 0; i < numCars; i++) {
+    const car = document.createElement('div');
+    car.className = 'train-car';
+    car.dataset.slot = i;
+    train.appendChild(car);
+  }
+  trainCars.length = 0;
+  for (let i = 0; i < numCars; i++) trainCars.push(null);
+  resetTrain();
+}
+
+function renderMemoryGame() {
+  const diffLabel = settings.difficulty === 'easy' ? '简单 5 张' :
+                    settings.difficulty === 'hard' ? '困难 9 张' :
+                    '中等 7 张';
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-title">数字记忆 · ${diffLabel}</div>
+      <div class="memory-frame" id="memoryFrame"></div>
+      <div class="memory-hint" id="memoryHint">👀 看好位置，5 秒后翻面</div>
+    </div>
+  `;
+
+  const frame = document.getElementById('memoryFrame');
+  memory.cards = [];
+
+  // 随机选 N 个位置，最小间距保证不挤压
+  const rect = frame.getBoundingClientRect();
+  const cardW = 78, cardH = 96;
+  const padding = 12;
+  const maxX = Math.max(0, rect.width - cardW - padding * 2);
+  const maxY = Math.max(0, rect.height - cardH - padding * 2);
+  const positions = [];
+  const minDist = 18;
+  let attempts = 0;
+  while (positions.length < memory.count && attempts < 500) {
+    const x = padding + Math.random() * maxX;
+    const y = padding + Math.random() * maxY;
+    let ok = true;
+    for (const p of positions) {
+      const dx = p.x - x, dy = p.y - y;
+      if (dx * dx + dy * dy < minDist * minDist) { ok = false; break; }
+    }
+    if (ok) positions.push({ x, y });
+    attempts++;
+  }
+
+  for (let i = 1; i <= memory.count; i++) {
+    const card = document.createElement('div');
+    card.className = 'memory-card';
+    card.dataset.value = i;
+    card.textContent = i;
+    const pos = positions[i - 1] || { x: padding, y: padding };
+    card.style.left = pos.x + 'px';
+    card.style.top = pos.y + 'px';
+    card.onclick = () => handleMemoryClick(i, card);
+    frame.appendChild(card);
+    memory.cards.push({ value: i, el: card });
+  }
+}
+
+function flipCardsFaceDown() {
+  memory.cards.forEach(({ el }) => {
+    el.classList.add('face-down');
+    el.textContent = '?';
+  });
+  const hintEl = document.getElementById('memoryHint');
+  if (hintEl) hintEl.textContent = '🖱️ 按 1 → 2 → 3 的顺序点';
+  memory.lockInput = false;
+}
+
+function handleMemoryClick(value, card) {
+  if (memory.lockInput) return;
+  if (!card.classList.contains('face-down')) return;
+
+  if (value === memory.current) {
+    memory.lockInput = true;
+    card.classList.remove('face-down');
+    card.classList.add('revealed');
+    card.textContent = value;
+    showFeedback(`🎉 ${value} 对啦！`);
+    speak(CN_NUMS[value] || String(value));
+
+    const slotIdx = trainCars.indexOf(null);
+    if (slotIdx >= 0) {
+      trainCars[slotIdx] = value;
+      const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
+      if (carEl) flyNumberToTrain(card, value, carEl);
+    }
+    memory.current++;
+
+    setTimeout(() => {
+      memory.lockInput = false;
+      if (memory.current > memory.count) {
+        departMemoryTrain();
+      } else {
+        updateLevel(memory.current, memory.count);
+      }
+    }, 1000);
+  } else {
+    card.classList.add('wrong-shake');
+    setTimeout(() => card.classList.remove('wrong-shake'), 400);
+  }
+}
+
+function flyNumberToTrain(cardEl, number, trainCarEl) {
+  const cardRect = cardEl.getBoundingClientRect();
+  const carRect = trainCarEl.getBoundingClientRect();
+  const flyer = document.createElement('div');
+  flyer.className = 'flyer';
+  flyer.textContent = number;
+  flyer.style.left = (cardRect.left + cardRect.width / 2 - 24) + 'px';
+  flyer.style.top  = (cardRect.top + cardRect.height / 2 - 24) + 'px';
+  flyer.style.width = '48px';
+  flyer.style.height = '48px';
+  flyer.style.fontSize = '36px';
+  flyer.style.fontWeight = '900';
+  flyer.style.fontFamily = "'Comic Sans MS', 'Marker Felt', cursive";
+  flyer.style.color = '#fff';
+  flyer.style.textShadow = '2px 2px 0 rgba(0,0,0,0.3)';
+  flyer.style.textAlign = 'center';
+  flyer.style.lineHeight = '48px';
+  document.body.appendChild(flyer);
+  const dx = carRect.left + carRect.width / 2 - (cardRect.left + cardRect.width / 2);
+  const dy = carRect.top + carRect.height / 2 - (cardRect.top + cardRect.height / 2);
+  flyer.offsetHeight;
+  requestAnimationFrame(() => {
+    flyer.style.transform = `translate(${dx}px,${dy}px) scale(0.7)`;
+    flyer.style.opacity = '0.6';
+  });
+  flyer.addEventListener('transitionend', () => {
+    flyer.remove();
+    trainCarEl.classList.add('filled');
+    trainCarEl.textContent = number;
+    trainCarEl.style.color = '#5d4037';
+    trainCarEl.style.fontWeight = '900';
+    trainCarEl.style.fontSize = '32px';
+    trainCarEl.style.fontFamily = "'Comic Sans MS', cursive";
+  }, { once: true });
+}
+
+function departMemoryTrain() {
+  if (memory.memorizeTimer) {
+    clearTimeout(memory.memorizeTimer);
+    memory.memorizeTimer = null;
+  }
+  showFeedback('🚇 出发！');
+  speakEnglish('choo choo');
+  playTrainHorn();
+  playTrainChug();
+  const train = document.getElementById('train');
+  train.classList.add('departing');
+  setTimeout(() => {
+    train.classList.remove('departing');
+    resetTrain();
+    startMemory();
+  }, 2000);
 }
 
 function updateAlphabetModeBtns() {
@@ -1658,7 +1953,7 @@ function goHome() {
   document.getElementById('train').style.display = 'none';
   document.getElementById('chineseThemeGroup').style.display = 'none';
   document.getElementById('alphabetModeGroup').style.display = 'none';
-  document.getElementById('gameContainer').classList.remove('alphabet-layout');
+  document.getElementById('gameContainer').classList.remove('alphabet-layout', 'memory-layout');
   resetTrain();
   try { window.speechSynthesis.cancel(); } catch (e) {}
   currentGame = null;
@@ -1669,14 +1964,16 @@ function startGame(name) {
   document.getElementById('gameContainer').style.display = '';
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('feedback').textContent = '';
-  document.getElementById('train').style.display = (name === 'chinese' || name === 'alphabet') ? '' : 'none';
+  document.getElementById('train').style.display = (name === 'chinese' || name === 'alphabet' || name === 'memory') ? '' : 'none';
   document.getElementById('chineseThemeGroup').style.display = (name === 'chinese') ? '' : 'none';
   document.getElementById('alphabetModeGroup').style.display = (name === 'alphabet') ? '' : 'none';
   document.getElementById('gameContainer').classList.toggle('alphabet-layout', name === 'alphabet');
+  document.getElementById('gameContainer').classList.toggle('memory-layout', name === 'memory');
   if (name === 'counting') startCounting();
   else if (name === 'parking') startParking();
   else if (name === 'chinese') startChinese();
   else if (name === 'alphabet') startAlphabet();
+  else if (name === 'memory') startMemory();
 }
 document.querySelectorAll('.game-card').forEach(card => {
   card.addEventListener('click', () => startGame(card.dataset.game));
