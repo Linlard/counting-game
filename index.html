@@ -379,10 +379,11 @@
     flex-wrap: wrap;
     justify-content: center;
     align-content: center;
-    gap: 14px;
-    padding: 20px;
+    gap: 18px;
+    padding: 26px;
     margin: 12px auto;
     box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.18);
+    overflow: hidden;
   }
   .memory-card {
     width: 92px;
@@ -1577,6 +1578,11 @@ function renderMemoryGame() {
     card.className = 'memory-card';
     card.dataset.value = num;
     card.textContent = num;
+    // 每张卡片随机错落：位置偏移 + 轻微旋转，看起来不规整
+    const dx = (Math.random() - 0.5) * 14;
+    const dy = (Math.random() - 0.5) * 12;
+    const rot = (Math.random() - 0.5) * 8;
+    card.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;
     card.onclick = () => handleMemoryClick(num, card);
     frame.appendChild(card);
     memory.cards.push({ value: num, el: card });
