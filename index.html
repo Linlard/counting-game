@@ -1536,7 +1536,7 @@ function startMemory() {
 
   setupMemoryTrain(memory.count);
 
-  updateLevel(memory.current, memory.count);
+  document.getElementById('gameLevel').textContent = `第 ${memory.current} / ${memory.count} 个`;
   document.getElementById('feedback').textContent = '';
 
   renderMemoryGame();
@@ -1613,7 +1613,7 @@ function flipCardsFaceDown() {
     el.textContent = '?';
   });
   const hintEl = document.getElementById('memoryHint');
-  if (hintEl) hintEl.textContent = '🖱️ 按 1 → 2 → 3 的顺序点';
+  if (hintEl) hintEl.textContent = '🖱️ 从最小的数字开始，按顺序点';
   memory.lockInput = false;
 }
 
@@ -1644,7 +1644,7 @@ function handleMemoryClick(value, card) {
       if (memory.current > memory.count) {
         departMemoryTrain();
       } else {
-        updateLevel(memory.current, memory.count);
+        document.getElementById('gameLevel').textContent = `第 ${memory.current} / ${memory.count} 个`;
       }
     }, 1000);
   } else {
