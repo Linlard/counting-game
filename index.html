@@ -370,18 +370,17 @@
   /* ===== Game 5: Number Memory ===== */
   .memory-frame {
     width: 100%;
-    max-width: 500px;
-    height: 380px;
+    min-height: 380px;
     background: linear-gradient(180deg, #B3E5FC 0%, #81D4FA 100%);
     border: 4px solid #5d4037;
     border-radius: 18px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    /* grid-template-columns 在 JS 里根据张数设置 */
+    justify-items: center;
     align-content: center;
     gap: 18px;
     padding: 26px;
-    margin: 12px auto;
+    margin: 12px 0;
     box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.18);
     overflow: hidden;
   }
@@ -452,7 +451,7 @@
   }
   @media (max-width: 600px) {
     .memory-frame {
-      height: 340px;
+      min-height: 360px;
       padding: 14px;
       gap: 10px;
     }
@@ -1569,7 +1568,12 @@ function renderMemoryGame() {
   const frame = document.getElementById('memoryFrame');
   memory.cards = [];
 
-  // 位置固定走 flex 网格（永不重叠），但数字是乱序分配的 —— 看起来仍是随机
+  // 强制列数：5 张→3 列、7 张→4 列、9 张→3 列
+  // 这样即使屏幕再宽也不会挤成一行（多行才让 12345 不连在一起）
+  const cols = memory.count === 7 ? 4 : 3;
+  frame.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+
+  // 数字乱序分配到网格 cell —— 数字位置看似随机
   const numbers = Array.from({ length: memory.count }, (_, i) => i + 1);
   shuffle(numbers);
 
@@ -1578,7 +1582,7 @@ function renderMemoryGame() {
     card.className = 'memory-card';
     card.dataset.value = num;
     card.textContent = num;
-    // 每张卡片随机错落：位置偏移 + 轻微旋转，看起来不规整
+    // 每张卡片随机错落：位置偏移 + 轻微旋转
     const dx = (Math.random() - 0.5) * 14;
     const dy = (Math.random() - 0.5) * 12;
     const rot = (Math.random() - 0.5) * 8;
