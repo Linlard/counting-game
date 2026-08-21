@@ -1573,8 +1573,13 @@ function renderNM() {
   frame.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
 
   // 数字就是 1..N，排列乱序（杰要求：354692718 这种）
+  // 防呆：若打乱后仍恰好升序（如 12345），强制再打乱，最多 5 次
   const nums = Array.from({ length: nm.count }, (_, i) => i + 1);
-  shuffle(nums);
+  let guard = 0;
+  do {
+    shuffle(nums);
+    guard++;
+  } while (guard < 5 && nums.every((v, i) => v === i + 1));
   nm.order = [...nums].sort((a, b) => a - b);  // 点击顺序：1..N 升序
   shuffle(nums);  // 再打乱一次，保证卡片位置乱序
 
