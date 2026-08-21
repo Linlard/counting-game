@@ -1514,13 +1514,16 @@ function speakEnglish(text) {
 
 // ===== Game 5: Number Memory =====
 const MEMORY_COUNTS = { easy: 5, medium: 7, hard: 9 };
-const CN_NUMS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+const MEMORY_POOL_SIZES = { easy: 9, medium: 12, hard: 18 };
+const CN_NUMS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九',
+  '十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十'];
 const memory = {
   count: 5,
   current: 1,
   lockInput: true,
   memorizeTimer: null,
-  cards: []
+  cards: [],
+  targetSequence: []   // 升序点击序列：从生成的随机数排序得到
 };
 
 function startMemory() {
@@ -1569,15 +1572,23 @@ function renderMemoryGame() {
   memory.cards = [];
 
   // 强制列数：5 张→3 列、7 张→4 列、9 张→3 列
-  // 这样即使屏幕再宽也不会挤成一行（多行才让 12345 不连在一起）
   const cols = memory.count === 7 ? 4 : 3;
   frame.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
 
-  // 数字乱序分配到网格 cell —— 数字位置看似随机
-  const numbers = Array.from({ length: memory.count }, (_, i) => i + 1);
-  shuffle(numbers);
+  // 数字从更大的池里随机抽（不是 1-N），避免肉眼"接龙"感
+  const poolSize = MEMORY_POOL_SIZES[settings.difficulty] || (memory.count + 4);
+  const pool = [];
+  for (let i = 1; i <= poolSize; i++) pool.push(i);
+  shuffle(pool);
+  const cardNumbers = pool.slice(0, memory.count);
 
-  for (const num of numbers) {
+  // 升序序列作为点击顺序 —— 玩家要按从小到大点
+  memory.targetSequence = [...cardNumbers].sort((a, b) => a - b);
+
+  // 数字再打乱一次分配到各 cell
+  shuffle(cardNumbers);
+
+  for (const num of cardNumbers) {
     const card = document.createElement('div');
     card.className = 'memory-card';
     card.dataset.value = num;
@@ -1607,7 +1618,9 @@ function handleMemoryClick(value, card) {
   if (memory.lockInput) return;
   if (!card.classList.contains('face-down')) return;
 
-  if (value === memory.current) {
+  const expected = memory.targetSequence[memory.current - 1];
+
+  if (value === expected) {
     memory.lockInput = true;
     card.classList.remove('face-down');
     card.classList.add('revealed');
