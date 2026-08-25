@@ -183,6 +183,25 @@
     border-color: #FF6B35;
     box-shadow: 0 3px 0 #CC5500, 0 4px 8px rgba(0,0,0,0.15);
   }
+  /* Per-game difficulty (in stage-toolbar) */
+  .stage-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .stage-toolbar .stage-title { margin-bottom: 0; }
+  .diff-mini {
+    display: flex;
+    gap: 6px;
+  }
+  .diff-mini .diff-btn {
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 10px;
+  }
 
   /* Chinese theme toggle (game 3) */
   .theme-btn {
@@ -1150,11 +1169,6 @@
   </div>
   <div class="toolbar">
     <button class="toggle-btn" id="musicToggle" title="音乐开关" aria-label="音乐开关" aria-pressed="true">🔊</button>
-    <div class="toolbar-group">
-      <button class="diff-btn" data-diff="easy">简单</button>
-      <button class="diff-btn active" data-diff="medium">中等</button>
-      <button class="diff-btn" data-diff="hard">困难</button>
-    </div>
     <div class="toolbar-group" id="chineseThemeGroup" style="display:none">
       <button class="theme-btn active" data-theme="animals">🐾 动物</button>
       <button class="theme-btn" data-theme="vehicles">🚗 车车</button>
@@ -1234,16 +1248,38 @@ const METRO_SVG_HTML = '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid 
 
 // ===== Settings (localStorage) =====
 const SETTINGS_KEY = 'countingGameSettings_v1';
+const GAME_KEYS = ['counting', 'parking', 'chinese', 'alphabet', 'memory'];
 let settings = {
   musicOn: true,
-  difficulty: 'medium',
+  difficulty: {
+    counting: 'medium',
+    parking: 'medium',
+    chinese: 'medium',
+    alphabet: 'medium',
+    memory: 'medium',
+  },
   chineseTheme: 'animals',
   alphabetMode: 'forward',
 };
 function loadSettings() {
   try {
     const saved = localStorage.getItem(SETTINGS_KEY);
-    if (saved) Object.assign(settings, JSON.parse(saved));
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // 兼容老格式：difficulty 是字符串时迁移到嵌套结构
+      if (typeof parsed.difficulty === 'string') {
+        const legacy = parsed.difficulty;
+        parsed.difficulty = {};
+        GAME_KEYS.forEach(k => { parsed.difficulty[k] = legacy; });
+      } else if (parsed.difficulty && typeof parsed.difficulty === 'object') {
+        GAME_KEYS.forEach(k => {
+          if (!['easy', 'medium', 'hard'].includes(parsed.difficulty[k])) {
+            parsed.difficulty[k] = 'medium';
+          }
+        });
+      }
+      Object.assign(settings, parsed);
+    }
   } catch (e) {}
 }
 function saveSettings() {
@@ -1259,9 +1295,21 @@ function updateMusicBtn() {
   btn.setAttribute('aria-pressed', settings.musicOn ? 'true' : 'false');
 }
 function updateDiffBtns() {
-  document.querySelectorAll('.diff-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.diff === settings.difficulty);
+  document.querySelectorAll('[data-diff-game]').forEach(b => {
+    const game = b.dataset.diffGame;
+    const cur = settings.difficulty[game] || 'medium';
+    b.classList.toggle('active', b.dataset.diff === cur);
   });
+}
+function diffMiniHtml(game) {
+  const current = settings.difficulty[game] || 'medium';
+  return `
+    <div class="diff-mini">
+      <button class="diff-btn ${current === 'easy' ? 'active' : ''}" data-diff-game="${game}" data-diff="easy">简单</button>
+      <button class="diff-btn ${current === 'medium' ? 'active' : ''}" data-diff-game="${game}" data-diff="medium">中等</button>
+      <button class="diff-btn ${current === 'hard' ? 'active' : ''}" data-diff-game="${game}" data-diff="hard">困难</button>
+    </div>
+  `;
 }
 function toggleMusic() {
   settings.musicOn = !settings.musicOn;
@@ -1271,17 +1319,18 @@ function toggleMusic() {
   saveSettings();
   updateMusicBtn();
 }
-function setDifficulty(diff) {
+function setDifficulty(game, diff) {
+  if (!GAME_KEYS.includes(game)) return;
   if (!['easy', 'medium', 'hard'].includes(diff)) return;
-  settings.difficulty = diff;
+  settings.difficulty[game] = diff;
   saveSettings();
   updateDiffBtns();
-  if (typeof currentGame !== 'undefined' && currentGame) {
-    if (currentGame === 'counting') startCounting();
-    else if (currentGame === 'parking') startParking();
-    else if (currentGame === 'chinese') startChinese();
-    else if (currentGame === 'alphabet') startAlphabet();
-    else if (currentGame === 'memory') startMemory();
+  if (typeof currentGame !== 'undefined' && currentGame === game) {
+    if (game === 'counting') startCounting();
+    else if (game === 'parking') startParking();
+    else if (game === 'chinese') startChinese();
+    else if (game === 'alphabet') startAlphabet();
+    else if (game === 'memory') startMemory();
   }
 }
 
@@ -1335,7 +1384,10 @@ function setupAlphabet() {
   const modeLabel = settings.alphabetMode === 'reverse' ? '反序' : '正序';
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
-      <div class="stage-title">${modeLabel} · 第 ${alphabet.windowIdx + 1} / ${alphabet.totalWindows} 组</div>
+      <div class="stage-toolbar">
+        <div class="stage-title">${modeLabel} · 第 ${alphabet.windowIdx + 1} / ${alphabet.totalWindows} 组</div>
+        ${diffMiniHtml('alphabet')}
+      </div>
       <div class="alphabet-choices" id="alphabetChoices"></div>
     </div>
   `;
@@ -1553,7 +1605,7 @@ const nm = {
 };
 
 function startMemory() {
-  nm.count = NM_COUNTS[settings.difficulty] || 5;
+  nm.count = NM_COUNTS[settings.difficulty.memory] || 5;
   nm.done = 0;
   nm.lock = true;
   setupNMTrain(nm.count);
@@ -1579,12 +1631,16 @@ function setupNMTrain(n) {
 }
 
 function renderNM() {
-  const diffLabel = settings.difficulty === 'easy' ? '简单 5 张' :
-                    settings.difficulty === 'hard' ? '困难 9 张' :
+  const diff = settings.difficulty.memory || 'medium';
+  const diffLabel = diff === 'easy' ? '简单 5 张' :
+                    diff === 'hard' ? '困难 9 张' :
                     '中等 7 张';
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
-      <div class="stage-title">数字记忆 V2 · ${diffLabel}</div>
+      <div class="stage-toolbar">
+        <div class="stage-title">数字记忆 V2 · ${diffLabel}</div>
+        ${diffMiniHtml('memory')}
+      </div>
       <div class="nm-frame" id="nmFrame"></div>
       <div class="nm-hint" id="nmHint">👀 看好数字和位置，5 秒后翻面</div>
     </div>
@@ -2072,7 +2128,7 @@ function setupCounting() {
       }))
     : null;
 
-  const range = countingRanges[settings.difficulty];
+  const range = countingRanges[settings.difficulty.counting];
   const min = range.min, max = range.max;
   counting.currentCount = rand(min, max);
   counting.currentAnimal = ANIMALS[rand(0, ANIMALS.length - 1)];
@@ -2080,7 +2136,10 @@ function setupCounting() {
 
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
-      <div class="stage-title">数一数，有几只小动物？</div>
+      <div class="stage-toolbar">
+        <div class="stage-title">数一数，有几只小动物？</div>
+        ${diffMiniHtml('counting')}
+      </div>
       <div class="animal-row" id="animalRow"></div>
     </div>
     <div class="choices" id="countingChoices"></div>
@@ -2285,13 +2344,16 @@ function setupParking() {
   updateLevel(parking.level, parking.total);
   document.getElementById('feedback').textContent = '';
 
-  const range = parkingRanges[settings.difficulty];
+  const range = parkingRanges[settings.difficulty.parking];
   parking.target = rand(range.min, range.max);
   const cnNum = numberToChinese(parking.target);
 
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
-      <div class="stage-title">✈️ 几号？</div>
+      <div class="stage-toolbar">
+        <div class="stage-title">✈️ 几号？</div>
+        ${diffMiniHtml('parking')}
+      </div>
       <div class="sky-scene">
         <div class="clouds">
           <div class="cloud cloud-1">☁️</div>
@@ -2417,7 +2479,7 @@ function setupChinese() {
   updateLevel(chinese.level, chinese.total);
   document.getElementById('feedback').textContent = '';
 
-  const range = chineseRanges[settings.difficulty];
+  const range = chineseRanges[settings.difficulty.chinese];
   // 按 chineseTheme 选择题库（纯动物 或 纯交通工具）
   const themePool = settings.chineseTheme === 'vehicles'
     ? CHINESE_DATA.vehicles
@@ -2436,7 +2498,10 @@ function setupChinese() {
 
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
-      <div class="stage-title">看字，选对的图</div>
+      <div class="stage-toolbar">
+        <div class="stage-title">看字，选对的图</div>
+        ${diffMiniHtml('chinese')}
+      </div>
       <div class="character-display">
         <div class="big-char">${chinese.current.word}</div>
       </div>
@@ -2517,8 +2582,10 @@ updateDiffBtns();
 updateChineseThemeBtns();
 updateAlphabetModeBtns();
 document.getElementById('musicToggle').addEventListener('click', toggleMusic);
-document.querySelectorAll('.diff-btn').forEach(b => {
-  b.addEventListener('click', () => setDifficulty(b.dataset.diff));
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-diff-game]');
+  if (!btn) return;
+  setDifficulty(btn.dataset.diffGame, btn.dataset.diff);
 });
 document.querySelectorAll('.theme-btn').forEach(b => {
   b.addEventListener('click', () => setChineseTheme(b.dataset.theme));
