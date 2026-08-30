@@ -1129,8 +1129,8 @@
     </button>
     <button class="game-card" data-game="memory">
       <span class="emoji">🧠</span>
-      <span class="name">字母记忆 V3</span>
-      <span class="desc">abcde 滚窗 → 按字母序点</span>
+      <span class="name">字母记忆 V2</span>
+      <span class="desc">看好位置，按字母序点 abcde</span>
     </button>
   </div>
 </div>
@@ -1577,9 +1577,9 @@ function speakEnglish(text) {
   }
 }
 
-// ===== Game 5 V3: Letter Memory (abcde 滚窗版) =====
-const NM_WINDOW = 5;                          // 每关固定 5 字母窗口
-const NM_TOTAL = 26 - NM_WINDOW + 1;          // 22 关（a-v 起始）
+// ===== Game 5 V2: Letter Memory (固定 abcde 窗口) =====
+const NM_WINDOW = 5;                          // 固定 5 字母窗口
+const NM_LETTERS = ['a', 'b', 'c', 'd', 'e'];  // 每轮都显示这 5 个
 const NM_REMEMBER_MS = { easy: 5000, medium: 5000, hard: 5000 };  // 记忆时间（统一 5 秒）
 const LETTER_CN = {
   a:'A', b:'B', c:'C', d:'D', e:'E', f:'F', g:'G', h:'H', i:'I', j:'J',
@@ -1587,22 +1587,21 @@ const LETTER_CN = {
   u:'U', v:'V', w:'W', x:'X', y:'Y', z:'Z'
 };
 const nm = {
-  level: 0,            // 当前关 0-21
-  done: 0,             // 当前关已点对数量
+  round: 0,            // 累计完成的轮次（每轮都用同一窗口）
+  done: 0,             // 当前轮已点对数量
   lock: true,          // 记忆期锁定
   timer: null,
   cards: [],           // {value, el}
-  order: [],           // 当前关字母升序序列
-  rememberMs: 5000,    // 当前关记忆时间
+  order: [...NM_LETTERS],
+  rememberMs: 5000,    // 当前轮记忆时间
 };
 
-function startMemory(isFresh = true) {
-  if (isFresh) nm.level = 0;
+function startMemory() {
   nm.done = 0;
   nm.lock = true;
   nm.rememberMs = NM_REMEMBER_MS[settings.difficulty.memory] || 5000;
   setupNMTrain(NM_WINDOW);
-  document.getElementById('gameLevel').textContent = `第 ${nm.level + 1} / ${NM_TOTAL} 关`;
+  document.getElementById('gameLevel').textContent = `第 ${nm.round + 1} 轮`;
   document.getElementById('feedback').textContent = '';
   renderNM();
   if (nm.timer) clearTimeout(nm.timer);
@@ -1624,18 +1623,14 @@ function setupNMTrain(n) {
 }
 
 function renderNM() {
-  const diff = settings.difficulty.memory || 'medium';
-  const diffLabel = diff === 'easy' ? '简单 5 秒' :
-                    diff === 'hard' ? '困难 3 秒' :
-                    '中等 4 秒';
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
       <div class="stage-toolbar">
-        <div class="stage-title">字母记忆 V3 · 第 ${nm.level + 1} / ${NM_TOTAL} 关 · ${diffLabel}</div>
+        <div class="stage-title">字母记忆 V2 · 第 ${nm.round + 1} 轮</div>
         ${diffMiniHtml('memory')}
       </div>
       <div class="nm-frame" id="nmFrame"></div>
-      <div class="nm-hint" id="nmHint">👀 看好字母和位置，${(nm.rememberMs / 1000).toFixed(0)} 秒后翻面</div>
+      <div class="nm-hint" id="nmHint">👀 看好字母和位置，5 秒后翻面</div>
     </div>
   `;
 
@@ -1645,18 +1640,16 @@ function renderNM() {
   // 5 字母窗口 → 5 列 1 行
   frame.style.gridTemplateColumns = `repeat(${NM_WINDOW}, minmax(0, 1fr))`;
 
-  // 当前关字母窗口：[a,b,c,d,e] / [b,c,d,e,f] / ... / [v,w,x,y,z]
-  const letters = ALPHABET.slice(nm.level, nm.level + NM_WINDOW);
-  // 字母按字母序固定为点击顺序（点击 a→b→c→d→e）
-  nm.order = [...letters];
+  // 固定窗口：始终 abcde，按字母序点击
+  nm.order = [...NM_LETTERS];
 
   // 视觉乱序（防呆：若恰好升序则重打乱）
-  const positions = [...letters];
+  const positions = [...NM_LETTERS];
   let guard = 0;
   do {
     shuffle(positions);
     guard++;
-  } while (guard < 5 && positions.every((v, i) => v === letters[i]));
+  } while (guard < 5 && positions.every((v, i) => v === NM_LETTERS[i]));
 
   positions.forEach(letter => {
     const card = document.createElement('div');
@@ -1761,22 +1754,13 @@ function departMemoryTrain() {
   speakEnglish('choo choo');
   playTrainHorn();
   playTrainChug();
-  const isFinalLevel = nm.level >= NM_TOTAL - 1;
-  if (isFinalLevel) {
-    metroSweepCelebrate();  // 通关彩蛋：很多地铁从左往右跑
-    showFeedback('🎉 全部 22 关通关！');
-  }
   const train = document.getElementById('train');
   train.classList.add('departing');
   setTimeout(() => {
     train.classList.remove('departing');
     resetTrain();
-    if (isFinalLevel) {
-      startMemory(true);   // 通关后回到第 1 关
-    } else {
-      nm.level++;
-      startMemory(false);  // 推进关卡，保留 level
-    }
+    nm.round++;
+    startMemory();  // 每轮都用同一个 abcde 窗口
   }, 2000);
 }
 
