@@ -406,15 +406,15 @@
     box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.18);
   }
   .nm-card {
-    width: 88px;
-    height: 104px;
+    width: 100%;
+    aspect-ratio: 0.85;            /* 保持 0.85 宽高比，N 列等宽 stretch */
     background: linear-gradient(180deg, #FFE53B 0%, #FFA500 100%);
     border: 3px solid #5d4037;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;
+    font-size: clamp(30px, 7vw, 64px);  /* 越大越好，随视口缩放 */
     font-weight: 900;
     color: #fff;
     text-shadow: 2px 2px 0 rgba(0,0,0,0.35);
@@ -472,24 +472,23 @@
   }
   @media (max-width: 600px) {
     .nm-frame {
-      min-height: 340px;
-      padding: 14px;
-      gap: 10px;
+      min-height: 220px;            /* 不强制 340，让卡片 stretch 决定高度 */
+      padding: 10px;
+      gap: 8px;
     }
     .nm-card {
-      width: 68px;
-      height: 82px;
-      font-size: 30px;
+      border-width: 2.5px;
+      border-radius: 10px;
     }
     .game-container.memory-layout .train-car {
-      width: 40px;
-      height: 52px;
-      font-size: 22px;
+      width: 34px;
+      height: 44px;
+      font-size: 19px;
       border-width: 2px;
-      border-radius: 8px;
+      border-radius: 7px;
     }
     .game-container.memory-layout .train-engine {
-      font-size: 42px;
+      font-size: 36px;
     }
   }
 
@@ -1129,8 +1128,8 @@
     </button>
     <button class="game-card" data-game="memory">
       <span class="emoji">🧠</span>
-      <span class="name">字母记忆 V2</span>
-      <span class="desc">看好位置，按字母序点 abcde</span>
+      <span class="name">字母记忆 V3</span>
+      <span class="desc">看好位置，按字母序点（简单3 中等5 困难7）</span>
     </button>
   </div>
 </div>
@@ -1151,6 +1150,7 @@
       <button class="mode-btn active" data-mode="forward">正序 A→Z</button>
       <button class="mode-btn" data-mode="reverse">反序 Z→A</button>
     </div>
+    <div class="toolbar-group" id="alphabetDiffGroup" style="display:none"></div>
     <div class="toolbar-spacer"></div>
   </div>
   <div id="gameView"></div>
@@ -1360,7 +1360,6 @@ function setupAlphabet() {
     <div class="game-stage">
       <div class="stage-toolbar">
         <div class="stage-title">${modeLabel} · 第 ${alphabet.windowIdx + 1} / ${alphabet.totalWindows} 组</div>
-        ${diffMiniHtml('alphabet')}
       </div>
       <div class="alphabet-choices" id="alphabetChoices"></div>
     </div>
@@ -1577,9 +1576,13 @@ function speakEnglish(text) {
   }
 }
 
-// ===== Game 5 V2: Letter Memory (固定 abcde 窗口) =====
-const NM_WINDOW = 5;                          // 固定 5 字母窗口
-const NM_LETTERS = ['a', 'b', 'c', 'd', 'e'];  // 每轮都显示这 5 个
+// ===== Game 5 V3: Letter Memory (按难度切换卡数) =====
+const NM_WINDOW = { easy: 3, medium: 5, hard: 7 };   // 每个难度的卡数
+const NM_LETTERS = {                                  // 每个难度的字母序列
+  easy:   ['a', 'b', 'c'],
+  medium: ['a', 'b', 'c', 'd', 'e'],
+  hard:   ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+};
 const NM_REMEMBER_MS = { easy: 5000, medium: 5000, hard: 5000 };  // 记忆时间（统一 5 秒）
 const LETTER_CN = {
   a:'A', b:'B', c:'C', d:'D', e:'E', f:'F', g:'G', h:'H', i:'I', j:'J',
@@ -1592,15 +1595,16 @@ const nm = {
   lock: true,          // 记忆期锁定
   timer: null,
   cards: [],           // {value, el}
-  order: [...NM_LETTERS],
+  order: [],           // 当前轮的字母序列（renderNM 里填充）
   rememberMs: 5000,    // 当前轮记忆时间
 };
 
 function startMemory() {
+  const diff = settings.difficulty.memory || 'medium';
   nm.done = 0;
   nm.lock = true;
-  nm.rememberMs = NM_REMEMBER_MS[settings.difficulty.memory] || 5000;
-  setupNMTrain(NM_WINDOW);
+  nm.rememberMs = NM_REMEMBER_MS[diff] || 5000;
+  setupNMTrain(NM_WINDOW[diff]);
   document.getElementById('gameLevel').textContent = `第 ${nm.round + 1} 轮`;
   document.getElementById('feedback').textContent = '';
   renderNM();
@@ -1623,10 +1627,16 @@ function setupNMTrain(n) {
 }
 
 function renderNM() {
+  const diff = settings.difficulty.memory || 'medium';
+  const letters = NM_LETTERS[diff];
+  const n = letters.length;
+  const diffLabel = diff === 'easy' ? `简单 ${n} 张` :
+                    diff === 'hard' ? `困难 ${n} 张` :
+                    `中等 ${n} 张`;
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
       <div class="stage-toolbar">
-        <div class="stage-title">字母记忆 V2 · 第 ${nm.round + 1} 轮</div>
+        <div class="stage-title">字母记忆 · 第 ${nm.round + 1} 轮 · ${diffLabel}</div>
         ${diffMiniHtml('memory')}
       </div>
       <div class="nm-frame" id="nmFrame"></div>
@@ -1637,19 +1647,19 @@ function renderNM() {
   const frame = document.getElementById('nmFrame');
   nm.cards = [];
 
-  // 5 字母窗口 → 5 列 1 行
-  frame.style.gridTemplateColumns = `repeat(${NM_WINDOW}, minmax(0, 1fr))`;
+  // N 列等宽布局（3/5/7），卡片 stretch 填满每列
+  frame.style.gridTemplateColumns = `repeat(${n}, minmax(0, 1fr))`;
 
-  // 固定窗口：始终 abcde，按字母序点击
-  nm.order = [...NM_LETTERS];
+  // 当前轮的字母序列（按字母序点击）
+  nm.order = [...letters];
 
   // 视觉乱序（防呆：若恰好升序则重打乱）
-  const positions = [...NM_LETTERS];
+  const positions = [...letters];
   let guard = 0;
   do {
     shuffle(positions);
     guard++;
-  } while (guard < 5 && positions.every((v, i) => v === NM_LETTERS[i]));
+  } while (guard < 5 && positions.every((v, i) => v === letters[i]));
 
   positions.forEach(letter => {
     const card = document.createElement('div');
@@ -1701,10 +1711,9 @@ function handleNMCard(value, card) {
 
     setTimeout(() => {
       nm.lock = false;
-      if (nm.done >= NM_WINDOW) {
+      if (nm.done >= nm.order.length) {
         departMemoryTrain();
       }
-      // 关内非最后：不更新关卡显示（top-bar 仍显示当前关）
     }, 1000);
   } else {
     card.classList.add('wrong-shake');
@@ -2051,6 +2060,7 @@ function goHome() {
   document.getElementById('train').style.display = 'none';
   document.getElementById('chineseThemeGroup').style.display = 'none';
   document.getElementById('alphabetModeGroup').style.display = 'none';
+  document.getElementById('alphabetDiffGroup').style.display = 'none';
   document.getElementById('gameContainer').classList.remove('alphabet-layout', 'memory-layout');
   resetTrain();
   try { window.speechSynthesis.cancel(); } catch (e) {}
@@ -2065,6 +2075,8 @@ function startGame(name) {
   document.getElementById('train').style.display = (name === 'chinese' || name === 'alphabet' || name === 'memory') ? '' : 'none';
   document.getElementById('chineseThemeGroup').style.display = (name === 'chinese') ? '' : 'none';
   document.getElementById('alphabetModeGroup').style.display = (name === 'alphabet') ? '' : 'none';
+  document.getElementById('alphabetDiffGroup').style.display = (name === 'alphabet') ? '' : 'none';
+  document.getElementById('alphabetDiffGroup').innerHTML = (name === 'alphabet') ? diffMiniHtml('alphabet') : '';
   document.getElementById('gameContainer').classList.toggle('alphabet-layout', name === 'alphabet');
   document.getElementById('gameContainer').classList.toggle('memory-layout', name === 'memory');
   if (name === 'counting') startCounting();
