@@ -2670,8 +2670,10 @@ document.addEventListener('click', (e) => {
 document.querySelectorAll('.theme-btn').forEach(b => {
   b.addEventListener('click', () => setChineseTheme(b.dataset.theme));
 });
-document.querySelectorAll('[data-chinese-mode]').forEach(b => {
-  b.addEventListener('click', () => setChineseMode(b.dataset.mode));
+// 看图选字/看字选图 模式按钮是 setupChinese 里动态创建的，用事件委托避免重复绑定
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-chinese-mode]');
+  if (btn) setChineseMode(btn.dataset.mode);
 });
 document.querySelectorAll('#alphabetModeGroup .mode-btn').forEach(b => {
   b.addEventListener('click', () => setAlphabetMode(b.dataset.mode));
