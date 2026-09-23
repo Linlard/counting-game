@@ -1172,6 +1172,7 @@
     <div class="toolbar-group" id="chineseThemeGroup" style="display:none">
       <button class="theme-btn active" data-theme="animals">🐾 动物</button>
       <button class="theme-btn" data-theme="vehicles">🚗 车车</button>
+      <button class="theme-btn" data-theme="food">🥬 蔬菜水果</button>
     </div>
     <div class="toolbar-group" id="alphabetModeGroup" style="display:none">
       <button class="mode-btn active" data-mode="forward">正序 A→Z</button>
@@ -1851,7 +1852,7 @@ function updateChineseThemeBtns() {
   });
 }
 function setChineseTheme(theme) {
-  if (!['animals', 'vehicles'].includes(theme)) return;
+  if (!['animals', 'vehicles', 'food'].includes(theme)) return;
   settings.chineseTheme = theme;
   saveSettings();
   updateChineseThemeBtns();
@@ -2511,6 +2512,17 @@ const CHINESE_DATA = {
     { word: '快艇', pic: '🛥️' }, { word: '电动车', pic: '🛵' }, { word: '轻轨', pic: '🚈' },
     { word: '轮船', pic: '🛳️' }, { word: '滑板车', pic: '🛴' }, { word: '三轮车', pic: '🛺' },
   ],
+  food: [
+    { word: '苹果', pic: '🍎' }, { word: '香蕉', pic: '🍌' }, { word: '葡萄', pic: '🍇' },
+    { word: '西瓜', pic: '🍉' }, { word: '橙子', pic: '🍊' }, { word: '桃子', pic: '🍑' },
+    { word: '草莓', pic: '🍓' }, { word: '菠萝', pic: '🍍' }, { word: '梨', pic: '🍐' },
+    { word: '樱桃', pic: '🍒' }, { word: '柠檬', pic: '🍋' }, { word: '芒果', pic: '🥭' },
+    { word: '椰子', pic: '🥥' }, { word: '牛油果', pic: '🥑' }, { word: '西红柿', pic: '🍅' },
+    { word: '胡萝卜', pic: '🥕' }, { word: '玉米', pic: '🌽' }, { word: '茄子', pic: '🍆' },
+    { word: '黄瓜', pic: '🥒' }, { word: '辣椒', pic: '🌶️' }, { word: '土豆', pic: '🥔' },
+    { word: '南瓜', pic: '🎃' }, { word: '蘑菇', pic: '🍄' }, { word: '西兰花', pic: '🥦' },
+    { word: '大蒜', pic: '🧄' }, { word: '洋葱', pic: '🧅' }, { word: '生菜', pic: '🥬' },
+  ],
 };
 
 const chinese = { level: 1, total: 10, current: null, lockInput: false };
@@ -2534,9 +2546,7 @@ function setupChinese() {
   document.getElementById('feedback').textContent = '';
 
   const range = chineseRanges[settings.difficulty.chinese];
-  const themePool = settings.chineseTheme === 'vehicles'
-    ? CHINESE_DATA.vehicles
-    : CHINESE_DATA.animals;
+  const themePool = CHINESE_DATA[settings.chineseTheme] || CHINESE_DATA.animals;
 
   const poolSize = Math.min(range.poolSize, themePool.length);
   let pool;
