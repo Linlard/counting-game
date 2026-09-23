@@ -244,6 +244,23 @@
     border-color: #CC8400;
     box-shadow: 0 3px 0 #CC8400, 0 4px 8px rgba(0,0,0,0.15);
   }
+  /* In-game mode banner (game 3 chinese) */
+  .mode-banner {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .mode-banner .mode-btn {
+    font-size: 18px;
+    padding: 12px 22px;
+    border-width: 3px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+  .mode-banner .mode-btn.active {
+    box-shadow: 0 4px 0 #CC8400, 0 6px 12px rgba(0,0,0,0.18);
+  }
 
   /* ===== Game 4: alphabet train ===== */
   .alphabet-display {
@@ -1151,10 +1168,6 @@
       <button class="theme-btn active" data-theme="animals">🐾 动物</button>
       <button class="theme-btn" data-theme="vehicles">🚗 车车</button>
     </div>
-    <div class="toolbar-group" id="chineseModeGroup" style="display:none">
-      <button class="mode-btn active" data-mode="word2pic">📝 看字选图</button>
-      <button class="mode-btn" data-mode="pic2word">🖼️ 看图选字</button>
-    </div>
     <div class="toolbar-group" id="alphabetModeGroup" style="display:none">
       <button class="mode-btn active" data-mode="forward">正序 A→Z</button>
       <button class="mode-btn" data-mode="reverse">反序 Z→A</button>
@@ -1842,7 +1855,7 @@ function setChineseTheme(theme) {
   }
 }
 function updateChineseModeBtns() {
-  document.querySelectorAll('#chineseModeGroup .mode-btn').forEach(b => {
+  document.querySelectorAll('[data-chinese-mode]').forEach(b => {
     b.classList.toggle('active', b.dataset.mode === settings.chineseMode);
   });
 }
@@ -2093,7 +2106,6 @@ function goHome() {
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('train').style.display = 'none';
   document.getElementById('chineseThemeGroup').style.display = 'none';
-  document.getElementById('chineseModeGroup').style.display = 'none';
   document.getElementById('alphabetModeGroup').style.display = 'none';
   document.getElementById('alphabetDiffGroup').style.display = 'none';
   document.getElementById('gameContainer').classList.remove('alphabet-layout', 'memory-layout');
@@ -2109,7 +2121,6 @@ function startGame(name) {
   document.getElementById('feedback').textContent = '';
   document.getElementById('train').style.display = (name === 'chinese' || name === 'alphabet' || name === 'memory') ? '' : 'none';
   document.getElementById('chineseThemeGroup').style.display = (name === 'chinese') ? '' : 'none';
-  document.getElementById('chineseModeGroup').style.display = (name === 'chinese') ? '' : 'none';
   document.getElementById('alphabetModeGroup').style.display = (name === 'alphabet') ? '' : 'none';
   document.getElementById('alphabetDiffGroup').style.display = (name === 'alphabet') ? '' : 'none';
   document.getElementById('alphabetDiffGroup').innerHTML = (name === 'alphabet') ? diffMiniHtml('alphabet') : '';
@@ -2560,6 +2571,10 @@ function setupChinese() {
 
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
+      <div class="mode-banner">
+        <button class="mode-btn ${isPic2Word ? '' : 'active'}" data-mode="word2pic" data-chinese-mode>📝 看字选图</button>
+        <button class="mode-btn ${isPic2Word ? 'active' : ''}" data-mode="pic2word" data-chinese-mode>🖼️ 看图选字</button>
+      </div>
       <div class="stage-toolbar">
         <div class="stage-title">${stageTitle}</div>
         ${diffMiniHtml('chinese')}
@@ -2655,7 +2670,7 @@ document.addEventListener('click', (e) => {
 document.querySelectorAll('.theme-btn').forEach(b => {
   b.addEventListener('click', () => setChineseTheme(b.dataset.theme));
 });
-document.querySelectorAll('#chineseModeGroup .mode-btn').forEach(b => {
+document.querySelectorAll('[data-chinese-mode]').forEach(b => {
   b.addEventListener('click', () => setChineseMode(b.dataset.mode));
 });
 document.querySelectorAll('#alphabetModeGroup .mode-btn').forEach(b => {
