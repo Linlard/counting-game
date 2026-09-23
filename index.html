@@ -1138,10 +1138,15 @@
       <span class="name">飞机场</span>
       <span class="desc">阿拉伯 ↔ 中文数字</span>
     </button>
-    <button class="game-card" data-game="chinese">
-      <span class="emoji">🐱</span>
-      <span class="name">认字</span>
+    <button class="game-card" data-game="chinese" data-mode="word2pic">
+      <span class="emoji">📝</span>
+      <span class="name">看字选图</span>
       <span class="desc">看字选动物 / 交通工具</span>
+    </button>
+    <button class="game-card" data-game="chinese" data-mode="pic2word">
+      <span class="emoji">🖼️</span>
+      <span class="name">看图选字</span>
+      <span class="desc">看图选动物 / 交通工具</span>
     </button>
     <button class="game-card" data-game="alphabet">
       <span class="emoji">🚇</span>
@@ -1854,20 +1859,6 @@ function setChineseTheme(theme) {
     startChinese();
   }
 }
-function updateChineseModeBtns() {
-  document.querySelectorAll('[data-chinese-mode]').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === settings.chineseMode);
-  });
-}
-function setChineseMode(mode) {
-  if (!['word2pic', 'pic2word'].includes(mode)) return;
-  settings.chineseMode = mode;
-  saveSettings();
-  updateChineseModeBtns();
-  if (typeof currentGame !== 'undefined' && currentGame === 'chinese') {
-    startChinese();
-  }
-}
 
 function speak(text) {
   if (!settings.musicOn) return;
@@ -2133,7 +2124,14 @@ function startGame(name) {
   else if (name === 'memory') startMemory();
 }
 document.querySelectorAll('.game-card').forEach(card => {
-  card.addEventListener('click', () => startGame(card.dataset.game));
+  card.addEventListener('click', () => {
+    // 看字选图/看图选字 两卡共享 chinese 游戏，通过 data-mode 设置模式
+    if (card.dataset.mode) {
+      settings.chineseMode = card.dataset.mode;
+      saveSettings();
+    }
+    startGame(card.dataset.game);
+  });
 });
 function restartGame() {
   document.getElementById('winOverlay').classList.remove('show');
@@ -2571,10 +2569,6 @@ function setupChinese() {
 
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
-      <div class="mode-banner">
-        <button class="mode-btn ${isPic2Word ? '' : 'active'}" data-mode="word2pic" data-chinese-mode>📝 看字选图</button>
-        <button class="mode-btn ${isPic2Word ? 'active' : ''}" data-mode="pic2word" data-chinese-mode>🖼️ 看图选字</button>
-      </div>
       <div class="stage-toolbar">
         <div class="stage-title">${stageTitle}</div>
         ${diffMiniHtml('chinese')}
@@ -2669,11 +2663,6 @@ document.addEventListener('click', (e) => {
 });
 document.querySelectorAll('.theme-btn').forEach(b => {
   b.addEventListener('click', () => setChineseTheme(b.dataset.theme));
-});
-// 看图选字/看字选图 模式按钮是 setupChinese 里动态创建的，用事件委托避免重复绑定
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-chinese-mode]');
-  if (btn) setChineseMode(btn.dataset.mode);
 });
 document.querySelectorAll('#alphabetModeGroup .mode-btn').forEach(b => {
   b.addEventListener('click', () => setAlphabetMode(b.dataset.mode));
