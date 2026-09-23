@@ -2436,6 +2436,8 @@ function handleParking(airport) {
 }
 
 // ===== Game 3: Chinese Character Recognition =====
+const HOT_AIR_BALLOON_SVG = `<svg width="1em" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 C 28 10 14 32 16 56 C 17 70 22 80 30 80 L 70 80 C 78 80 83 70 84 56 C 86 32 72 10 50 10 Z" fill="#FFE53B" stroke="#5d4037" stroke-width="3.5" stroke-linejoin="round"/><path d="M40 10 C 28 10 16 32 18 56 C 19 68 22 76 28 80 L 40 80 Z" fill="#FF6B6B"/><path d="M60 10 C 72 10 84 32 82 56 C 81 68 78 76 72 80 L 60 80 Z" fill="#FF6B6B"/><line x1="50" y1="10" x2="50" y2="80" stroke="#5d4037" stroke-width="2.5"/><line x1="28" y1="80" x2="72" y2="80" stroke="#5d4037" stroke-width="3.5"/><line x1="34" y1="82" x2="40" y2="105" stroke="#5d4037" stroke-width="2"/><line x1="66" y1="82" x2="60" y2="105" stroke="#5d4037" stroke-width="2"/><line x1="50" y1="82" x2="50" y2="105" stroke="#5d4037" stroke-width="2"/><rect x="36" y="105" width="28" height="20" fill="#A0522D" stroke="#5d4037" stroke-width="3.5" rx="2"/><line x1="42" y1="105" x2="42" y2="125" stroke="#5d4037" stroke-width="1.5"/><line x1="50" y1="105" x2="50" y2="125" stroke="#5d4037" stroke-width="1.5"/><line x1="58" y1="105" x2="58" y2="125" stroke="#5d4037" stroke-width="1.5"/></svg>`;
+
 const CHINESE_DATA = {
   animals: [
     { word: '猫', pic: '🐱' }, { word: '狗', pic: '🐶' }, { word: '兔', pic: '🐰' },
@@ -2458,7 +2460,7 @@ const CHINESE_DATA = {
     { word: '出租车', pic: '🚕' }, { word: '摩托车', pic: '🏍️' }, { word: '卡车', pic: '🚚' },
     { word: '救护车', pic: '🚑' }, { word: '地铁', pic: '🚇' }, { word: '高铁', pic: '🚄' },
     { word: '帆船', pic: '⛵' }, { word: '直升机', pic: '🚁' }, { word: '消防车', pic: '🚒' },
-    { word: '警车', pic: '🚓' }, { word: '火箭', pic: '🚀' },
+    { word: '警车', pic: '🚓' }, { word: '火箭', pic: '🚀' }, { word: '热气球', pic: HOT_AIR_BALLOON_SVG },
     { word: '校车', pic: '🚍' }, { word: '越野车', pic: '🚙' }, { word: '拖拉机', pic: '🚜' },
     { word: '垃圾车', pic: '🚛' }, { word: '皮卡车', pic: '🛻' }, { word: '有轨电车', pic: '🚊' },
     { word: '快艇', pic: '🛥️' }, { word: '电动车', pic: '🛵' }, { word: '轻轨', pic: '🚈' },
@@ -2536,7 +2538,11 @@ function setupChinese() {
   options.forEach(opt => {
     const btn = document.createElement('button');
     btn.className = 'pic-btn';
-    btn.textContent = opt.pic;
+    if (opt.pic && opt.pic.startsWith && opt.pic.startsWith('<svg')) {
+      btn.innerHTML = opt.pic;
+    } else {
+      btn.textContent = opt.pic;
+    }
     btn.onclick = () => handleChinese(opt, btn);
     choicesEl.appendChild(btn);
   });
