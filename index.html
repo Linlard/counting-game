@@ -788,6 +788,11 @@
     text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
     line-height: 1;
   }
+  .character-display .big-pic {
+    font-size: clamp(80px, 18vw, 160px);   /* 看图选字：emoji/SVG 放大 */
+    line-height: 1;
+    display: inline-block;
+  }
   .character-display .char-hint {
     font-size: 16px;
     color: rgba(255,255,255,0.95);
@@ -1146,6 +1151,10 @@
       <button class="theme-btn active" data-theme="animals">🐾 动物</button>
       <button class="theme-btn" data-theme="vehicles">🚗 车车</button>
     </div>
+    <div class="toolbar-group" id="chineseModeGroup" style="display:none">
+      <button class="mode-btn active" data-mode="word2pic">📝 看字选图</button>
+      <button class="mode-btn" data-mode="pic2word">🖼️ 看图选字</button>
+    </div>
     <div class="toolbar-group" id="alphabetModeGroup" style="display:none">
       <button class="mode-btn active" data-mode="forward">正序 A→Z</button>
       <button class="mode-btn" data-mode="reverse">反序 Z→A</button>
@@ -1233,6 +1242,7 @@ let settings = {
     memory: 'medium',
   },
   chineseTheme: 'animals',
+  chineseMode: 'word2pic',
   alphabetMode: 'forward',
 };
 function loadSettings() {
@@ -1831,6 +1841,20 @@ function setChineseTheme(theme) {
     startChinese();
   }
 }
+function updateChineseModeBtns() {
+  document.querySelectorAll('#chineseModeGroup .mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === settings.chineseMode);
+  });
+}
+function setChineseMode(mode) {
+  if (!['word2pic', 'pic2word'].includes(mode)) return;
+  settings.chineseMode = mode;
+  saveSettings();
+  updateChineseModeBtns();
+  if (typeof currentGame !== 'undefined' && currentGame === 'chinese') {
+    startChinese();
+  }
+}
 
 function speak(text) {
   if (!settings.musicOn) return;
@@ -1902,7 +1926,13 @@ function flyAnimalToTrain(btnEl, animalPic, trainCarEl) {
   const carRect = trainCarEl.getBoundingClientRect();
   const flyer = document.createElement('div');
   flyer.className = 'flyer';
-  flyer.textContent = animalPic;
+  // SVG 走 innerHTML（emoji/text 走 textContent）
+  const isSvg = animalPic && animalPic.startsWith && animalPic.startsWith('<svg');
+  if (isSvg) {
+    flyer.innerHTML = animalPic;
+  } else {
+    flyer.textContent = animalPic;
+  }
   flyer.style.left = (btnRect.left + btnRect.width / 2 - 24) + 'px';
   flyer.style.top  = (btnRect.top  + btnRect.height / 2 - 24) + 'px';
   flyer.style.width  = '48px';
@@ -1921,7 +1951,11 @@ function flyAnimalToTrain(btnEl, animalPic, trainCarEl) {
   flyer.addEventListener('transitionend', () => {
     flyer.remove();
     trainCarEl.classList.add('filled');
-    trainCarEl.textContent = animalPic;
+    if (isSvg) {
+      trainCarEl.innerHTML = animalPic;
+    } else {
+      trainCarEl.textContent = animalPic;
+    }
   }, { once: true });
 }
 
@@ -2059,6 +2093,7 @@ function goHome() {
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('train').style.display = 'none';
   document.getElementById('chineseThemeGroup').style.display = 'none';
+  document.getElementById('chineseModeGroup').style.display = 'none';
   document.getElementById('alphabetModeGroup').style.display = 'none';
   document.getElementById('alphabetDiffGroup').style.display = 'none';
   document.getElementById('gameContainer').classList.remove('alphabet-layout', 'memory-layout');
@@ -2074,6 +2109,7 @@ function startGame(name) {
   document.getElementById('feedback').textContent = '';
   document.getElementById('train').style.display = (name === 'chinese' || name === 'alphabet' || name === 'memory') ? '' : 'none';
   document.getElementById('chineseThemeGroup').style.display = (name === 'chinese') ? '' : 'none';
+  document.getElementById('chineseModeGroup').style.display = (name === 'chinese') ? '' : 'none';
   document.getElementById('alphabetModeGroup').style.display = (name === 'alphabet') ? '' : 'none';
   document.getElementById('alphabetDiffGroup').style.display = (name === 'alphabet') ? '' : 'none';
   document.getElementById('alphabetDiffGroup').innerHTML = (name === 'alphabet') ? diffMiniHtml('alphabet') : '';
@@ -2482,16 +2518,17 @@ function startChinese() {
 }
 
 function setupChinese() {
+  const mode = settings.chineseMode === 'pic2word' ? 'pic2word' : 'word2pic';
+  const isPic2Word = mode === 'pic2word';
+
   updateLevel(chinese.level, chinese.total);
   document.getElementById('feedback').textContent = '';
 
   const range = chineseRanges[settings.difficulty.chinese];
-  // 按 chineseTheme 选择题库（纯动物 或 纯交通工具）
   const themePool = settings.chineseTheme === 'vehicles'
     ? CHINESE_DATA.vehicles
     : CHINESE_DATA.animals;
 
-  // 简单：取前 poolSize 个；中等/困难：随机取 poolSize 个（不超过题库总数）
   const poolSize = Math.min(range.poolSize, themePool.length);
   let pool;
   if (range.poolSize <= 10) {
@@ -2502,46 +2539,64 @@ function setupChinese() {
 
   chinese.current = pool[rand(0, pool.length - 1)];
 
-  document.getElementById('gameView').innerHTML = `
-    <div class="game-stage">
-      <div class="stage-toolbar">
-        <div class="stage-title">看字，选对的图</div>
-        ${diffMiniHtml('chinese')}
-      </div>
-      <div class="character-display">
-        <div class="big-char">${chinese.current.word}</div>
-      </div>
-      <div class="pic-choices" id="picChoices"></div>
-    </div>
-  `;
-
-  // 干扰项：直接从 pool 里抽（确保 word 数严格 = poolSize）
+  // 干扰项
   const numDistractors = range.options - 1;
   const candidates = pool.filter(item => item.word !== chinese.current.word);
   const distractors = shuffle(candidates).slice(0, numDistractors);
-
-  // 兜底补足（理论上不会触发）
   while (distractors.length < numDistractors) {
     const extra = themePool[rand(0, themePool.length - 1)];
     if (!distractors.some(d => d.word === extra.word)) distractors.push(extra);
   }
-
-  // 拼选项：chinese.current + distractors，shuffle 后切到 options 个
   let options = shuffle([chinese.current, ...distractors]).slice(0, range.options);
   while (options.length < range.options) {
     const extra = themePool[rand(0, themePool.length - 1)];
     if (!options.some(o => o.word === extra.word)) options.push(extra);
   }
 
-  const choicesEl = document.getElementById('picChoices');
+  const stageTitle = isPic2Word ? '看图，选对的字' : '看字，选对的图';
+  const mainInner = isPic2Word
+    ? `<div class="big-pic" id="chinesePicDisplay"></div>`
+    : `<div class="big-char">${chinese.current.word}</div>`;
+
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-toolbar">
+        <div class="stage-title">${stageTitle}</div>
+        ${diffMiniHtml('chinese')}
+      </div>
+      <div class="character-display">
+        ${mainInner}
+      </div>
+      <div class="pic-choices" id="chineseChoices"></div>
+    </div>
+  `;
+
+  // 填充大展示区（SVG 或 emoji）
+  if (isPic2Word) {
+    const picEl = document.getElementById('chinesePicDisplay');
+    const pic = chinese.current.pic;
+    if (pic && pic.startsWith && pic.startsWith('<svg')) {
+      picEl.innerHTML = pic;
+    } else {
+      picEl.textContent = pic;
+    }
+  }
+
+  // 填充选项按钮
+  const choicesEl = document.getElementById('chineseChoices');
   choicesEl.innerHTML = '';
   options.forEach(opt => {
     const btn = document.createElement('button');
     btn.className = 'pic-btn';
-    if (opt.pic && opt.pic.startsWith && opt.pic.startsWith('<svg')) {
-      btn.innerHTML = opt.pic;
+    if (isPic2Word) {
+      btn.textContent = opt.word;  // 看图选字：按钮显示中文字
     } else {
-      btn.textContent = opt.pic;
+      const pic = opt.pic;
+      if (pic && pic.startsWith && pic.startsWith('<svg')) {
+        btn.innerHTML = pic;
+      } else {
+        btn.textContent = pic;
+      }
     }
     btn.onclick = () => handleChinese(opt, btn);
     choicesEl.appendChild(btn);
@@ -2558,7 +2613,7 @@ function handleChinese(opt, btn) {
     btn.classList.add('correct');
     showFeedback('🎉 对啦！');
     speak(`对啦，是${chinese.current.word}`);
-    document.querySelectorAll('#picChoices .pic-btn').forEach(b => b.disabled = true);
+    document.querySelectorAll('#chineseChoices .pic-btn').forEach(b => b.disabled = true);
     // 动物飞到火车
     const slotIdx = trainCars.indexOf(null);
     if (slotIdx >= 0) {
@@ -2599,6 +2654,9 @@ document.addEventListener('click', (e) => {
 });
 document.querySelectorAll('.theme-btn').forEach(b => {
   b.addEventListener('click', () => setChineseTheme(b.dataset.theme));
+});
+document.querySelectorAll('#chineseModeGroup .mode-btn').forEach(b => {
+  b.addEventListener('click', () => setChineseMode(b.dataset.mode));
 });
 document.querySelectorAll('#alphabetModeGroup .mode-btn').forEach(b => {
   b.addEventListener('click', () => setAlphabetMode(b.dataset.mode));
