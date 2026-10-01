@@ -224,188 +224,6 @@
     box-shadow: 0 3px 0 #2E9D5F, 0 4px 8px rgba(0,0,0,0.15);
   }
 
-  /* Alphabet mode toggle (game 4) */
-  .mode-btn {
-    background: rgba(255,255,255,0.7);
-    color: #333;
-    border: 2px solid transparent;
-    padding: 8px 14px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 14px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: transform 0.1s, all 0.2s;
-  }
-  .mode-btn:active { transform: translateY(2px); }
-  .mode-btn.active {
-    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
-    color: #fff;
-    border-color: #CC8400;
-    box-shadow: 0 3px 0 #CC8400, 0 4px 8px rgba(0,0,0,0.15);
-  }
-  /* In-game mode banner (game 3 chinese) */
-  .mode-banner {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .mode-banner .mode-btn {
-    font-size: 18px;
-    padding: 12px 22px;
-    border-width: 3px;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-  }
-  .mode-banner .mode-btn.active {
-    box-shadow: 0 4px 0 #CC8400, 0 6px 12px rgba(0,0,0,0.18);
-  }
-
-  /* ===== Game 4: alphabet train ===== */
-  .alphabet-display {
-    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
-    border: 4px solid #5d4037;
-    border-radius: 20px;
-    padding: 18px 16px 14px;
-    text-align: center;
-    box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.2);
-    margin-bottom: 4px;
-  }
-  .alphabet-display .big-letter {
-    font-size: 110px;
-    color: #fff;
-    font-weight: 900;
-    font-family: 'Comic Sans MS', 'Marker Felt', 'PingFang SC', cursive;
-    text-shadow: 4px 4px 0 rgba(0,0,0,0.25);
-    line-height: 1;
-    letter-spacing: 4px;
-  }
-  .alphabet-display .stage-hint {
-    font-size: 17px;
-    color: rgba(255,255,255,0.95);
-    margin-top: 6px;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-  }
-  .alphabet-choices {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 12px;
-  }
-  /* Keyboard keycap style for choice buttons */
-  .alphabet-btn {
-    background: linear-gradient(180deg, #ffffff 0%, #d8d8d8 100%);
-    border: 2px solid #888;
-    border-radius: 12px;
-    box-shadow:
-      0 6px 0 #5a5a5a,
-      0 8px 14px rgba(0,0,0,0.22),
-      inset 0 1px 0 rgba(255,255,255,0.9),
-      inset 0 -2px 0 rgba(0,0,0,0.08);
-    padding: 18px 4px;
-    font-size: 38px;
-    font-weight: 900;
-    font-family: 'Comic Sans MS', 'Marker Felt', cursive;
-    color: #2c2c2c;
-    line-height: 1;
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
-    cursor: pointer;
-    transition: transform 0.08s, box-shadow 0.08s;
-    position: relative;
-  }
-  .alphabet-btn:active {
-    transform: translateY(5px);
-    box-shadow:
-      0 1px 0 #5a5a5a,
-      0 2px 4px rgba(0,0,0,0.18),
-      inset 0 1px 0 rgba(255,255,255,0.9),
-      inset 0 -1px 0 rgba(0,0,0,0.08);
-  }
-  .alphabet-btn.wrong { animation: shake 0.4s; }
-  .alphabet-btn.correct {
-    background: linear-gradient(180deg, #43E97B 0%, #2db867 100%) !important;
-    border-color: #2E9D5F !important;
-    color: #fff !important;
-    transform: scale(1.08);
-    box-shadow:
-      0 4px 0 #1e7a47,
-      0 6px 12px rgba(0,0,0,0.22),
-      inset 0 1px 0 rgba(255,255,255,0.4) !important;
-    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-  }
-
-  /* ===== Alphabet layout: train on top, big ===== */
-  .game-container.alphabet-layout .top-bar { order: 1; }
-  .game-container.alphabet-layout .toolbar  { order: 2; }
-  .game-container.alphabet-layout #train   { order: 3; }
-  .game-container.alphabet-layout #gameView { order: 4; }
-  .game-container.alphabet-layout .feedback { order: 5; }
-  .game-container.alphabet-layout #train {
-    margin-top: 0;
-    margin-bottom: 14px;
-    padding: 18px 22px;
-    font-size: 56px;
-    border-width: 5px;
-    box-shadow: 0 8px 0 #5d4037, 0 14px 24px rgba(0,0,0,0.22);
-  }
-  .game-container.alphabet-layout .train-engine {
-    font-size: 84px;
-  }
-  .game-container.alphabet-layout .train-car {
-    width: 96px;
-    height: 110px;
-    font-size: 60px;
-    border-width: 3.5px;
-    border-radius: 16px;
-  }
-  .game-container.alphabet-layout .alphabet-display {
-    padding: 14px 16px 10px;
-    margin-bottom: 4px;
-  }
-  .game-container.alphabet-layout .alphabet-display .big-letter {
-    font-size: 72px;
-    letter-spacing: 3px;
-  }
-  .game-container.alphabet-layout .alphabet-display .stage-hint {
-    font-size: 14px;
-    margin-top: 4px;
-  }
-
-  /* Mobile responsive for big train */
-  @media (max-width: 600px) {
-    .game-container.alphabet-layout #train {
-      padding: 12px 12px;
-      font-size: 38px;
-    }
-    .game-container.alphabet-layout .train-engine { font-size: 56px; }
-    .game-container.alphabet-layout .train-car {
-      width: 62px;
-      height: 78px;
-      font-size: 36px;
-      border-width: 2.5px;
-      border-radius: 12px;
-    }
-  }
-
-  /* Long train celebration for alphabet game */
-  .train-celebrate.alphabet-celebrate {
-    font-size: 30px;
-    animation: trainCelebrateRun 12s linear forwards;
-  }
-  .train-celebrate.alphabet-celebrate .a-car {
-    display: inline-block;
-    padding: 1px 7px;
-    margin: 0 1px;
-    border: 2.5px solid #5d4037;
-    border-radius: 8px;
-    color: #fff;
-    font-weight: 900;
-    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-    box-shadow: 0 3px 0 rgba(0,0,0,0.18);
-  }
-
   /* ===== Game 5 V2: Number Memory (重写版) ===== */
   .nm-frame {
     width: 100%;
@@ -1160,11 +978,6 @@
       <span class="name">看图选字</span>
       <span class="desc">看图选日常物品（4 类）</span>
     </button>
-    <button class="game-card" data-game="alphabet">
-      <span class="emoji">🚇</span>
-      <span class="name">字母地铁</span>
-      <span class="desc">A→Z / Z→A 顺序背</span>
-    </button>
     <button class="game-card" data-game="memory">
       <span class="emoji">🧠</span>
       <span class="name">字母记忆 V3</span>
@@ -1187,11 +1000,6 @@
       <button class="theme-btn" data-theme="food">🥬 蔬菜水果</button>
       <button class="theme-btn" data-theme="school">📚 学习用品</button>
     </div>
-    <div class="toolbar-group" id="alphabetModeGroup" style="display:none">
-      <button class="mode-btn active" data-mode="forward">正序 A→Z</button>
-      <button class="mode-btn" data-mode="reverse">反序 Z→A</button>
-    </div>
-    <div class="toolbar-group" id="alphabetDiffGroup" style="display:none"></div>
     <div class="toolbar-spacer"></div>
   </div>
   <div id="gameView"></div>
@@ -1263,19 +1071,17 @@ const METRO_SVG_HTML = '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid 
 
 // ===== Settings (localStorage) =====
 const SETTINGS_KEY = 'countingGameSettings_v1';
-const GAME_KEYS = ['counting', 'parking', 'chinese', 'alphabet', 'memory'];
+const GAME_KEYS = ['counting', 'parking', 'chinese', 'memory'];
 let settings = {
   musicOn: true,
   difficulty: {
     counting: 'medium',
     parking: 'medium',
     chinese: 'medium',
-    alphabet: 'medium',
     memory: 'medium',
   },
   chineseTheme: 'animals',
   chineseMode: 'word2pic',
-  alphabetMode: 'forward',
 };
 function loadSettings() {
   try {
@@ -1345,198 +1151,8 @@ function setDifficulty(game, diff) {
     if (game === 'counting') startCounting();
     else if (game === 'parking') startParking();
     else if (game === 'chinese') startChinese();
-    else if (game === 'alphabet') startAlphabet();
     else if (game === 'memory') startMemory();
   }
-}
-
-// ===== Game 4: Alphabet Train =====
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-const alphabet = {
-  mode: 'forward',
-  windowIdx: 0,        // 0-based: 0=A(forward)/Z(reverse), 22=W/D
-  totalWindows: 23,    // 23 groups: A→W or Z→D
-  lockInput: false,
-  filledCount: 0,      // how many of cars 1-3 are filled in current window
-  windowLetters: []    // 4-letter window: [first, second, third, fourth]
-};
-
-function startAlphabet() {
-  alphabet.windowIdx = 0;
-  resetTrain();
-  setupAlphabet();
-}
-
-function setupAlphabet() {
-  updateLevel(alphabet.windowIdx + 1, alphabet.totalWindows);
-  document.getElementById('feedback').textContent = '';
-  alphabet.filledCount = 0;
-
-  const order = settings.alphabetMode === 'reverse'
-    ? [...ALPHABET].reverse()
-    : ALPHABET;
-  const w = alphabet.windowIdx;
-  alphabet.windowLetters = [
-    order[w], order[w + 1], order[w + 2], order[w + 3]
-  ];
-
-  // 车 0 直接显示第 1 个字母（提示），车 1-3 空着等玩家填
-  trainCars[0] = alphabet.windowLetters[0];
-  trainCars[1] = null;
-  trainCars[2] = null;
-  trainCars[3] = null;
-  for (let i = 0; i <= 3; i++) {
-    const el = document.querySelector(`.train-car[data-slot="${i}"]`);
-    if (!el) continue;
-    if (i === 0) {
-      el.textContent = alphabet.windowLetters[0];
-      el.classList.add('filled');
-    } else {
-      el.textContent = '';
-      el.classList.remove('filled');
-    }
-  }
-
-  const modeLabel = settings.alphabetMode === 'reverse' ? '反序' : '正序';
-  document.getElementById('gameView').innerHTML = `
-    <div class="game-stage">
-      <div class="stage-toolbar">
-        <div class="stage-title">${modeLabel} · 第 ${alphabet.windowIdx + 1} / ${alphabet.totalWindows} 组</div>
-      </div>
-      <div class="alphabet-choices" id="alphabetChoices"></div>
-    </div>
-  `;
-
-  // 6 个按钮：3 个目标字母 + 3 个干扰
-  const targetLetters = [
-    alphabet.windowLetters[1],
-    alphabet.windowLetters[2],
-    alphabet.windowLetters[3]
-  ];
-  const options = new Set(targetLetters);
-  const firstIdx = ALPHABET.indexOf(alphabet.windowLetters[0]);
-  let attempts = 0;
-  while (options.size < 6 && attempts < 200) {
-    const offset = rand(-4, 4);
-    const candidateIdx = firstIdx + offset;
-    if (candidateIdx < 0 || candidateIdx >= 26) { attempts++; continue; }
-    const candidate = ALPHABET[candidateIdx];
-    if (alphabet.windowLetters.includes(candidate)) { attempts++; continue; }
-    options.add(candidate);
-    attempts++;
-  }
-  while (options.size < 6) options.add(ALPHABET[rand(0, 25)]);
-  const optArr = shuffle([...options]).slice(0, 6);
-
-  const choicesEl = document.getElementById('alphabetChoices');
-  choicesEl.innerHTML = '';
-  optArr.forEach(letter => {
-    const btn = document.createElement('button');
-    btn.className = 'alphabet-btn';
-    btn.textContent = letter;
-    btn.dataset.letter = letter;
-    btn.onclick = () => handleAlphabet(letter, btn);
-    choicesEl.appendChild(btn);
-  });
-
-  alphabet.lockInput = false;
-  setTimeout(() => speakEnglish(alphabet.windowLetters[0]), 600);
-}
-
-function handleAlphabet(letter, btn) {
-  if (alphabet.lockInput) return;
-  const expected = alphabet.windowLetters[alphabet.filledCount + 1];
-
-  if (letter === expected) {
-    alphabet.lockInput = true;
-    btn.classList.add('correct');
-    showFeedback(`🎉 ${letter} 对啦！`);
-    speakEnglish(letter);
-
-    // 把字母送到下一个空车厢（车 1 / 2 / 3）
-    const slotIdx = alphabet.filledCount + 1;
-    trainCars[slotIdx] = letter;
-    const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
-    if (carEl) flyLetterToTrain(btn, letter, carEl);
-    alphabet.filledCount++;
-
-    setTimeout(() => {
-      // 选项不变，对的选项消掉（占位保留，按钮隐藏）
-      btn.style.visibility = 'hidden';
-      btn.style.pointerEvents = 'none';
-      alphabet.lockInput = false;
-
-      if (alphabet.filledCount >= 3) {
-        // 当前窗口填满，地铁开走 → 下一组窗口
-        alphabet.windowIdx++;
-        if (alphabet.windowIdx >= alphabet.totalWindows) {
-          const orderLabel = settings.alphabetMode === 'reverse' ? 'Z 到 A' : 'A 到 Z';
-          showWin(
-            `🎉 ${orderLabel} 都学会啦 🎉`,
-            `滑过了 ${alphabet.totalWindows} 组字母接龙！`,
-            `${orderLabel} 都学会啦`
-          );
-          alphabetTrainCelebrate();
-        } else {
-          departTrain();
-        }
-      }
-    }, 1100);
-  } else {
-    btn.classList.add('wrong');
-    showFeedback('🤔 再想想哦');
-    speakEnglish('try again');
-    setTimeout(() => btn.classList.remove('wrong'), 500);
-  }
-}
-
-function flyLetterToTrain(btnEl, letter, trainCarEl) {
-  const btnRect = btnEl.getBoundingClientRect();
-  const carRect = trainCarEl.getBoundingClientRect();
-  const flyer = document.createElement('div');
-  flyer.className = 'flyer';
-  flyer.textContent = letter;
-  flyer.style.left = (btnRect.left + btnRect.width / 2 - 24) + 'px';
-  flyer.style.top  = (btnRect.top  + btnRect.height / 2 - 24) + 'px';
-  flyer.style.width  = '48px';
-  flyer.style.height = '48px';
-  flyer.style.fontSize   = '36px';
-  flyer.style.fontWeight = '900';
-  flyer.style.fontFamily = "'Comic Sans MS', 'Marker Felt', cursive";
-  flyer.style.color = '#fff';
-  flyer.style.textShadow = '2px 2px 0 rgba(0,0,0,0.3)';
-  flyer.style.textAlign  = 'center';
-  flyer.style.lineHeight = '48px';
-  document.body.appendChild(flyer);
-  const dx = carRect.left + carRect.width / 2 - (btnRect.left + btnRect.width / 2);
-  const dy = carRect.top  + carRect.height / 2 - (btnRect.top  + btnRect.height / 2);
-  flyer.offsetHeight;
-  requestAnimationFrame(() => {
-    flyer.style.transform = `translate(${dx}px,${dy}px) scale(0.7)`;
-    flyer.style.opacity   = '0.6';
-  });
-  flyer.addEventListener('transitionend', () => {
-    flyer.remove();
-    trainCarEl.classList.add('filled');
-    trainCarEl.textContent = letter;
-  }, { once: true });
-}
-
-function alphabetTrainCelebrate() {
-  const train = document.createElement('div');
-  train.className = 'train-celebrate alphabet-celebrate';
-  const letters = settings.alphabetMode === 'reverse'
-    ? 'ZYXWVUTSRQPONMLKJIHGFEDCBA'
-    : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const colors = ['#FF6B6B','#4FACFE','#43E97B','#FA709A','#FFE53B','#A18CD1'];
-  let html = '<span class="metro-icon">' + METRO_SVG_HTML + '</span>';
-  for (let i = 0; i < letters.length; i++) {
-    const color = colors[i % 6];
-    html += `<span class="a-car" style="background:${color}">${letters[i]}</span>`;
-  }
-  train.innerHTML = html;
-  document.body.appendChild(train);
-  setTimeout(() => train.remove(), 12500);
 }
 
 // ===== Web Audio: 悦耳旋律（C 大调 · 替代所有音效）=====
@@ -1845,20 +1461,6 @@ function metroSweepCelebrate() {
   });
 }
 
-function updateAlphabetModeBtns() {
-  document.querySelectorAll('#alphabetModeGroup .mode-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === settings.alphabetMode);
-  });
-}
-function setAlphabetMode(mode) {
-  if (!['forward', 'reverse'].includes(mode)) return;
-  settings.alphabetMode = mode;
-  saveSettings();
-  updateAlphabetModeBtns();
-  if (typeof currentGame !== 'undefined' && currentGame === 'alphabet') {
-    startAlphabet();
-  }
-}
 function updateChineseThemeBtns() {
   document.querySelectorAll('.theme-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.theme === settings.chineseTheme);
@@ -2038,19 +1640,13 @@ function flyAirplaneToAirport(airplaneEl, airportEl) {
 function departTrain() {
   const train = document.getElementById('train');
   showFeedback('🚇 地铁要开啦！');
-  if (currentGame === 'alphabet') {
-    speakEnglish('choo choo');
-    playTrainHorn();
-  } else {
-    speak('呜——呜——');
-  }
+  speak('呜——呜——');
   playTrainChug();
   train.classList.add('departing');
   setTimeout(() => {
     train.classList.remove('departing');
     resetTrain();
-    if (currentGame === 'alphabet') setupAlphabet();
-    else setupChinese();
+    setupChinese();
   }, 1400);
 }
 
@@ -2111,9 +1707,7 @@ function goHome() {
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('train').style.display = 'none';
   document.getElementById('chineseThemeGroup').style.display = 'none';
-  document.getElementById('alphabetModeGroup').style.display = 'none';
-  document.getElementById('alphabetDiffGroup').style.display = 'none';
-  document.getElementById('gameContainer').classList.remove('alphabet-layout', 'memory-layout');
+  document.getElementById('gameContainer').classList.remove('memory-layout');
   resetTrain();
   try { window.speechSynthesis.cancel(); } catch (e) {}
   currentGame = null;
@@ -2124,17 +1718,12 @@ function startGame(name) {
   document.getElementById('gameContainer').style.display = '';
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('feedback').textContent = '';
-  document.getElementById('train').style.display = (name === 'chinese' || name === 'alphabet' || name === 'memory') ? '' : 'none';
+  document.getElementById('train').style.display = (name === 'chinese' || name === 'memory') ? '' : 'none';
   document.getElementById('chineseThemeGroup').style.display = (name === 'chinese') ? '' : 'none';
-  document.getElementById('alphabetModeGroup').style.display = (name === 'alphabet') ? '' : 'none';
-  document.getElementById('alphabetDiffGroup').style.display = (name === 'alphabet') ? '' : 'none';
-  document.getElementById('alphabetDiffGroup').innerHTML = (name === 'alphabet') ? diffMiniHtml('alphabet') : '';
-  document.getElementById('gameContainer').classList.toggle('alphabet-layout', name === 'alphabet');
   document.getElementById('gameContainer').classList.toggle('memory-layout', name === 'memory');
   if (name === 'counting') startCounting();
   else if (name === 'parking') startParking();
   else if (name === 'chinese') startChinese();
-  else if (name === 'alphabet') startAlphabet();
   else if (name === 'memory') startMemory();
 }
 document.querySelectorAll('.game-card').forEach(card => {
@@ -2152,7 +1741,6 @@ function restartGame() {
   if (currentGame === 'counting') startCounting();
   else if (currentGame === 'parking') startParking();
   else if (currentGame === 'chinese') startChinese();
-  else if (currentGame === 'alphabet') startAlphabet();
 }
 
 // ===== Game 1: Counting (existing logic, refactored) =====
@@ -2706,9 +2294,6 @@ document.addEventListener('click', (e) => {
 });
 document.querySelectorAll('.theme-btn').forEach(b => {
   b.addEventListener('click', () => setChineseTheme(b.dataset.theme));
-});
-document.querySelectorAll('#alphabetModeGroup .mode-btn').forEach(b => {
-  b.addEventListener('click', () => setAlphabetMode(b.dataset.mode));
 });
 </script>
 </body>
