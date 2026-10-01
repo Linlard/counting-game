@@ -672,6 +672,25 @@
   }
   .pic-btn.wrong { animation: shake 0.4s; }
 
+  /* ===== Game 6: 古诗（poem） ===== */
+  .poem-meta {
+    font-size: 15px;
+    color: #fff;
+    opacity: 0.92;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.25);
+  }
+  .poem-line {
+    font-size: clamp(24px, 6.5vw, 44px);
+    color: #fff;
+    font-weight: 900;
+    line-height: 1.4;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.22);
+    font-family: 'Comic Sans MS', 'Marker Felt', 'PingFang SC', cursive;
+  }
+  .poem-line .blank { color: #FFD700; }
+
   /* ===== Animations ===== */
   @keyframes pop {
     0% { transform: scale(0); opacity: 0; }
@@ -978,6 +997,16 @@
       <span class="name">看图选字</span>
       <span class="desc">看图选日常物品（4 类）</span>
     </button>
+    <button class="game-card" data-game="poem" data-mode="chain">
+      <span class="emoji">📜</span>
+      <span class="name">古诗接龙</span>
+      <span class="desc">看上句，选下句</span>
+    </button>
+    <button class="game-card" data-game="poem" data-mode="pic">
+      <span class="emoji">🖌️</span>
+      <span class="name">古诗配图</span>
+      <span class="desc">看诗句，选对应的画</span>
+    </button>
     <button class="game-card" data-game="memory">
       <span class="emoji">🧠</span>
       <span class="name">字母记忆 V3</span>
@@ -1071,17 +1100,19 @@ const METRO_SVG_HTML = '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid 
 
 // ===== Settings (localStorage) =====
 const SETTINGS_KEY = 'countingGameSettings_v1';
-const GAME_KEYS = ['counting', 'parking', 'chinese', 'memory'];
+const GAME_KEYS = ['counting', 'parking', 'chinese', 'poem', 'memory'];
 let settings = {
   musicOn: true,
   difficulty: {
     counting: 'medium',
     parking: 'medium',
     chinese: 'medium',
+    poem: 'medium',
     memory: 'medium',
   },
   chineseTheme: 'animals',
   chineseMode: 'word2pic',
+  poemMode: 'chain',
 };
 function loadSettings() {
   try {
@@ -1151,6 +1182,7 @@ function setDifficulty(game, diff) {
     if (game === 'counting') startCounting();
     else if (game === 'parking') startParking();
     else if (game === 'chinese') startChinese();
+    else if (game === 'poem') startPoem();
     else if (game === 'memory') startMemory();
   }
 }
@@ -1231,6 +1263,210 @@ function speakEnglish(text) {
       u.pitch = 1.1;
       window.speechSynthesis.speak(u);
     } catch (e) {}
+  }
+}
+
+// ===== Game 6: 古诗（接龙 / 配图）=====
+const POEM_DATA = [
+  {
+    title: '静夜思', author: '李白',
+    lines: [
+      { t: '床前明月光，', p: '🌕🛏️' },
+      { t: '疑是地上霜。', p: '🤍✨' },
+      { t: '举头望明月，', p: '🙂🌕' },
+      { t: '低头思故乡。', p: '😔🏠' },
+    ]
+  },
+  {
+    title: '春晓', author: '孟浩然',
+    lines: [
+      { t: '春眠不觉晓，', p: '😴🌸' },
+      { t: '处处闻啼鸟。', p: '🐦🌳' },
+      { t: '夜来风雨声，', p: '🌧️🌬️' },
+      { t: '花落知多少。', p: '🌸🍂' },
+    ]
+  },
+  {
+    title: '咏鹅', author: '骆宾王',
+    lines: [
+      { t: '鹅，鹅，鹅，', p: '🦢🦢🦢' },
+      { t: '曲项向天歌。', p: '🎵🦢' },
+      { t: '白毛浮绿水，', p: '💚💧' },
+      { t: '红掌拨清波。', p: '🟥〰️' },
+    ]
+  },
+  {
+    title: '悯农（其二）', author: '李绅',
+    lines: [
+      { t: '锄禾日当午，', p: '🧑‍🌾☀️' },
+      { t: '汗滴禾下土。', p: '💧🌾' },
+      { t: '谁知盘中餐，', p: '🍚💭' },
+      { t: '粒粒皆辛苦。', p: '😓🍚' },
+    ]
+  },
+  {
+    title: '登鹳雀楼', author: '王之涣',
+    lines: [
+      { t: '白日依山尽，', p: '⛰️🌅' },
+      { t: '黄河入海流。', p: '🟡🌊' },
+      { t: '欲穷千里目，', p: '👀🏞️' },
+      { t: '更上一层楼。', p: '🏯⬆️' },
+    ]
+  },
+  {
+    title: '悯农（其一）', author: '李绅',
+    lines: [
+      { t: '春种一粒粟，', p: '🌱' },
+      { t: '秋收万颗子。', p: '🌾' },
+      { t: '四海无闲田，', p: '🌍' },
+      { t: '农夫犹饿死。', p: '😔👨‍🌾' },
+    ]
+  },
+  {
+    title: '村居', author: '高鼎',
+    lines: [
+      { t: '草长莺飞二月天，', p: '🌱🐦' },
+      { t: '拂堤杨柳醉春烟。', p: '🌳🌫️' },
+      { t: '儿童散学归来早，', p: '👦🎒' },
+      { t: '忙趁东风放纸鸢。', p: '🪁' },
+    ]
+  },
+  {
+    title: '小池', author: '杨万里',
+    lines: [
+      { t: '泉眼无声惜细流，', p: '⛲💧' },
+      { t: '树阴照水爱晴柔。', p: '🌳☀️' },
+      { t: '小荷才露尖尖角，', p: '🌱🪷' },
+      { t: '早有蜻蜓立上头。', p: '🪰🪷' },
+    ]
+  },
+  {
+    title: '画', author: '王维',
+    lines: [
+      { t: '远看山有色，', p: '⛰️🎨' },
+      { t: '近听水无声。', p: '👂💧' },
+      { t: '春去花还在，', p: '🌸🍃' },
+      { t: '人来鸟不惊。', p: '🐦😮' },
+    ]
+  },
+  {
+    title: '江雪', author: '柳宗元',
+    lines: [
+      { t: '千山鸟飞绝，', p: '⛰️🐦' },
+      { t: '万径人踪灭。', p: '❄️🏔️' },
+      { t: '孤舟蓑笠翁，', p: '🛶🎣' },
+      { t: '独钓寒江雪。', p: '🎣❄️' },
+    ]
+  },
+];
+
+const POEM_RANGES = {
+  easy:   { options: 3 },
+  medium: { options: 4 },
+  hard:   { options: 5 },
+};
+
+const poem = {
+  level: 1,
+  total: 10,
+  lock: true,
+  current: null,   // { src, idx, up, down }
+};
+
+function currentPoemMode() {
+  return settings.poemMode === 'pic' ? 'pic' : 'chain';
+}
+
+function startPoem() {
+  poem.level = 1;
+  poem.lock = true;
+  setupPoem();
+}
+
+function setupPoem() {
+  const mode = currentPoemMode();
+  const isChain = mode === 'chain';
+  const range = POEM_RANGES[settings.difficulty.poem] || POEM_RANGES.medium;
+  updateLevel(poem.level, poem.total);
+  document.getElementById('feedback').textContent = '';
+
+  // 只从上句出题（偶数行），保证是一联：上句 → 下句
+  const src = POEM_DATA[rand(0, POEM_DATA.length - 1)];
+  const idx = rand(0, 1) * 2;                 // 0 或 2
+  const up = src.lines[idx];
+  const down = src.lines[idx + 1];
+  poem.current = { src, idx, up, down };
+
+  const stageTitle = isChain ? '看上句，选下句' : '看诗句，选对应的画';
+
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-toolbar">
+        <div class="stage-title">${stageTitle}</div>
+        ${diffMiniHtml('poem')}
+      </div>
+      <div class="character-display poem-display">
+        <div class="poem-meta">${src.title} · ${src.author}</div>
+        <div class="poem-line">${up.t}</div>
+      </div>
+      <div class="pic-choices ${isChain ? 'pic-choices--text' : ''}" id="poemChoices"></div>
+    </div>
+  `;
+
+  // 选项池：接龙用别首的下句；配图用别句的图
+  const need = range.options;
+  const options = [isChain ? down.t : up.p];
+  const pool = [];
+  POEM_DATA.forEach(pp => pp.lines.forEach((ln, i) => {
+    if (isChain) { if (i % 2 === 1) pool.push(ln.t); }
+    else pool.push(ln.p);
+  }));
+  let guard = 0;
+  while (options.length < need && guard < 400) {
+    guard++;
+    const cand = pool[rand(0, pool.length - 1)];
+    if (cand && !options.includes(cand)) options.push(cand);
+  }
+
+  const choicesEl = document.getElementById('poemChoices');
+  choicesEl.innerHTML = '';
+  shuffle(options).forEach(val => {
+    const btn = document.createElement('button');
+    btn.className = isChain ? 'pic-btn pic-btn--text' : 'pic-btn';
+    btn.textContent = val;
+    btn.onclick = () => handlePoem(val, btn);
+    choicesEl.appendChild(btn);
+  });
+
+  poem.lock = false;
+  setTimeout(() => speak(up.t.replace(/[，。]/g, '')), 600);
+}
+
+function handlePoem(val, btn) {
+  if (poem.lock) return;
+  const isChain = currentPoemMode() === 'chain';
+  const { src, up, down } = poem.current;
+  const correct = isChain ? down.t : up.p;
+
+  if (val === correct) {
+    poem.lock = true;
+    btn.classList.add('correct');
+    showFeedback('🎉 对啦！');
+    speak(`对啦，${isChain ? down.t.replace(/[，。]/g, '') : src.title}`);
+    document.querySelectorAll('#poemChoices .pic-btn').forEach(b => b.disabled = true);
+
+    setTimeout(() => {
+      poem.level++;
+      if (poem.level > poem.total) {
+        showWin('🎉 古诗都背下来啦 🎉', `一共答对 ${poem.total} 道题！`, '古诗都背下来啦');
+      } else {
+        setupPoem();
+      }
+    }, 1600);
+  } else {
+    btn.classList.add('wrong');
+    showFeedback('🤔 再想想哦');
+    setTimeout(() => btn.classList.remove('wrong'), 400);
   }
 }
 
@@ -1724,13 +1960,15 @@ function startGame(name) {
   if (name === 'counting') startCounting();
   else if (name === 'parking') startParking();
   else if (name === 'chinese') startChinese();
+  else if (name === 'poem') startPoem();
   else if (name === 'memory') startMemory();
 }
 document.querySelectorAll('.game-card').forEach(card => {
   card.addEventListener('click', () => {
     // 看字选图/看图选字 两卡共享 chinese 游戏，通过 data-mode 设置模式
     if (card.dataset.mode) {
-      settings.chineseMode = card.dataset.mode;
+      if (card.dataset.game === 'poem') settings.poemMode = card.dataset.mode;
+      else settings.chineseMode = card.dataset.mode;
       saveSettings();
     }
     startGame(card.dataset.game);
@@ -1741,6 +1979,7 @@ function restartGame() {
   if (currentGame === 'counting') startCounting();
   else if (currentGame === 'parking') startParking();
   else if (currentGame === 'chinese') startChinese();
+  else if (currentGame === 'poem') startPoem();
 }
 
 // ===== Game 1: Counting (existing logic, refactored) =====
