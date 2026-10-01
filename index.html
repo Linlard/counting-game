@@ -1009,8 +1009,8 @@
     </button>
     <button class="game-card" data-game="memory">
       <span class="emoji">🧠</span>
-      <span class="name">字母记忆 V3</span>
-      <span class="desc">看好位置，按字母序点（简单3 中等5 困难7）</span>
+      <span class="name">数字记忆 V3</span>
+      <span class="desc">看好位置，按数字序点（简单3 中等5 困难7）</span>
     </button>
   </div>
 </div>
@@ -1470,26 +1470,22 @@ function handlePoem(val, btn) {
   }
 }
 
-// ===== Game 5 V3: Letter Memory (按难度切换卡数) =====
+// ===== Game 5 V3: Number Memory (数字记忆，按难度切换卡数) =====
 const NM_WINDOW = { easy: 3, medium: 5, hard: 7 };   // 每个难度的卡数
-const NM_LETTERS = {                                  // 每个难度的字母序列
-  easy:   ['a', 'b', 'c'],
-  medium: ['a', 'b', 'c', 'd', 'e'],
-  hard:   ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+const NM_NUMBERS = {                                 // 每个难度的数字序列（按数字序点）
+  easy:   [1, 2, 3],
+  medium: [1, 2, 3, 4, 5],
+  hard:   [1, 2, 3, 4, 5, 6, 7]
 };
 const NM_REMEMBER_MS = { easy: 5000, medium: 5000, hard: 5000 };  // 记忆时间（统一 5 秒）
-const LETTER_CN = {
-  a:'A', b:'B', c:'C', d:'D', e:'E', f:'F', g:'G', h:'H', i:'I', j:'J',
-  k:'K', l:'L', m:'M', n:'N', o:'O', p:'P', q:'Q', r:'R', s:'S', t:'T',
-  u:'U', v:'V', w:'W', x:'X', y:'Y', z:'Z'
-};
+const NUM_CN = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 const nm = {
-  round: 0,            // 累计完成的轮次（每轮都用同一窗口）
+  round: 0,            // 累计完成的轮次（每轮都用同一组数字）
   done: 0,             // 当前轮已点对数量
   lock: true,          // 记忆期锁定
   timer: null,
   cards: [],           // {value, el}
-  order: [],           // 当前轮的字母序列（renderNM 里填充）
+  order: [],           // 当前轮的数字序列（renderNM 里填充）
   rememberMs: 5000,    // 当前轮记忆时间
 };
 
@@ -1522,19 +1518,19 @@ function setupNMTrain(n) {
 
 function renderNM() {
   const diff = settings.difficulty.memory || 'medium';
-  const letters = NM_LETTERS[diff];
-  const n = letters.length;
+  const nums = NM_NUMBERS[diff];
+  const n = nums.length;
   const diffLabel = diff === 'easy' ? `简单 ${n} 张` :
                     diff === 'hard' ? `困难 ${n} 张` :
                     `中等 ${n} 张`;
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
       <div class="stage-toolbar">
-        <div class="stage-title">字母记忆 · 第 ${nm.round + 1} 轮 · ${diffLabel}</div>
+        <div class="stage-title">数字记忆 · 第 ${nm.round + 1} 轮 · ${diffLabel}</div>
         ${diffMiniHtml('memory')}
       </div>
       <div class="nm-frame" id="nmFrame"></div>
-      <div class="nm-hint" id="nmHint">👀 看好字母和位置，5 秒后翻面</div>
+      <div class="nm-hint" id="nmHint">👀 看好数字和位置，5 秒后翻面</div>
     </div>
   `;
 
@@ -1544,27 +1540,27 @@ function renderNM() {
   // N 列等宽布局（3/5/7），卡片 stretch 填满每列
   frame.style.gridTemplateColumns = `repeat(${n}, minmax(0, 1fr))`;
 
-  // 当前轮的字母序列（按字母序点击）
-  nm.order = [...letters];
+  // 当前轮的数字序列（按数字序点击）
+  nm.order = [...nums];
 
   // 视觉乱序（防呆：若恰好升序则重打乱）
-  const positions = [...letters];
+  const positions = [...nums];
   let guard = 0;
   do {
     shuffle(positions);
     guard++;
-  } while (guard < 5 && positions.every((v, i) => v === letters[i]));
+  } while (guard < 5 && positions.every((v, i) => v === nums[i]));
 
-  positions.forEach(letter => {
+  positions.forEach(num => {
     const card = document.createElement('div');
     card.className = 'nm-card';
-    card.dataset.value = letter;
-    card.textContent = letter.toUpperCase();  // 谜面统一大写
+    card.dataset.value = num;
+    card.textContent = num;
     const rot = (Math.random() - 0.5) * 6;
     card.style.transform = `rotate(${rot.toFixed(1)}deg)`;
-    card.onclick = () => handleNMCard(letter, card);
+    card.onclick = () => handleNMCard(num, card);
     frame.appendChild(card);
-    nm.cards.push({ value: letter, el: card });
+    nm.cards.push({ value: num, el: card });
   });
 }
 
@@ -1575,8 +1571,7 @@ function flipNMCards() {
   });
   const hint = document.getElementById('nmHint');
   if (hint) {
-    const seq = nm.order.map(l => l.toUpperCase()).join('→');
-    hint.textContent = `🖱️ 按字母顺序点：${seq}`;
+    hint.textContent = `🖱️ 按数字顺序点：${nm.order.join('→')}`;
   }
   nm.lock = false;
 }
@@ -1590,16 +1585,15 @@ function handleNMCard(value, card) {
     nm.lock = true;
     card.classList.remove('face-down');
     card.classList.add('revealed');
-    const upper = value.toUpperCase();
-    card.textContent = upper;
-    showFeedback(`🎉 ${upper} 对啦！`);
-    speak(LETTER_CN[value] || upper);
+    card.textContent = value;
+    showFeedback(`🎉 ${value} 对啦！`);
+    speak(NUM_CN[value] || String(value));
 
     const slot = trainCars.indexOf(null);
     if (slot >= 0) {
-      trainCars[slot] = upper;
+      trainCars[slot] = value;
       const carEl = document.querySelector(`.train-car[data-slot="${slot}"]`);
-      if (carEl) flyNMCard(card, upper, carEl);
+      if (carEl) flyNMCard(card, value, carEl);
     }
     nm.done++;
 
@@ -1986,9 +1980,9 @@ function restartGame() {
 const ANIMALS = ['🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🦆', '🐘', '🐴', '🐑', '🐧', '🐬'];
 const CARS = ['🚗', '🚙', '🚕', '🚌', '🚓'];
 const countingRanges = {
-  easy:   { min: 2,  max: 5 },
-  medium: { min: 6,  max: 10 },
-  hard:   { min: 10, max: 20 },
+  easy:   { min: 6,  max: 10 },
+  medium: { min: 11, max: 20 },
+  hard:   { min: 21, max: 30 },
 };
 const counting = { level: 1, total: 10, currentCount: 0, currentAnimal: '', currentCar: '', lockInput: false };
 
@@ -2069,6 +2063,9 @@ function setupCounting() {
 
   const row = document.getElementById('animalRow');
   row.innerHTML = '';
+  // 数量多时缩字号（.animal-row 默认 5 列 / 44px）
+  row.style.fontSize = counting.currentCount > 24 ? '28px'
+                      : counting.currentCount > 14 ? '34px' : '';
   for (let i = 0; i < counting.currentCount; i++) {
     const span = document.createElement('span');
     span.className = 'animal';
@@ -2077,15 +2074,17 @@ function setupCounting() {
     row.appendChild(span);
   }
 
+  // 干扰项贴近答案（原来被 Math.min(10,…) 卡死，答案 >10 时闭眼选最大即可）
   const choices = new Set([counting.currentCount]);
+  const spread = Math.max(4, Math.round((range.max - range.min) / 3));
+  const lo = Math.max(1, range.min);
   let attempts = 0;
-  while (choices.size < 5 && attempts < 50) {
-    const offset = rand(-3, 3);
-    const c = Math.max(1, Math.min(10, counting.currentCount + offset));
-    if (c !== counting.currentCount) choices.add(c);
+  while (choices.size < 5 && attempts < 300) {
+    const c = counting.currentCount + rand(-spread, spread);
+    if (c >= lo && c <= range.max) choices.add(c);
     attempts++;
   }
-  while (choices.size < 5) choices.add(rand(1, 10));
+  while (choices.size < 5) choices.add(rand(lo, range.max));
   const arr = shuffle([...choices]).slice(0, 5);
 
   const choicesEl = document.getElementById('countingChoices');
@@ -2205,9 +2204,9 @@ function markNextEmptyAsTarget() {
 
 // ===== Game 2: Parking =====
 const parkingRanges = {
-  easy:   { min: 1,  max: 9 },    // 十以下
-  medium: { min: 1,  max: 19 },   // 二十以下
-  hard:   { min: 20, max: 99 },   // 二十以上
+  easy:   { min: 10, max: 19 },   // 十几
+  medium: { min: 20, max: 49 },   // 二三十几
+  hard:   { min: 50, max: 99 },   // 五十以上
 };
 
 // 中文数字生成（1-99）
