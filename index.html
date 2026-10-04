@@ -2065,13 +2065,12 @@ function setupMath() {
   counting.mathA = a; counting.mathB = b;
   counting.mathIsAdd = isAdd; counting.mathTarget = target;
 
-  // 两个加数用不同图案，视觉上分成两组
-  let emoA = ANIMALS[rand(0, ANIMALS.length - 1)];
-  let emoB = ANIMALS[rand(0, ANIMALS.length - 1)];
-  while (emoB === emoA) emoB = ANIMALS[rand(0, ANIMALS.length - 1)];
+  // 两个加数用同一种动物：加法的意义就是把两组相同的东西合并
+  // （3 个苹果 + 2 只兔子不成立，3 个苹果 + 2 个苹果才是"合并"）
+  const emo = ANIMALS[rand(0, ANIMALS.length - 1)];
   counting.currentCar = CARS[rand(0, CARS.length - 1)];
 
-  const dots = (emo, n) => range.visual ? `<div class="math-dots">${emo.repeat(n)}</div>` : '';
+  const dots = (n) => range.visual ? `<div class="math-dots">${emo.repeat(n)}</div>` : '';
 
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
@@ -2080,9 +2079,9 @@ function setupMath() {
         ${diffMiniHtml('counting')}
       </div>
       <div class="math-display">
-        <div class="math-term">${dots(emoA, a)}<div class="math-num">${a}</div></div>
+        <div class="math-term">${dots(a)}<div class="math-num">${a}</div></div>
         <div class="math-sign">${isAdd ? '+' : '−'}</div>
-        <div class="math-term">${dots(emoB, b)}<div class="math-num">${b}</div></div>
+        <div class="math-term">${dots(b)}<div class="math-num">${b}</div></div>
         <div class="math-sign">=</div>
         <div class="math-q">?</div>
       </div>
