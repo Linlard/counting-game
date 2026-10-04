@@ -371,6 +371,8 @@
     background: radial-gradient(130% 80% at 50% -10%, #24386e 0%, #0d1330 55%, #05060f 100%);
   }
   .game-container.solar-layout .back-btn { background: rgba(255,255,255,.94); }
+  /* 关卡药丸纯展示，但带白底+圆角看着像按钮，点了没反应 → 太阳系直接隐藏 */
+  .game-container.solar-layout .level-display { display: none; }
   .solar-scene {
     position: relative;
     width: 100%;
@@ -1147,16 +1149,6 @@
       <span class="name">看图选字</span>
       <span class="desc">看图选日常物品（4 类）</span>
     </button>
-    <button class="game-card" data-game="poem" data-mode="chain">
-      <span class="emoji">📜</span>
-      <span class="name">古诗接龙</span>
-      <span class="desc">看上句，选下句</span>
-    </button>
-    <button class="game-card" data-game="poem" data-mode="pic">
-      <span class="emoji">🖌️</span>
-      <span class="name">古诗配图</span>
-      <span class="desc">看诗句，选对应的画</span>
-    </button>
     <button class="game-card" data-game="memory">
       <span class="emoji">🧠</span>
       <span class="name">数字记忆 V3</span>
@@ -1417,6 +1409,21 @@ function speakEnglish(text) {
   }
 }
 
+// ============================================================================
+// 📦 古诗（poem）—— 2026-10-04 起暂时下线（杰要求先收起，以后再玩）
+//
+// 代码与题库完整保留，一行没删。恢复只需把首页两张卡加回来：
+//   <button class="game-card" data-game="poem" data-mode="chain">
+//     <span class="emoji">📜</span><span class="name">古诗接龙</span>
+//     <span class="desc">看上句，选下句</span></button>
+//   <button class="game-card" data-game="poem" data-mode="pic">
+//     <span class="emoji">🖌️</span><span class="name">古诗配图</span>
+//     <span class="desc">看诗句，选对应的画</span></button>
+//
+// GAME_KEYS 的 'poem'、settings.poemMode、startGame / restartGame 的
+// startPoem() 分支、卡片点击分发都还接着，不用再动。
+// 题库：10 首 / 40 句配图（POEM_DATA）
+// ============================================================================
 // ===== Game 6: 古诗（接龙 / 配图）=====
 const POEM_DATA = [
   {
@@ -2165,7 +2172,6 @@ function startSolar() {
     </div>
   `;
   document.getElementById('gameView').prepend(scene);
-  document.getElementById('gameLevel').textContent = '自由探索';
 
   // 太阳
   const sun = document.createElement('div');
