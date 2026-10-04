@@ -607,6 +607,32 @@
   }
   .airport.landed .airport-plane-svg { opacity: 1; }
 
+  /* ===== Game 1b: 算一算（counting 子游戏）===== */
+  .math-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: linear-gradient(180deg, #fff 0%, #fff8e1 100%);
+    border: 4px solid #5d4037;
+    border-radius: 20px;
+    padding: 18px 14px;
+    box-shadow: 0 6px 0 #5d4037, 0 10px 20px rgba(0,0,0,0.2);
+    margin-bottom: 14px;
+  }
+  .math-term { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .math-dots {
+    font-size: clamp(20px, 4.6vw, 38px);
+    line-height: 1.15;
+    max-width: 250px;
+    word-break: break-all;
+    text-align: center;
+  }
+  .math-num { font-size: clamp(22px, 5vw, 36px); font-weight: 900; color: #5d4037; }
+  .math-sign { font-size: clamp(24px, 6vw, 44px); font-weight: 900; color: #FF6B6B; }
+  .math-q { font-size: clamp(26px, 6vw, 48px); font-weight: 900; color: #FF8C42; }
+
   /* ===== Game 3: chinese character ===== */
   .character-display {
     background: linear-gradient(180deg, #A18CD1 0%, #FBC2EB 100%);
@@ -977,10 +1003,15 @@
   <h1>🎨 3 岁小课堂</h1>
   <p>选一个游戏开始玩吧～</p>
   <div class="game-grid">
-    <button class="game-card" data-game="counting">
+    <button class="game-card" data-game="counting" data-mode="count">
       <span class="emoji">🚗</span>
       <span class="name">数小动物</span>
       <span class="desc">数一数有几只</span>
+    </button>
+    <button class="game-card" data-game="counting" data-mode="math">
+      <span class="emoji">🧮</span>
+      <span class="name">算一算</span>
+      <span class="desc">加一加 / 减一减</span>
     </button>
     <button class="game-card" data-game="parking">
       <span class="emoji">✈️</span>
@@ -1111,6 +1142,7 @@ let settings = {
     memory: 'medium',
   },
   chineseTheme: 'animals',
+  countingMode: 'count',
   chineseMode: 'word2pic',
   poemMode: 'chain',
 };
@@ -1961,7 +1993,9 @@ document.querySelectorAll('.game-card').forEach(card => {
   card.addEventListener('click', () => {
     // 看字选图/看图选字 两卡共享 chinese 游戏，通过 data-mode 设置模式
     if (card.dataset.mode) {
-      if (card.dataset.game === 'poem') settings.poemMode = card.dataset.mode;
+      const g = card.dataset.game;
+      if (g === 'poem') settings.poemMode = card.dataset.mode;
+      else if (g === 'counting') settings.countingMode = card.dataset.mode;
       else settings.chineseMode = card.dataset.mode;
       saveSettings();
     }
@@ -1984,7 +2018,130 @@ const countingRanges = {
   medium: { min: 11, max: 20 },
   hard:   { min: 21, max: 30 },
 };
-const counting = { level: 1, total: 10, currentCount: 0, currentAnimal: '', currentCar: '', lockInput: false };
+const counting = {
+  level: 1, total: 10, currentCount: 0, currentAnimal: '', currentCar: '', lockInput: false,
+  mathA: 0, mathB: 0, mathIsAdd: true, mathTarget: 0,   // 算一算用
+};
+
+// ===== Game 1b: 算一算（counting 的第二个子游戏）=====
+const mathRanges = {
+  easy:   { max: 5,  options: 3, visual: true },
+  medium: { max: 10, options: 4, visual: true },
+  hard:   { max: 20, options: 4, visual: false },
+};
+
+function currentCountingMode() {
+  return settings.countingMode === 'math' ? 'math' : 'count';
+}
+
+// 典型错误答案：忘了另一数 / 差一 / 重复加 / 乘 / 加减混淆
+function mathCandidates(a, b, isAdd, max) {
+  const t = isAdd ? a + b : a - b;
+  // 必须同时挡住：负数、超出本档上限、等于答案
+  // （超上限的干扰项会被孩子一眼排除，等于变相送分）
+  return [
+    t + 1, t - 1, t + 2, t - 2, t + 3, t - 3,
+    a, b, a + b, Math.abs(a - b), a - b, b - a,
+    a + 2 * b, 2 * a + b, a * b, 0, 1,
+  ].filter(c => Number.isInteger(c) && c >= 0 && c <= max && c !== t);
+}
+
+function setupMath() {
+  const range = mathRanges[settings.difficulty.counting] || mathRanges.medium;
+  updateLevel(counting.level, counting.total);
+  document.getElementById('feedback').textContent = '';
+
+  // 减法保证 b <= a-1 → 结果 >= 1，不出负数
+  const isAdd = rand(0, 1) === 1;
+  let a, b;
+  if (isAdd) {
+    a = rand(1, range.max - 1);
+    b = rand(1, Math.max(1, range.max - a));
+  } else {
+    a = rand(2, range.max);
+    b = rand(1, a - 1);
+  }
+  const target = isAdd ? a + b : a - b;
+  counting.mathA = a; counting.mathB = b;
+  counting.mathIsAdd = isAdd; counting.mathTarget = target;
+
+  // 两个加数用不同图案，视觉上分成两组
+  let emoA = ANIMALS[rand(0, ANIMALS.length - 1)];
+  let emoB = ANIMALS[rand(0, ANIMALS.length - 1)];
+  while (emoB === emoA) emoB = ANIMALS[rand(0, ANIMALS.length - 1)];
+  counting.currentCar = CARS[rand(0, CARS.length - 1)];
+
+  const dots = (emo, n) => range.visual ? `<div class="math-dots">${emo.repeat(n)}</div>` : '';
+
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-toolbar">
+        <div class="stage-title">算一算，等于几？</div>
+        ${diffMiniHtml('counting')}
+      </div>
+      <div class="math-display">
+        <div class="math-term">${dots(emoA, a)}<div class="math-num">${a}</div></div>
+        <div class="math-sign">${isAdd ? '+' : '−'}</div>
+        <div class="math-term">${dots(emoB, b)}<div class="math-num">${b}</div></div>
+        <div class="math-sign">=</div>
+        <div class="math-q">?</div>
+      </div>
+    </div>
+    <div class="choices" id="mathChoices"></div>
+  `;
+
+  // 干扰项取最贴近答案的几个（数数游戏踩过"离太远等于送分"的坑）
+  const cands = mathCandidates(a, b, isAdd, range.max)
+    .sort((x, y) => Math.abs(x - target) - Math.abs(y - target));
+  const set = new Set([target]);
+  cands.forEach(c => { if (set.size < range.options) set.add(c); });
+  let guard = 0;
+  while (set.size < range.options && guard < 200) {
+    const c = rand(0, range.max);
+    if (!set.has(c)) set.add(c);
+    guard++;
+  }
+  const arr = shuffle([...set]).slice(0, range.options);
+
+  const choicesEl = document.getElementById('mathChoices');
+  choicesEl.innerHTML = '';
+  arr.forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'car-btn';
+    btn.innerHTML = `<span class="icon">${counting.currentCar}</span>${n}`;
+    btn.onclick = () => handleMath(n, btn);
+    choicesEl.appendChild(btn);
+  });
+
+  counting.lockInput = false;
+  setTimeout(() => speak(`${a} ${isAdd ? '加' : '减'} ${b} 等于几？`), 600);
+}
+
+function handleMath(n, btn) {
+  if (counting.lockInput) return;
+  const a = counting.mathA, b = counting.mathB;
+  const isAdd = counting.mathIsAdd, t = counting.mathTarget;
+  if (n === t) {
+    counting.lockInput = true;
+    btn.classList.add('correct');
+    showFeedback('🎉 答对啦！');
+    speak(`答对啦，${a} ${isAdd ? '加' : '减'} ${b} 等于 ${n}`);
+    document.querySelectorAll('#mathChoices .car-btn').forEach(x => x.disabled = true);
+    setTimeout(() => {
+      counting.level++;
+      if (counting.level > counting.total) {
+        showWin('🎉 算完啦 🎉', '小小数学家太棒了！', '算完啦，小小数学家太棒了！');
+      } else {
+        setupMath();
+      }
+    }, 2000);
+  } else {
+    btn.classList.add('wrong');
+    showFeedback('🤔 再算一算哦');
+    speak('再算一算哦');
+    setTimeout(() => btn.classList.remove('wrong'), 500);
+  }
+}
 
 function startCounting() {
   counting.level = 1;
@@ -1993,7 +2150,8 @@ function startCounting() {
     s.textContent = '';
     s.className = 'lot-spot';
   });
-  setupCounting();
+  if (currentCountingMode() === 'math') setupMath();
+  else setupCounting();
 }
 
 function setupCounting() {
