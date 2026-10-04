@@ -364,6 +364,120 @@
     animation: count-pop 0.5s ease-out;
   }
 
+  /* ===== Game 0: 太阳系行星（solar）===== */
+  .game-container.solar-layout {
+    max-width: 1100px;
+    min-height: 100vh;
+    background: radial-gradient(130% 80% at 50% -10%, #24386e 0%, #0d1330 55%, #05060f 100%);
+  }
+  .game-container.solar-layout .back-btn { background: rgba(255,255,255,.94); }
+  .solar-scene {
+    position: relative;
+    width: 100%;
+    min-height: 580px;
+    border: 3px solid rgba(255,255,255,0.16);
+    border-radius: 24px;
+    overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 0%, #1b2b5c 0%, #0a0f2c 58%, #05060f 100%);
+    box-shadow: inset 0 0 70px rgba(0,0,0,0.65);
+    user-select: none;
+  }
+  .solar-sun {
+    position: absolute; left: 50%; top: 92px;
+    transform: translateX(-50%);
+    width: 128px; height: 128px; border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #fff6c9 0%, #ffd54a 38%, #ff9f1a 72%, #f57c00 100%);
+    box-shadow: 0 0 54px 10px rgba(255,180,40,.5), inset -8px -10px 24px rgba(180,80,0,.4);
+    animation: sunPulse 4.2s ease-in-out infinite;
+    cursor: pointer;
+  }
+  @keyframes sunPulse {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50%      { transform: translateX(-50%) scale(1.06); }
+  }
+  .solar-sun.active {
+    transform: translateX(-50%) scale(1.16);
+    box-shadow: 0 0 70px 16px rgba(255,200,60,.72), inset -8px -10px 24px rgba(180,80,0,.4);
+  }
+  .solar-planets {
+    position: absolute; left: 0; right: 0; bottom: 22px;
+    display: flex; justify-content: center; align-items: flex-end;
+    flex-wrap: wrap; gap: 12px; padding: 0 12px;
+  }
+  .planet {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    cursor: pointer; user-select: none;
+    animation: planetFloat 3.4s ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+  @keyframes planetFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-9px); }
+  }
+  .planet .ball {
+    position: relative;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.9) 0 6%, transparent 42%), var(--c1);
+    box-shadow: 0 0 15px var(--glow), inset -6px -8px 14px rgba(0,0,0,.34);
+    transition: transform .2s;
+  }
+  .planet.active .ball {
+    transform: scale(1.3);
+    box-shadow: 0 0 30px var(--glow), 0 0 0 4px rgba(255,255,255,.85);
+  }
+  .planet .pname {
+    font-size: 15px; font-weight: 900; color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,.65);
+    white-space: nowrap;
+  }
+  .planet.saturn .ball::after {
+    content: ''; position: absolute; left: 50%; top: 50%;
+    width: 76px; height: 21px; margin: -10px 0 0 -38px;
+    border: 3px solid rgba(255,226,155,.88); border-radius: 50%;
+    transform: rotate(-16deg);
+  }
+  .star {
+    position: absolute; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 6px 1px rgba(255,255,255,.85);
+    animation: twinkle var(--d, 2.2s) ease-in-out var(--delay, 0s) infinite;
+    cursor: pointer;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: .22; transform: scale(.65); }
+    50%      { opacity: 1;   transform: scale(1.2); }
+  }
+  .sparkle {
+    position: fixed; pointer-events: none;
+    font-size: 30px; color: #fff; z-index: 9999;
+    text-shadow: 0 0 12px #fff, 0 0 26px #9fd0ff;
+    animation: sparklePop .75s ease-out forwards;
+  }
+  @keyframes sparklePop {
+    0%   { transform: translate(-50%,-50%) scale(.4); opacity: 1; }
+    100% { transform: translate(-50%,-50%) scale(2.6); opacity: 0; }
+  }
+  .solar-card {
+    position: absolute; left: 50%; top: 244px; transform: translateX(-50%);
+    min-width: 230px; max-width: 90%;
+    text-align: center;
+    background: rgba(255,255,255,.94);
+    border: 3px solid rgba(255,255,255,.6);
+    border-radius: 18px; padding: 12px 20px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.45);
+  }
+  .solar-card .big { font-size: 30px; font-weight: 900; color: #1b2a5e; }
+  .solar-card .fact { font-size: 15px; font-weight: bold; color: #555; margin-top: 4px; }
+  @media (max-width: 600px) {
+    .solar-scene { min-height: 500px; }
+    .solar-sun { width: 96px; height: 96px; top: 72px; }
+    .solar-card { top: 196px; }
+    .planet .ball { width: 42px; height: 42px; }
+    .planet .pname { font-size: 13px; }
+    .solar-planets { gap: 10px; bottom: 16px; }
+  }
+
   /* ===== Game 1: counting (car buttons) ===== */
   .animal-row {
     display: grid;
@@ -1003,6 +1117,11 @@
   <h1>🎨 3 岁小课堂</h1>
   <p>选一个游戏开始玩吧～</p>
   <div class="game-grid">
+    <button class="game-card" data-game="solar">
+      <span class="emoji">🪐</span>
+      <span class="name">太阳系</span>
+      <span class="desc">点一点，认行星</span>
+    </button>
     <button class="game-card" data-game="counting" data-mode="count">
       <span class="emoji">🚗</span>
       <span class="name">数小动物</span>
@@ -1969,7 +2088,7 @@ function goHome() {
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('train').style.display = 'none';
   document.getElementById('chineseThemeGroup').style.display = 'none';
-  document.getElementById('gameContainer').classList.remove('memory-layout');
+  document.getElementById('gameContainer').classList.remove('memory-layout', 'solar-layout');
   resetTrain();
   try { window.speechSynthesis.cancel(); } catch (e) {}
   currentGame = null;
@@ -1983,7 +2102,9 @@ function startGame(name) {
   document.getElementById('train').style.display = (name === 'chinese' || name === 'memory') ? '' : 'none';
   document.getElementById('chineseThemeGroup').style.display = (name === 'chinese') ? '' : 'none';
   document.getElementById('gameContainer').classList.toggle('memory-layout', name === 'memory');
-  if (name === 'counting') startCounting();
+  document.getElementById('gameContainer').classList.toggle('solar-layout', name === 'solar');
+  if (name === 'solar') startSolar();
+  else if (name === 'counting') startCounting();
   else if (name === 'parking') startParking();
   else if (name === 'chinese') startChinese();
   else if (name === 'poem') startPoem();
@@ -2004,10 +2125,115 @@ document.querySelectorAll('.game-card').forEach(card => {
 });
 function restartGame() {
   document.getElementById('winOverlay').classList.remove('show');
-  if (currentGame === 'counting') startCounting();
+  if (currentGame === 'solar') startSolar();
+  else if (currentGame === 'counting') startCounting();
   else if (currentGame === 'parking') startParking();
   else if (currentGame === 'chinese') startChinese();
   else if (currentGame === 'poem') startPoem();
+}
+
+// ===== Game 0: 太阳系行星（solar）=====
+const SOLAR_DATA = [
+  { name: '水星', c1: '#B9B3AC', glow: 'rgba(215,210,203,.7)',  fact: '离太阳最近的小行星' },
+  { name: '金星', c1: '#E8C07D', glow: 'rgba(255,214,140,.75)', fact: '天空中最亮的一颗' },
+  { name: '地球', c1: '#4A90D9', glow: 'rgba(110,180,255,.8)',  fact: '我们住的地方' },
+  { name: '火星', c1: '#E0704A', glow: 'rgba(255,140,100,.8)',  fact: '红红的星球' },
+  { name: '木星', c1: '#C89B6A', glow: 'rgba(240,190,130,.8)',  fact: '最大的行星' },
+  { name: '土星', c1: '#D9C08A', glow: 'rgba(255,225,160,.8)',  saturn: true, fact: '有漂亮的光环' },
+  { name: '天王星', c1: '#7FD4D4', glow: 'rgba(160,235,235,.8)', fact: '躺着转圈圈的星球' },
+  { name: '海王星', c1: '#4A6FD9', glow: 'rgba(120,160,255,.8)', fact: '离太阳最远的行星' },
+];
+const SUN_DATA = { name: '太阳', c1: '#FFD54A', fact: '给我们光和热的大火球' };
+
+function playTwinkle() {
+  playMelody([
+    { note: 'C6', dur: 120 },
+    { note: 'E6', dur: 120 },
+    { note: 'G6', dur: 280 },
+  ], 'sine');
+}
+
+function startSolar() {
+  const scene = document.createElement('div');
+  scene.className = 'solar-scene';
+  scene.id = 'solarScene';
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-toolbar">
+        <div class="stage-title">点一点，认一认 🪐</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('gameView').prepend(scene);
+  document.getElementById('gameLevel').textContent = '自由探索';
+
+  // 太阳
+  const sun = document.createElement('div');
+  sun.className = 'solar-sun active';   // 与初始提示卡（太阳）保持一致
+  sun.id = 'solarSun';
+  sun.addEventListener('click', () => pickSolar(SUN_DATA, sun, ['solar-sun', 'solar-sun active']));
+  scene.appendChild(sun);
+
+  // 星星（避开中部太阳与下方行星带）
+  for (let i = 0; i < 16; i++) {
+    const st = document.createElement('div');
+    st.className = 'star';
+    const sz = rand(3, 7);
+    st.style.width = sz + 'px';
+    st.style.height = sz + 'px';
+    st.style.left = rand(3, 93) + '%';
+    st.style.top = rand(3, 68) + '%';
+    st.style.setProperty('--d', (rand(160, 340) / 100).toFixed(2) + 's');
+    st.style.setProperty('--delay', (rand(0, 260) / 100).toFixed(2) + 's');
+    st.addEventListener('click', (e) => { e.stopPropagation(); burstStar(e); });
+    scene.appendChild(st);
+  }
+
+  // 行星（按离太阳远近排序）
+  const row = document.createElement('div');
+  row.className = 'solar-planets';
+  SOLAR_DATA.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'planet' + (p.saturn ? ' saturn' : '');
+    el.style.setProperty('--delay', (i * 0.28).toFixed(2) + 's');
+    el.innerHTML = `<div class="ball" style="--c1:${p.c1};--glow:${p.glow}"></div><div class="pname">${p.name}</div>`;
+    el.addEventListener('click', () => pickSolar(p, el, ['planet' + (p.saturn ? ' saturn' : ''), 'planet active' + (p.saturn ? ' saturn' : '')]));
+    row.appendChild(el);
+  });
+  scene.appendChild(row);
+
+  // 提示卡：先讲太阳，让他知道"点一下有反应"
+  showSolarCard(SUN_DATA);
+  setTimeout(() => speak('点一点太阳和星球，认一认它们的名字'), 600);
+}
+
+function pickSolar(data, el, cls) {
+  document.querySelectorAll('.solar-sun, .planet').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  showSolarCard(data);
+  speak(`${data.name}，${data.fact}`);
+}
+
+function showSolarCard(data) {
+  let card = document.getElementById('solarCard');
+  if (!card) {
+    card = document.createElement('div');
+    card.className = 'solar-card';
+    card.id = 'solarCard';
+    document.getElementById('solarScene').appendChild(card);
+  }
+  card.innerHTML = `<div class="big">${data.name}</div><div class="fact">${data.fact}</div>`;
+}
+
+function burstStar(e) {
+  playTwinkle();
+  const s = document.createElement('div');
+  s.className = 'sparkle';
+  s.textContent = '✨';
+  s.style.left = e.clientX + 'px';
+  s.style.top = e.clientY + 'px';
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), 800);
 }
 
 // ===== Game 1: Counting (existing logic, refactored) =====
