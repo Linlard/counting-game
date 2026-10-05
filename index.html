@@ -364,95 +364,128 @@
     animation: count-pop 0.5s ease-out;
   }
 
-  /* ===== Game 0: 太阳系行星（solar）===== */
+  /* ===== Game 0: 太阳系行星（solar）— 轨道图 ===== */
   .game-container.solar-layout {
     max-width: 1100px;
     min-height: 100vh;
     background: radial-gradient(130% 80% at 50% -10%, #24386e 0%, #0d1330 55%, #05060f 100%);
   }
   .game-container.solar-layout .back-btn { background: rgba(255,255,255,.94); }
-  /* 关卡药丸纯展示，但带白底+圆角看着像按钮，点了没反应 → 太阳系直接隐藏 */
+  /* 关卡药丸纯展示但带白底圆角、像按钮，点了没反应 → 太阳系直接隐藏 */
   .game-container.solar-layout .level-display { display: none; }
+  .game-container.solar-layout .game-stage {
+    background: rgba(255,255,255,.07);
+    border-color: rgba(255,255,255,.16);
+  }
+  .game-container.solar-layout .stage-title { color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,.6); }
+
+  .solar-card {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    background: rgba(255,255,255,.95);
+    border: 3px solid rgba(255,255,255,.6);
+    border-radius: 16px; padding: 9px 18px; margin: 10px 0;
+    box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  }
+  .solar-card .big { font-size: 26px; font-weight: 900; color: #1b2a5e; }
+  .solar-card .fact { font-size: 15px; font-weight: bold; color: #555; }
+
   .solar-scene {
-    position: relative;
-    width: 100%;
-    min-height: 580px;
-    border: 3px solid rgba(255,255,255,0.16);
-    border-radius: 24px;
-    overflow: hidden;
-    background: radial-gradient(120% 90% at 50% 0%, #1b2b5c 0%, #0a0f2c 58%, #05060f 100%);
-    box-shadow: inset 0 0 70px rgba(0,0,0,0.65);
-    user-select: none;
+    position: relative; width: 100%; min-height: 620px;
+    border: 3px solid rgba(255,255,255,.16); border-radius: 24px;
+    overflow: hidden; user-select: none;
+    background: radial-gradient(120% 90% at 50% 45%, #1b2b5c 0%, #0a0f2c 58%, #05060f 100%);
+    box-shadow: inset 0 0 70px rgba(0,0,0,.65);
   }
-  .solar-sun {
-    position: absolute; left: 50%; top: 92px;
-    transform: translateX(-50%);
-    width: 128px; height: 128px; border-radius: 50%;
-    background: radial-gradient(circle at 34% 30%, #fff6c9 0%, #ffd54a 38%, #ff9f1a 72%, #f57c00 100%);
-    box-shadow: 0 0 54px 10px rgba(255,180,40,.5), inset -8px -10px 24px rgba(180,80,0,.4);
-    animation: sunPulse 4.2s ease-in-out infinite;
-    cursor: pointer;
-  }
-  @keyframes sunPulse {
-    0%, 100% { transform: translateX(-50%) scale(1); }
-    50%      { transform: translateX(-50%) scale(1.06); }
-  }
-  .solar-sun.active {
-    transform: translateX(-50%) scale(1.16);
-    box-shadow: 0 0 70px 16px rgba(255,200,60,.72), inset -8px -10px 24px rgba(180,80,0,.4);
-  }
-  .solar-planets {
-    position: absolute; left: 0; right: 0; bottom: 22px;
-    display: flex; justify-content: center; align-items: flex-end;
-    flex-wrap: wrap; gap: 12px; padding: 0 12px;
-  }
-  .planet {
-    position: relative;
-    display: flex; flex-direction: column; align-items: center; gap: 7px;
-    cursor: pointer; user-select: none;
-    animation: planetFloat 3.4s ease-in-out infinite;
-    animation-delay: var(--delay, 0s);
-  }
-  @keyframes planetFloat {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-9px); }
-  }
-  .planet .ball {
-    position: relative;
-    width: 52px; height: 52px; border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.9) 0 6%, transparent 42%), var(--c1);
-    box-shadow: 0 0 15px var(--glow), inset -6px -8px 14px rgba(0,0,0,.34);
-    transition: transform .2s;
-  }
-  .planet.active .ball {
-    transform: scale(1.3);
-    box-shadow: 0 0 30px var(--glow), 0 0 0 4px rgba(255,255,255,.85);
-  }
-  .planet .pname {
-    font-size: 15px; font-weight: 900; color: #fff;
-    text-shadow: 0 2px 4px rgba(0,0,0,.65);
-    white-space: nowrap;
-  }
-  .planet.saturn .ball::after {
-    content: ''; position: absolute; left: 50%; top: 50%;
-    width: 76px; height: 21px; margin: -10px 0 0 -38px;
-    border: 3px solid rgba(255,226,155,.88); border-radius: 50%;
-    transform: rotate(-16deg);
-  }
+  .solar-stars { position: absolute; inset: 0; z-index: 0; }
   .star {
-    position: absolute; border-radius: 50%;
-    background: #fff;
+    position: absolute; border-radius: 50%; background: #fff; cursor: pointer;
     box-shadow: 0 0 6px 1px rgba(255,255,255,.85);
-    animation: twinkle var(--d, 2.2s) ease-in-out var(--delay, 0s) infinite;
-    cursor: pointer;
+    animation: twinkle var(--d,2.2s) ease-in-out var(--delay,0s) infinite;
   }
   @keyframes twinkle {
     0%, 100% { opacity: .22; transform: scale(.65); }
     50%      { opacity: 1;   transform: scale(1.2); }
   }
+
+  .solar-orbit-area { position: absolute; left: 0; right: 0; top: 76px; bottom: 6px; z-index: 1; }
+  .solar-ring {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    border: 1.5px dashed rgba(180,210,255,.20);
+    border-radius: 50%; pointer-events: none; z-index: 1;
+    transition: border-color .25s, box-shadow .25s;
+  }
+  .solar-ring.lit {
+    border-color: rgba(255,222,130,.7);
+    box-shadow: 0 0 22px rgba(255,200,80,.22) inset;
+  }
+
+  .solar-sun {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 88px; height: 88px; border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #fff6c9 0%, #ffd54a 38%, #ff9f1a 72%, #f57c00 100%);
+    box-shadow: 0 0 40px 8px rgba(255,180,40,.45), inset -6px -8px 18px rgba(180,80,0,.4);
+    animation: sunPulse 4.2s ease-in-out infinite;
+    cursor: pointer; z-index: 3;
+  }
+  .solar-sun::before { content: ''; position: absolute; inset: -14px; }
+  @keyframes sunPulse {
+    0%, 100% { transform: translate(-50%,-50%) scale(1); }
+    50%      { transform: translate(-50%,-50%) scale(1.07); }
+  }
+  .solar-sun.active { box-shadow: 0 0 58px 14px rgba(255,200,60,.7), inset -6px -8px 18px rgba(180,80,0,.4); }
+
+  /* 整个行星系统绕太阳缓慢自转：300s 一圈，慢到小朋友仍能点中 */
+  .solar-rotor { position: absolute; inset: 0; z-index: 2; animation: solarRotate 300s linear infinite; }
+  @keyframes solarRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* 每颗星反向自转 → 跟着轨道跑，但文字始终朝上 */
+  .planet {
+    position: absolute; transform: translate(-50%, -50%);
+    animation: solarCounter 300s linear infinite;
+    cursor: pointer; z-index: 2;
+  }
+  @keyframes solarCounter {
+    from { transform: translate(-50%,-50%) rotate(0deg); }
+    to   { transform: translate(-50%,-50%) rotate(-360deg); }
+  }
+  .planet::before { content: ''; position: absolute; inset: -13px; }
+  .planet-body {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    animation: planetFloat 3.4s ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+  @keyframes planetFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+  .planet .ball {
+    position: relative;
+    width: var(--size, 34px); height: var(--size, 34px); border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.9) 0 6%, transparent 42%), var(--c1);
+    box-shadow: 0 0 14px var(--glow), inset -5px -7px 12px rgba(0,0,0,.34);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .planet.active .ball {
+    transform: scale(1.35);
+    box-shadow: 0 0 30px var(--glow), 0 0 0 4px rgba(255,255,255,.9);
+  }
+  .planet .pname {
+    font-size: 12px; font-weight: 900; color: #fff; white-space: nowrap;
+    text-shadow: 0 2px 5px rgba(0,0,0,.85);
+    opacity: .6; transition: opacity .2s, font-size .2s;
+  }
+  .planet.active .pname { opacity: 1; font-size: 15px; }
+  .planet.saturn .ball::after {
+    content: ''; position: absolute; left: 50%; top: 50%;
+    width: calc(var(--size,34px) * 1.5); height: calc(var(--size,34px) * 0.44);
+    margin-left: calc(var(--size,34px) * -0.75); margin-top: calc(var(--size,34px) * -0.22);
+    border: 2.5px solid rgba(255,226,155,.9); border-radius: 50%;
+    transform: rotate(-16deg);
+  }
   .sparkle {
-    position: fixed; pointer-events: none;
-    font-size: 30px; color: #fff; z-index: 9999;
+    position: fixed; pointer-events: none; font-size: 30px; color: #fff; z-index: 9999;
     text-shadow: 0 0 12px #fff, 0 0 26px #9fd0ff;
     animation: sparklePop .75s ease-out forwards;
   }
@@ -460,24 +493,14 @@
     0%   { transform: translate(-50%,-50%) scale(.4); opacity: 1; }
     100% { transform: translate(-50%,-50%) scale(2.6); opacity: 0; }
   }
-  .solar-card {
-    position: absolute; left: 50%; top: 244px; transform: translateX(-50%);
-    min-width: 230px; max-width: 90%;
-    text-align: center;
-    background: rgba(255,255,255,.94);
-    border: 3px solid rgba(255,255,255,.6);
-    border-radius: 18px; padding: 12px 20px;
-    box-shadow: 0 6px 20px rgba(0,0,0,.45);
-  }
-  .solar-card .big { font-size: 30px; font-weight: 900; color: #1b2a5e; }
-  .solar-card .fact { font-size: 15px; font-weight: bold; color: #555; margin-top: 4px; }
   @media (max-width: 600px) {
-    .solar-scene { min-height: 500px; }
-    .solar-sun { width: 96px; height: 96px; top: 72px; }
-    .solar-card { top: 196px; }
-    .planet .ball { width: 42px; height: 42px; }
-    .planet .pname { font-size: 13px; }
-    .solar-planets { gap: 10px; bottom: 16px; }
+    .solar-scene { min-height: 480px; }
+    .solar-orbit-area { top: 70px; }
+    .solar-sun { width: 64px; height: 64px; }
+    .solar-sun::before { inset: -10px; }
+    .solar-card { flex-direction: column; gap: 2px; padding: 8px 14px; }
+    .solar-card .big { font-size: 22px; }
+    .solar-card .fact { font-size: 13px; }
   }
 
   /* ===== Game 1: counting (car buttons) ===== */
@@ -2139,18 +2162,28 @@ function restartGame() {
   else if (currentGame === 'poem') startPoem();
 }
 
-// ===== Game 0: 太阳系行星（solar）=====
+// ===== Game 0: 太阳系行星（solar）— 轨道图 =====
 const SOLAR_DATA = [
-  { name: '水星', c1: '#B9B3AC', glow: 'rgba(215,210,203,.7)',  fact: '离太阳最近的小行星' },
-  { name: '金星', c1: '#E8C07D', glow: 'rgba(255,214,140,.75)', fact: '天空中最亮的一颗' },
-  { name: '地球', c1: '#4A90D9', glow: 'rgba(110,180,255,.8)',  fact: '我们住的地方' },
-  { name: '火星', c1: '#E0704A', glow: 'rgba(255,140,100,.8)',  fact: '红红的星球' },
-  { name: '木星', c1: '#C89B6A', glow: 'rgba(240,190,130,.8)',  fact: '最大的行星' },
-  { name: '土星', c1: '#D9C08A', glow: 'rgba(255,225,160,.8)',  saturn: true, fact: '有漂亮的光环' },
-  { name: '天王星', c1: '#7FD4D4', glow: 'rgba(160,235,235,.8)', fact: '躺着转圈圈的星球' },
-  { name: '海王星', c1: '#4A6FD9', glow: 'rgba(120,160,255,.8)', fact: '离太阳最远的行星' },
+  { name: '水星',   c1:'#B9B3AC', glow:'rgba(215,210,203,.7)',  fact:'离太阳最近的小行星', deg:160, size:26 },
+  { name: '金星',   c1:'#E8C07D', glow:'rgba(255,214,140,.75)', fact:'天空中最亮的一颗',   deg:25,  size:28 },
+  { name: '地球',   c1:'#4A90D9', glow:'rgba(110,180,255,.8)',  fact:'我们住的地方',       deg:335, size:31 },
+  { name: '火星',   c1:'#E0704A', glow:'rgba(255,140,100,.8)',  fact:'红红的星球',         deg:215, size:33 },
+  { name: '木星',   c1:'#C89B6A', glow:'rgba(240,190,130,.8)',  fact:'最大的行星',         deg:80,  size:36 },
+  { name: '土星',   c1:'#D9C08A', glow:'rgba(255,225,160,.8)',  fact:'有漂亮的光环',       deg:265, size:38, saturn:true },
+  { name: '天王星', c1:'#7FD4D4', glow:'rgba(160,235,235,.8)', fact:'躺着转圈圈的星球',   deg:140, size:40 },
+  { name: '海王星', c1:'#4A6FD9', glow:'rgba(120,160,255,.8)',  fact:'离太阳最远的行星',   deg:315, size:42 },
 ];
 const SUN_DATA = { name: '太阳', c1: '#FFD54A', fact: '给我们光和热的大火球' };
+
+// 轨道几何：同心椭圆。f 越大轨道越大 —— 水星最内圈、海王星最外圈
+const ORBIT_RX = 45;        // 最外圈半宽（% 轨道区宽）
+const ORBIT_RY = 30;        // 最外圈半高（% 轨道区高）
+const ORBIT_F_MIN = 0.40;   // 内圈短半轴须 > 太阳半径+球半径，否则行星转到上下方会压到太阳
+const orbitFactor = (i) => ORBIT_F_MIN + (1 - ORBIT_F_MIN) * Math.pow(i / (SOLAR_DATA.length - 1), 0.85);
+const polar = (f, deg) => {
+  const r = deg * Math.PI / 180;
+  return { x: 50 + f * ORBIT_RX * Math.cos(r), y: 50 + f * ORBIT_RY * Math.sin(r) };
+};
 
 function playTwinkle() {
   playMelody([
@@ -2161,74 +2194,91 @@ function playTwinkle() {
 }
 
 function startSolar() {
-  const scene = document.createElement('div');
-  scene.className = 'solar-scene';
-  scene.id = 'solarScene';
   document.getElementById('gameView').innerHTML = `
     <div class="game-stage">
       <div class="stage-toolbar">
-        <div class="stage-title">点一点，认一认 🪐</div>
+        <div class="stage-title">🪐 自由探索 · 点一点，认一认</div>
+      </div>
+    </div>
+    <div class="solar-card" id="solarCard">
+      <div class="big">${SUN_DATA.name}</div>
+      <div class="fact">${SUN_DATA.fact}</div>
+    </div>
+    <div class="solar-scene" id="solarScene">
+      <div class="solar-stars" id="solarStars"></div>
+      <div class="solar-orbit-area" id="solarArea">
+        <div class="solar-sun active" id="solarSun"></div>
+        <div class="solar-rotor" id="solarRotor"></div>
       </div>
     </div>
   `;
-  document.getElementById('gameView').prepend(scene);
 
-  // 太阳
-  const sun = document.createElement('div');
-  sun.className = 'solar-sun active';   // 与初始提示卡（太阳）保持一致
-  sun.id = 'solarSun';
-  sun.addEventListener('click', () => pickSolar(SUN_DATA, sun, ['solar-sun', 'solar-sun active']));
-  scene.appendChild(sun);
-
-  // 星星（避开中部太阳与下方行星带）
+  // 星星：随机大小 / 位置 / 闪烁周期 / 延迟
+  const starsEl = document.getElementById('solarStars');
   for (let i = 0; i < 16; i++) {
     const st = document.createElement('div');
     st.className = 'star';
     const sz = rand(3, 7);
-    st.style.width = sz + 'px';
+    st.style.width  = sz + 'px';
     st.style.height = sz + 'px';
-    st.style.left = rand(3, 93) + '%';
-    st.style.top = rand(3, 68) + '%';
+    st.style.left   = rand(3, 93) + '%';
+    st.style.top    = rand(3, 92) + '%';
     st.style.setProperty('--d', (rand(160, 340) / 100).toFixed(2) + 's');
     st.style.setProperty('--delay', (rand(0, 260) / 100).toFixed(2) + 's');
     st.addEventListener('click', (e) => { e.stopPropagation(); burstStar(e); });
-    scene.appendChild(st);
+    starsEl.appendChild(st);
   }
 
-  // 行星（按离太阳远近排序）
-  const row = document.createElement('div');
-  row.className = 'solar-planets';
+  const area  = document.getElementById('solarArea');
+  const rotor = document.getElementById('solarRotor');
+
+  // 轨道线（8 条同心椭圆，越往外越大）
   SOLAR_DATA.forEach((p, i) => {
+    const f = orbitFactor(i);
+    const ring = document.createElement('div');
+    ring.className = 'solar-ring';
+    ring.style.width  = (2 * f * ORBIT_RX) + '%';
+    ring.style.height = (2 * f * ORBIT_RY) + '%';
+    area.appendChild(ring);
+  });
+
+  // 行星：位置用同一套 f + 极坐标算出，保证严丝合缝落在自己的轨道上
+  SOLAR_DATA.forEach((p, i) => {
+    const f = orbitFactor(i);
+    const pos = polar(f, p.deg);
     const el = document.createElement('div');
     el.className = 'planet' + (p.saturn ? ' saturn' : '');
-    el.style.setProperty('--delay', (i * 0.28).toFixed(2) + 's');
-    el.innerHTML = `<div class="ball" style="--c1:${p.c1};--glow:${p.glow}"></div><div class="pname">${p.name}</div>`;
-    el.addEventListener('click', () => pickSolar(p, el, ['planet' + (p.saturn ? ' saturn' : ''), 'planet active' + (p.saturn ? ' saturn' : '')]));
-    row.appendChild(el);
+    el.dataset.ring = i;
+    el.style.left = pos.x.toFixed(2) + '%';
+    el.style.top  = pos.y.toFixed(2) + '%';
+    el.style.setProperty('--size', p.size + 'px');
+    el.style.setProperty('--delay', (i * 0.3).toFixed(2) + 's');
+    el.innerHTML = `<div class="planet-body"><div class="ball" style="--c1:${p.c1};--glow:${p.glow}"></div><div class="pname">${p.name}</div></div>`;
+    el.addEventListener('click', () => pickSolar(p, el, 'planet'));
+    rotor.appendChild(el);
   });
-  scene.appendChild(row);
 
-  // 提示卡：先讲太阳，让他知道"点一下有反应"
-  showSolarCard(SUN_DATA);
+  document.getElementById('solarSun').addEventListener('click', (e) => {
+    e.stopPropagation();
+    pickSolar(SUN_DATA, document.getElementById('solarSun'), 'solar-sun');
+  });
+
   setTimeout(() => speak('点一点太阳和星球，认一认它们的名字'), 600);
 }
 
-function pickSolar(data, el, cls) {
+function pickSolar(data, el, baseCls) {
   document.querySelectorAll('.solar-sun, .planet').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.solar-ring').forEach(r => r.classList.remove('lit'));
   el.classList.add('active');
-  showSolarCard(data);
-  speak(`${data.name}，${data.fact}`);
-}
-
-function showSolarCard(data) {
-  let card = document.getElementById('solarCard');
-  if (!card) {
-    card = document.createElement('div');
-    card.className = 'solar-card';
-    card.id = 'solarCard';
-    document.getElementById('solarScene').appendChild(card);
+  // 点中行星时，把它那条轨道也点亮 —— 强化「这是它的运行路径」
+  if (el.dataset && el.dataset.ring !== undefined) {
+    const rings = document.querySelectorAll('.solar-ring');
+    const r = rings[Number(el.dataset.ring)];
+    if (r) r.classList.add('lit');
   }
-  card.innerHTML = `<div class="big">${data.name}</div><div class="fact">${data.fact}</div>`;
+  const card = document.getElementById('solarCard');
+  if (card) card.innerHTML = `<div class="big">${data.name}</div><div class="fact">${data.fact}</div>`;
+  speak(`${data.name}，${data.fact}`);
 }
 
 function burstStar(e) {
@@ -2237,7 +2287,7 @@ function burstStar(e) {
   s.className = 'sparkle';
   s.textContent = '✨';
   s.style.left = e.clientX + 'px';
-  s.style.top = e.clientY + 'px';
+  s.style.top  = e.clientY + 'px';
   document.body.appendChild(s);
   setTimeout(() => s.remove(), 800);
 }
