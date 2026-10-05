@@ -380,14 +380,27 @@
   .game-container.solar-layout .stage-title { color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,.6); }
 
   .solar-card {
-    display: flex; align-items: center; justify-content: center; gap: 14px;
     background: rgba(255,255,255,.95);
     border: 3px solid rgba(255,255,255,.6);
-    border-radius: 16px; padding: 9px 18px; margin: 10px 0;
+    border-radius: 16px; padding: 10px 18px; margin: 10px 0;
     box-shadow: 0 4px 14px rgba(0,0,0,.4);
   }
-  .solar-card .big { font-size: 26px; font-weight: 900; color: #1b2a5e; }
-  .solar-card .fact { font-size: 15px; font-weight: bold; color: #555; }
+  .solar-card .big {
+    font-size: 26px; font-weight: 900; color: #1b2a5e;
+    text-align: center; margin-bottom: 6px;
+  }
+  .solar-card .stats {
+    display: grid; grid-template-columns: auto 1fr;
+    gap: 3px 12px; font-size: 14px; line-height: 1.5;
+  }
+  .solar-card .k { font-weight: 900; color: #1b2a5e; text-align: right; }
+  .solar-card .v { color: #4a4a4a; }
+  .solar-card .v em { font-style: normal; color: #c86a2a; font-weight: 700; margin-left: 8px; }
+  .solar-card .fact {
+    font-size: 14px; font-weight: bold; color: #8a5a1a;
+    text-align: center; margin-top: 7px; padding-top: 7px;
+    border-top: 2px dashed rgba(0,0,0,.12);
+  }
 
   .solar-scene {
     position: relative; width: 100%; min-height: 620px;
@@ -498,9 +511,10 @@
     .solar-orbit-area { top: 70px; }
     .solar-sun { width: 64px; height: 64px; }
     .solar-sun::before { inset: -10px; }
-    .solar-card { flex-direction: column; gap: 2px; padding: 8px 14px; }
-    .solar-card .big { font-size: 22px; }
-    .solar-card .fact { font-size: 13px; }
+    .solar-card { padding: 8px 12px; }
+    .solar-card .big { font-size: 21px; }
+    .solar-card .stats { font-size: 12.5px; gap: 2px 8px; }
+    .solar-card .fact { font-size: 12.5px; }
   }
 
   /* ===== Game 1: counting (car buttons) ===== */
@@ -2164,16 +2178,45 @@ function restartGame() {
 
 // ===== Game 0: 太阳系行星（solar）— 轨道图 =====
 const SOLAR_DATA = [
-  { name: '水星',   c1:'#B9B3AC', glow:'rgba(215,210,203,.7)',  fact:'离太阳最近的小行星', deg:160, size:26 },
-  { name: '金星',   c1:'#E8C07D', glow:'rgba(255,214,140,.75)', fact:'天空中最亮的一颗',   deg:25,  size:28 },
-  { name: '地球',   c1:'#4A90D9', glow:'rgba(110,180,255,.8)',  fact:'我们住的地方',       deg:335, size:31 },
-  { name: '火星',   c1:'#E0704A', glow:'rgba(255,140,100,.8)',  fact:'红红的星球',         deg:215, size:33 },
-  { name: '木星',   c1:'#C89B6A', glow:'rgba(240,190,130,.8)',  fact:'最大的行星',         deg:80,  size:36 },
-  { name: '土星',   c1:'#D9C08A', glow:'rgba(255,225,160,.8)',  fact:'有漂亮的光环',       deg:265, size:38, saturn:true },
-  { name: '天王星', c1:'#7FD4D4', glow:'rgba(160,235,235,.8)', fact:'躺着转圈圈的星球',   deg:140, size:40 },
-  { name: '海王星', c1:'#4A6FD9', glow:'rgba(120,160,255,.8)',  fact:'离太阳最远的行星',   deg:315, size:42 },
+  { name:'水星', c1:'#B9B3AC', glow:'rgba(215,210,203,.7)',  d:0.383, deg:160,
+    dia:'4,879 公里',  diaE:'地球的 0.4 倍', mass:'0.06 个地球', dist:'0.58 亿公里',
+    fact:'离太阳最近的小行星，白天很热、晚上很冷' },
+  { name:'金星', c1:'#E8C07D', glow:'rgba(255,214,140,.75)', d:0.949, deg:25,
+    dia:'12,104 公里', diaE:'地球的 0.9 倍', mass:'0.8 个地球',  dist:'1.08 亿公里',
+    fact:'天空中最亮的一颗，被厚厚的云包着' },
+  { name:'地球', c1:'#4A90D9', glow:'rgba(110,180,255,.8)',  d:1.000, deg:335,
+    dia:'12,742 公里', diaE:'我们的家',       mass:'1 个地球',   dist:'1.50 亿公里',
+    fact:'我们住的地方，唯一有生命的地方' },
+  { name:'火星', c1:'#E0704A', glow:'rgba(255,140,100,.8)',  d:0.532, deg:215,
+    dia:'6,779 公里',  diaE:'地球的 0.5 倍', mass:'0.1 个地球',  dist:'2.28 亿公里',
+    fact:'红红的星球，上面有高高的火山' },
+  { name:'木星', c1:'#C89B6A', glow:'rgba(240,190,130,.8)',  d:11.21, deg:80,
+    dia:'139,820 公里', diaE:'地球的 11 倍',  mass:'318 个地球',  dist:'7.79 亿公里',
+    fact:'最大的行星，有一道大红斑' },
+  { name:'土星', c1:'#D9C08A', glow:'rgba(255,225,160,.8)',  d:9.45, deg:265,
+    dia:'116,460 公里', diaE:'地球的 9 倍',   mass:'95 个地球',   dist:'14.3 亿公里',
+    fact:'有漂亮的光环，光环是很多冰块' },
+  { name:'天王星', c1:'#7FD4D4', glow:'rgba(160,235,235,.8)', d:4.01, deg:140,
+    dia:'50,724 公里', diaE:'地球的 4 倍',   mass:'15 个地球',   dist:'28.7 亿公里',
+    fact:'躺着转圈圈，是个蓝绿色的大球' },
+  { name:'海王星', c1:'#4A6FD9', glow:'rgba(120,160,255,.8)', d:3.88, deg:315,
+    dia:'49,244 公里', diaE:'地球的 4 倍',   mass:'17 个地球',   dist:'45.0 亿公里',
+    fact:'离太阳最远的行星，风刮得特别快' },
 ];
-const SUN_DATA = { name: '太阳', c1: '#FFD54A', fact: '给我们光和热的大火球' };
+
+const SUN_DATA = {
+  name: '太阳', c1: '#FFD54A',
+  dia: '1,392,700 公里', diaE: '地球的 109 倍',
+  mass: '333,000 个地球', dist: '太阳系的中心',
+  fact: '给我们光和热的大火球',
+};
+
+// 行星大小：按真实直径的 0.32 次方压缩。
+// 真实比例（木星=地球 11 倍）在小图上会糊住轨道、而水星只有 12px 点不中，
+// 故压缩量级但严格保序：木>土>天>海>地>金>火>水
+const SIZE_P = 0.32;
+const SIZE_BASE = 24;
+const sizeFromDiameter = (d) => Math.round(SIZE_BASE * Math.pow(d / SOLAR_DATA[0].d, SIZE_P));
 
 // 轨道几何：同心椭圆。f 越大轨道越大 —— 水星最内圈、海王星最外圈
 const ORBIT_RX = 45;        // 最外圈半宽（% 轨道区宽）
@@ -2200,10 +2243,7 @@ function startSolar() {
         <div class="stage-title">🪐 自由探索 · 点一点，认一认</div>
       </div>
     </div>
-    <div class="solar-card" id="solarCard">
-      <div class="big">${SUN_DATA.name}</div>
-      <div class="fact">${SUN_DATA.fact}</div>
-    </div>
+    <div class="solar-card" id="solarCard"></div>
     <div class="solar-scene" id="solarScene">
       <div class="solar-stars" id="solarStars"></div>
       <div class="solar-orbit-area" id="solarArea">
@@ -2251,12 +2291,15 @@ function startSolar() {
     el.dataset.ring = i;
     el.style.left = pos.x.toFixed(2) + '%';
     el.style.top  = pos.y.toFixed(2) + '%';
-    el.style.setProperty('--size', p.size + 'px');
+    el.style.setProperty('--size', sizeFromDiameter(p.d) + 'px');
     el.style.setProperty('--delay', (i * 0.3).toFixed(2) + 's');
     el.innerHTML = `<div class="planet-body"><div class="ball" style="--c1:${p.c1};--glow:${p.glow}"></div><div class="pname">${p.name}</div></div>`;
     el.addEventListener('click', () => pickSolar(p, el, 'planet'));
     rotor.appendChild(el);
   });
+
+  const card0 = document.getElementById('solarCard');
+  if (card0) card0.innerHTML = solarCardHtml(SUN_DATA);
 
   document.getElementById('solarSun').addEventListener('click', (e) => {
     e.stopPropagation();
@@ -2277,8 +2320,20 @@ function pickSolar(data, el, baseCls) {
     if (r) r.classList.add('lit');
   }
   const card = document.getElementById('solarCard');
-  if (card) card.innerHTML = `<div class="big">${data.name}</div><div class="fact">${data.fact}</div>`;
+  if (card) card.innerHTML = solarCardHtml(data);
   speak(`${data.name}，${data.fact}`);
+}
+
+function solarCardHtml(d) {
+  return `
+    <div class="big">${d.name}</div>
+    <div class="stats">
+      <span class="k">直径</span><span class="v">${d.dia}<em>${d.diaE}</em></span>
+      <span class="k">重量</span><span class="v">${d.mass}</span>
+      <span class="k">距离</span><span class="v">${d.dist}</span>
+    </div>
+    <div class="fact">${d.fact}</div>
+  `;
 }
 
 function burstStar(e) {
