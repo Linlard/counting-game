@@ -378,7 +378,23 @@
     border-color: rgba(255,255,255,.16);
   }
   .game-container.solar-layout .stage-title { color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,.6); }
+  /* 太阳系不显示反馈条：本来就没内容，白占 ~50px */
+  .game-container.solar-layout .feedback { display: none; }
 
+  /* 平板横屏：信息卡改左侧边栏，把竖向高度让给星空图 → 免拖动。
+     注意不改星空图高度（缩了会破坏轨道几何、内圈行星会压到太阳）。 */
+  @media (orientation: landscape) and (min-width: 820px) {
+    .game-container.solar-layout { padding-top: 6px; padding-bottom: 8px; }
+    .game-container.solar-layout .game-stage { padding: 8px 12px; margin-bottom: 6px; }
+    .solar-body { display: flex; align-items: stretch; gap: 10px; }
+    .solar-card {
+      flex: 0 0 232px; width: 232px; margin: 0;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .solar-scene { flex: 1 1 auto; min-width: 0; }
+  }
+
+  .solar-body { display: block; }
   .solar-card {
     background: rgba(255,255,255,.95);
     border: 3px solid rgba(255,255,255,.6);
@@ -2250,6 +2266,7 @@ function startSolar() {
         <div class="stage-title">🪐 自由探索 · 点一点，认一认</div>
       </div>
     </div>
+    <div class="solar-body">
     <div class="solar-card" id="solarCard"></div>
     <div class="solar-scene" id="solarScene">
       <div class="solar-stars" id="solarStars"></div>
@@ -2257,6 +2274,7 @@ function startSolar() {
         <div class="solar-sun active" id="solarSun"></div>
         <div class="solar-rotor" id="solarRotor"></div>
       </div>
+    </div>
     </div>
   `;
 
