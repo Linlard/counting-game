@@ -1186,7 +1186,7 @@
     <button class="game-card" data-game="counting" data-mode="math">
       <span class="emoji">🧮</span>
       <span class="name">算一算</span>
-      <span class="desc">加一加 / 减一减</span>
+      <span class="desc">两个数加起来是多少</span>
     </button>
     <button class="game-card" data-game="parking">
       <span class="emoji">✈️</span>
@@ -2379,7 +2379,7 @@ const countingRanges = {
 };
 const counting = {
   level: 1, total: 10, currentCount: 0, currentAnimal: '', currentCar: '', lockInput: false,
-  mathA: 0, mathB: 0, mathIsAdd: true, mathTarget: 0,   // 算一算用
+  mathA: 0, mathB: 0, mathTarget: 0,   // 算一算用
 };
 
 // ===== Game 1b: 算一算（counting 的第二个子游戏）=====
@@ -2393,15 +2393,14 @@ function currentCountingMode() {
   return settings.countingMode === 'math' ? 'math' : 'count';
 }
 
-// 典型错误答案：忘了另一数 / 差一 / 重复加 / 乘 / 加减混淆
-function mathCandidates(a, b, isAdd, max) {
-  const t = isAdd ? a + b : a - b;
+// 典型错误答案：忘了另一数 / 差一 / 重复加 / 乘
+function mathCandidates(a, b, max) {
+  const t = a + b;
   // 必须同时挡住：负数、超出本档上限、等于答案
   // （超上限的干扰项会被孩子一眼排除，等于变相送分）
   return [
     t + 1, t - 1, t + 2, t - 2, t + 3, t - 3,
-    a, b, a + b, Math.abs(a - b), a - b, b - a,
-    a + 2 * b, 2 * a + b, a * b, 0, 1,
+    a, b, a + 2 * b, 2 * a + b, a * b, 0, 1,
   ].filter(c => Number.isInteger(c) && c >= 0 && c <= max && c !== t);
 }
 
@@ -2410,19 +2409,11 @@ function setupMath() {
   updateLevel(counting.level, counting.total);
   document.getElementById('feedback').textContent = '';
 
-  // 减法保证 b <= a-1 → 结果 >= 1，不出负数
-  const isAdd = rand(0, 1) === 1;
-  let a, b;
-  if (isAdd) {
-    a = rand(1, range.max - 1);
-    b = rand(1, Math.max(1, range.max - a));
-  } else {
-    a = rand(2, range.max);
-    b = rand(1, a - 1);
-  }
-  const target = isAdd ? a + b : a - b;
-  counting.mathA = a; counting.mathB = b;
-  counting.mathIsAdd = isAdd; counting.mathTarget = target;
+  // 只出加法：a、b 都 >= 1，且 a + b <= 本档上限
+  const a = rand(1, range.max - 1);
+  const b = rand(1, Math.max(1, range.max - a));
+  const target = a + b;
+  counting.mathA = a; counting.mathB = b; counting.mathTarget = target;
 
   // 两个加数用同一种动物：加法的意义就是把两组相同的东西合并
   // （3 个苹果 + 2 只兔子不成立，3 个苹果 + 2 个苹果才是"合并"）
@@ -2439,7 +2430,7 @@ function setupMath() {
       </div>
       <div class="math-display">
         <div class="math-term">${dots(a)}<div class="math-num">${a}</div></div>
-        <div class="math-sign">${isAdd ? '+' : '−'}</div>
+        <div class="math-sign">+</div>
         <div class="math-term">${dots(b)}<div class="math-num">${b}</div></div>
         <div class="math-sign">=</div>
         <div class="math-q">?</div>
@@ -2449,7 +2440,7 @@ function setupMath() {
   `;
 
   // 干扰项取最贴近答案的几个（数数游戏踩过"离太远等于送分"的坑）
-  const cands = mathCandidates(a, b, isAdd, range.max)
+  const cands = mathCandidates(a, b, range.max)
     .sort((x, y) => Math.abs(x - target) - Math.abs(y - target));
   const set = new Set([target]);
   cands.forEach(c => { if (set.size < range.options) set.add(c); });
@@ -2472,18 +2463,18 @@ function setupMath() {
   });
 
   counting.lockInput = false;
-  setTimeout(() => speak(`${a} ${isAdd ? '加' : '减'} ${b} 等于几？`), 600);
+  setTimeout(() => speak(`${a} 加 ${b} 等于几？`), 600);
 }
 
 function handleMath(n, btn) {
   if (counting.lockInput) return;
   const a = counting.mathA, b = counting.mathB;
-  const isAdd = counting.mathIsAdd, t = counting.mathTarget;
+  const t = counting.mathTarget;
   if (n === t) {
     counting.lockInput = true;
     btn.classList.add('correct');
     showFeedback('🎉 答对啦！');
-    speak(`答对啦，${a} ${isAdd ? '加' : '减'} ${b} 等于 ${n}`);
+    speak(`答对啦，${a} 加 ${b} 等于 ${n}`);
     document.querySelectorAll('#mathChoices .car-btn').forEach(x => x.disabled = true);
     setTimeout(() => {
       counting.level++;
