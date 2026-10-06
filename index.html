@@ -909,6 +909,63 @@
   }
 
   /* ===== Win overlay ===== */
+  /* ===== XP 升级系统 =====
+     规则：答对 +10，答错不扣；Lv1→2 只要 50 分(5题)，逐级递增，10 级后每级固定 350。
+     答错不扣分是这个年龄的关键——扣分只会让孩子不敢再试。 */
+  .xp-chip { display: inline-flex; align-items: center; gap: 6px; }
+  .xp-lv {
+    font-size: 13px; font-weight: 900; color: #7a4b00;
+    background: linear-gradient(180deg, #FFE9A8 0%, #FFC93C 100%);
+    border: 2px solid #CC8400; border-radius: 12px; padding: 2px 9px;
+    box-shadow: 0 2px 0 rgba(0,0,0,.15);
+  }
+  .xp-track {
+    width: 84px; height: 11px; background: rgba(0,0,0,.14);
+    border-radius: 6px; overflow: hidden; border: 2px solid rgba(0,0,0,.18);
+  }
+  .xp-fill {
+    display: block; height: 100%; border-radius: 5px;
+    background: linear-gradient(90deg, #43E97B 0%, #38F9D7 100%);
+    transition: width .45s ease;
+  }
+  .xp-num { font-size: 11.5px; font-weight: 700; color: #7a6a45; }
+  .stage-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .game-card { position: relative; }
+  .card-lv {
+    position: absolute; top: 8px; right: 8px;
+    font-size: 12px; font-weight: 900; color: #fff;
+    background: linear-gradient(180deg, #FFB347 0%, #FF8C42 100%);
+    border: 2px solid #fff; border-radius: 12px; padding: 2px 8px;
+    box-shadow: 0 2px 0 rgba(0,0,0,.2);
+  }
+  .levelup-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,6,30,.72); z-index: 200;
+    justify-content: center; align-items: center;
+  }
+  .levelup-overlay.show { display: flex; animation: fadeIn 0.4s; }
+  .levelup-card {
+    background: linear-gradient(150deg, #A18CD1 0%, #7B5EA7 55%, #5B3E91 100%);
+    padding: 34px 46px; border-radius: 32px; text-align: center; color: #fff;
+    border: 5px solid #FFE58A;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    animation: pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 90vw;
+  }
+  .levelup-card .lu-title { font-size: 38px; font-weight: 900; text-shadow: 3px 3px 0 rgba(0,0,0,.3); }
+  .levelup-card .lu-level {
+    font-size: 62px; font-weight: 900; color: #FFE58A; line-height: 1.1;
+    text-shadow: 0 4px 0 rgba(0,0,0,.25); margin: 6px 0;
+  }
+  .levelup-card .lu-game { font-size: 19px; font-weight: bold; opacity: .95; margin-bottom: 18px; }
+  .levelup-card button {
+    background: #fff; color: #5B3E91; border: none;
+    padding: 13px 26px; font-size: 19px; font-weight: bold;
+    border-radius: 16px; cursor: pointer;
+    box-shadow: 0 6px 0 rgba(0,0,0,.25); font-family: inherit;
+  }
+  .levelup-card button:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+
   .win-overlay {
     display: none;
     position: fixed;
@@ -1173,37 +1230,37 @@
   <h1>🎨 3 岁小课堂</h1>
   <p>选一个游戏开始玩吧～</p>
   <div class="game-grid">
-    <button class="game-card" data-game="solar">
+    <button class="game-card" data-game="solar" data-xp="solar">
       <span class="emoji">🪐</span>
       <span class="name">太阳系</span>
       <span class="desc">点一点，认行星</span>
     </button>
-    <button class="game-card" data-game="counting" data-mode="count">
+    <button class="game-card" data-game="counting" data-mode="count" data-xp="counting">
       <span class="emoji">🚗</span>
       <span class="name">数小动物</span>
       <span class="desc">数一数有几只</span>
     </button>
-    <button class="game-card" data-game="counting" data-mode="math">
+    <button class="game-card" data-game="counting" data-mode="math" data-xp="math">
       <span class="emoji">🧮</span>
       <span class="name">算一算</span>
       <span class="desc">两个数加起来是多少</span>
     </button>
-    <button class="game-card" data-game="parking">
+    <button class="game-card" data-game="parking" data-xp="parking">
       <span class="emoji">✈️</span>
       <span class="name">飞机场</span>
       <span class="desc">阿拉伯 ↔ 中文数字</span>
     </button>
-    <button class="game-card" data-game="chinese" data-mode="word2pic">
+    <button class="game-card" data-game="chinese" data-mode="word2pic" data-xp="chinese-w2p">
       <span class="emoji">📝</span>
       <span class="name">看字选图</span>
       <span class="desc">看字选日常物品（4 类）</span>
     </button>
-    <button class="game-card" data-game="chinese" data-mode="pic2word">
+    <button class="game-card" data-game="chinese" data-mode="pic2word" data-xp="chinese-p2w">
       <span class="emoji">🖼️</span>
       <span class="name">看图选字</span>
       <span class="desc">看图选日常物品（4 类）</span>
     </button>
-    <button class="game-card" data-game="memory">
+    <button class="game-card" data-game="memory" data-xp="memory">
       <span class="emoji">🧠</span>
       <span class="name">数字记忆 V3</span>
       <span class="desc">看好位置，按数字序点（简单3 中等5 困难7）</span>
@@ -1269,6 +1326,15 @@
 </div>
 
 <!-- ===== Win overlay (shared) ===== -->
+<div class="levelup-overlay" id="levelUpOverlay">
+  <div class="levelup-card">
+    <div class="lu-title">🎉 升级啦 🎉</div>
+    <div class="lu-level" id="luLevel">Lv.2</div>
+    <div class="lu-game" id="luGame"></div>
+    <button onclick="closeLevelUp()">太棒了！</button>
+  </div>
+</div>
+
 <div class="win-overlay" id="winOverlay">
   <div class="win-card">
     <h2 id="winTitle">🎉 通关啦 🎉</h2>
@@ -1310,6 +1376,11 @@ let settings = {
   countingMode: 'count',
   chineseMode: 'word2pic',
   poemMode: 'chain',
+  xp: {
+    solar: 0, counting: 0, math: 0, parking: 0,
+    'chinese-w2p': 0, 'chinese-p2w': 0, memory: 0,
+  },
+  solarFound: [],
 };
 function loadSettings() {
   try {
@@ -1328,7 +1399,19 @@ function loadSettings() {
           }
         });
       }
+      // 必须先记下默认的键名模板再合并：Object.assign 会把 settings.xp
+      // 整个替换成老存档里的 xp，若事后才遍历 settings.xp 取键，
+      // 新增的游戏就会因为键不存在而永远补不回来。
+      const xpKeys = Object.keys(settings.xp);
       Object.assign(settings, parsed);
+      const incoming = (parsed.xp && typeof parsed.xp === 'object') ? parsed.xp : {};
+      const mergedXp = {};
+      xpKeys.forEach(k => {
+        const v = Number(incoming[k]);
+        mergedXp[k] = Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0;
+      });
+      settings.xp = mergedXp;
+      if (!Array.isArray(settings.solarFound)) settings.solarFound = [];
     }
   } catch (e) {}
 }
@@ -1739,7 +1822,7 @@ function renderNM() {
     <div class="game-stage">
       <div class="stage-toolbar">
         <div class="stage-title">数字记忆 · 第 ${nm.round + 1} 轮 · ${diffLabel}</div>
-        ${diffMiniHtml('memory')}
+        <div class="stage-right">${diffMiniHtml('memory')}${xpBarHtml('memory')}</div>
       </div>
       <div class="nm-frame" id="nmFrame"></div>
       <div class="nm-hint" id="nmHint">👀 看好数字和位置，5 秒后翻面</div>
@@ -1795,6 +1878,7 @@ function handleNMCard(value, card) {
 
   if (value === expected) {
     nm.lock = true;
+    addXp('memory', XP_PER_ANSWER);
     card.classList.remove('face-down');
     card.classList.add('revealed');
     card.textContent = value;
@@ -2258,6 +2342,7 @@ function startSolar() {
     <div class="game-stage">
       <div class="stage-toolbar">
         <div class="stage-title">🪐 自由探索 · 点一点，认一认</div>
+        <div class="stage-right">${xpBarHtml('solar')}</div>
       </div>
     </div>
     <div class="solar-scene" id="solarScene">
@@ -2335,6 +2420,12 @@ function pickSolar(data, el, baseCls) {
     const rings = document.querySelectorAll('.solar-ring');
     const r = rings[Number(el.dataset.ring)];
     if (r) r.classList.add('lit');
+  }
+  // 太阳系只在「首次点亮」时给分，防止反复点同一颗刷经验
+  if (!settings.solarFound.includes(data.name)) {
+    settings.solarFound.push(data.name);
+    saveSettings();
+    addXp('solar', XP_PER_ANSWER);
   }
   fillSolarInfo(data);
   speak(`${data.name}，${data.fact}`);
@@ -2426,7 +2517,7 @@ function setupMath() {
     <div class="game-stage">
       <div class="stage-toolbar">
         <div class="stage-title">算一算，等于几？</div>
-        ${diffMiniHtml('counting')}
+        <div class="stage-right">${diffMiniHtml('counting')}${xpBarHtml('math')}</div>
       </div>
       <div class="math-display">
         <div class="math-term">${dots(a)}<div class="math-num">${a}</div></div>
@@ -2472,6 +2563,7 @@ function handleMath(n, btn) {
   const t = counting.mathTarget;
   if (n === t) {
     counting.lockInput = true;
+    addXp('math', XP_PER_ANSWER);
     btn.classList.add('correct');
     showFeedback('🎉 答对啦！');
     speak(`答对啦，${a} 加 ${b} 等于 ${n}`);
@@ -2526,7 +2618,7 @@ function setupCounting() {
     <div class="game-stage">
       <div class="stage-toolbar">
         <div class="stage-title">数一数，有几只小动物？</div>
-        ${diffMiniHtml('counting')}
+        <div class="stage-right">${diffMiniHtml('counting')}${xpBarHtml('counting')}</div>
       </div>
       <div class="animal-row" id="animalRow"></div>
     </div>
@@ -2612,6 +2704,7 @@ function handleCounting(n, btn) {
   if (counting.lockInput) return;
   if (n === counting.currentCount) {
     counting.lockInput = true;
+    addXp('counting', XP_PER_ANSWER);
     showFeedback('🎉 答对啦！');
     speak(`答对啦，有${counting.currentCount}只`);
     document.querySelectorAll('#countingChoices .car-btn').forEach(b => {
@@ -2745,7 +2838,7 @@ function setupParking() {
     <div class="game-stage">
       <div class="stage-toolbar">
         <div class="stage-title">✈️ 几号？</div>
-        ${diffMiniHtml('parking')}
+        <div class="stage-right">${diffMiniHtml('parking')}${xpBarHtml('parking')}</div>
       </div>
       <div class="sky-scene">
         <div class="airplane-display">
@@ -2806,6 +2899,7 @@ function handleParking(airport) {
   const v = parseInt(airport.dataset.value);
   if (v === parking.target) {
     parking.lockInput = true;
+    addXp('parking', XP_PER_ANSWER);
     showFeedback('🎉 答对啦！');
     speak(`${numberToChinese(parking.target)}就是${parking.target}`);
     document.querySelectorAll('#airports .airport').forEach(a => a.disabled = true);
@@ -2946,7 +3040,7 @@ function setupChinese() {
     <div class="game-stage">
       <div class="stage-toolbar">
         <div class="stage-title">${stageTitle}</div>
-        ${diffMiniHtml('chinese')}
+        <div class="stage-right">${diffMiniHtml('chinese')}${xpBarHtml(chineseXpKey())}</div>
       </div>
       <div class="character-display">
         ${mainInner}
@@ -2995,6 +3089,7 @@ function handleChinese(opt, btn) {
   if (chinese.lockInput) return;
   if (opt.word === chinese.current.word) {
     chinese.lockInput = true;
+    addXp(chineseXpKey(), XP_PER_ANSWER);
     btn.classList.add('correct');
     showFeedback('🎉 对啦！');
     speak(`对啦，是${chinese.current.word}`);
@@ -3025,8 +3120,108 @@ function handleChinese(opt, btn) {
   }
 }
 
+// ===== XP 升级系统（每个游戏一条独立进度线）=====
+const XP_PER_ANSWER = 10;
+const XP_CURVE_MAX  = 10;    // 10 级以内曲线加速，之后每级固定
+const XP_AFTER_MAX  = 350;
+const XP_NAME = {
+  solar: '太阳系', counting: '数小动物', math: '算一算', parking: '飞机场',
+  'chinese-w2p': '看字选图', 'chinese-p2w': '看图选字', memory: '数字记忆',
+};
+
+// 达到 lv 级所需的累计经验：Lv2=50(5题) Lv3=150 Lv4=300 … Lv10=2250，之后每级 +350
+function xpAtLevel(lv) {
+  if (lv <= XP_CURVE_MAX) return 25 * lv * (lv - 1);
+  return 25 * XP_CURVE_MAX * (XP_CURVE_MAX - 1) + (lv - XP_CURVE_MAX) * XP_AFTER_MAX;
+}
+// 认字两个模式各自独立：看字选图 = chinese-w2p，看图选字 = chinese-p2w
+function chineseXpKey() {
+  return settings.chineseMode === 'pic2word' ? 'chinese-p2w' : 'chinese-w2p';
+}
+
+function xpOf(key) { return (settings.xp && settings.xp[key]) || 0; }
+function levelOf(key) {
+  const xp = xpOf(key);
+  let lv = 1;
+  while (lv < 999 && xp >= xpAtLevel(lv + 1)) lv++;
+  return lv;
+}
+
+// 发经验：答错不扣分，只在升级时放礼炮
+function addXp(key, amount) {
+  if (!settings.xp || !(key in settings.xp)) return;
+  const before = levelOf(key);
+  settings.xp[key] = xpOf(key) + amount;
+  saveSettings();
+  if (levelOf(key) > before) celebrateLevelUp(key, levelOf(key));
+  updateXpChips();
+  updateHomeCards();
+}
+
+function xpBarHtml(key) {
+  const xp = xpOf(key), lv = levelOf(key);
+  const cur = xpAtLevel(lv), next = xpAtLevel(lv + 1);
+  const pct = Math.max(0, Math.min(100, Math.round((xp - cur) / (next - cur) * 100)));
+  return `<div class="xp-chip" data-xp-key="${key}">
+    <span class="xp-lv">Lv.${lv}</span>
+    <span class="xp-track"><span class="xp-fill" style="width:${pct}%"></span></span>
+    <span class="xp-num">${xp - cur}/${next - cur}</span>
+  </div>`;
+}
+
+function updateXpChips() {
+  document.querySelectorAll('.xp-chip').forEach(chip => {
+    const key = chip.dataset.xpKey;
+    if (!settings.xp || !(key in settings.xp)) return;
+    const xp = xpOf(key), lv = levelOf(key);
+    const cur = xpAtLevel(lv), next = xpAtLevel(lv + 1);
+    const pct = Math.max(0, Math.min(100, Math.round((xp - cur) / (next - cur) * 100)));
+    chip.querySelector('.xp-lv').textContent = 'Lv.' + lv;
+    chip.querySelector('.xp-fill').style.width = pct + '%';
+    chip.querySelector('.xp-num').textContent = (xp - cur) + '/' + (next - cur);
+  });
+}
+
+function updateHomeCards() {
+  document.querySelectorAll('.game-card').forEach(card => {
+    const key = card.dataset.xp;
+    if (!settings.xp || !(key in settings.xp)) return;
+    let badge = card.querySelector('.card-lv');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'card-lv';
+      card.appendChild(badge);
+    }
+    badge.textContent = 'Lv.' + levelOf(key);
+  });
+}
+
+function playLevelUpFanfare() {
+  playMelody([
+    { note: 'C5', dur: 130 }, { note: 'E5', dur: 130 }, { note: 'G5', dur: 130 },
+    { note: 'C6', dur: 190 }, { note: 'G5', dur: 130 }, { note: 'C6', dur: 420 },
+  ], 'triangle');
+}
+
+function celebrateLevelUp(key, lv) {
+  playLevelUpFanfare();
+  if (typeof spawnFireworks === 'function') spawnFireworks();
+  const ov = document.getElementById('levelUpOverlay');
+  const lvEl = document.getElementById('luLevel');
+  const gm = document.getElementById('luGame');
+  if (lvEl) lvEl.textContent = 'Lv.' + lv;
+  if (gm) gm.textContent = (XP_NAME[key] || key) + ' 升到 ' + lv + ' 级';
+  if (ov) ov.classList.add('show');
+}
+
+function closeLevelUp() {
+  const ov = document.getElementById('levelUpOverlay');
+  if (ov) ov.classList.remove('show');
+}
+
 // ===== Bootstrap =====
 loadSettings();
+updateHomeCards();
 updateMusicBtn();
 updateDiffBtns();
 updateChineseThemeBtns();
