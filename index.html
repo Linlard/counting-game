@@ -1085,6 +1085,20 @@
     from { transform: translateY(0) rotate(-2deg); }
     to   { transform: translateY(-3px) rotate(2deg); }
   }
+  /* 10 节长编组：缩小车厢，否则一列车超宽会被裁掉 */
+  .train.train-long { gap: 3px; padding: 6px; }
+  .train.train-long .train-engine { font-size: 24px; }   /* 车头自带 font-size，必须单独压 */
+  .train.train-long .train-car {
+    width: 32px; height: 38px; font-size: 18px;
+    border-width: 2px; border-radius: 7px;
+  }
+  @media (max-width: 600px) {
+    /* 360px 窄屏：收窄间隙换余量。overflow:hidden 一旦溢出，两边连车头都会被裁 */
+    .train.train-long { gap: 2px; padding: 5px; }
+    .train.train-long .train-engine { font-size: 18px; }
+    .train.train-long .train-car { width: 28px; height: 33px; font-size: 18px; }
+  }
+
   .train-car {
     width: 44px;
     height: 50px;
@@ -1322,6 +1336,12 @@
     <div class="train-car" data-slot="1"></div>
     <div class="train-car" data-slot="2"></div>
     <div class="train-car" data-slot="3"></div>
+    <div class="train-car" data-slot="4"></div>
+    <div class="train-car" data-slot="5"></div>
+    <div class="train-car" data-slot="6"></div>
+    <div class="train-car" data-slot="7"></div>
+    <div class="train-car" data-slot="8"></div>
+    <div class="train-car" data-slot="9"></div>
   </div>
 </div>
 
@@ -1789,7 +1809,7 @@ function startMemory() {
   nm.done = 0;
   nm.lock = true;
   nm.rememberMs = NM_REMEMBER_MS[diff] || 5000;
-  setupNMTrain(NM_WINDOW[diff]);
+  setupTrainCars(NM_WINDOW[diff]);
   document.getElementById('gameLevel').textContent = `第 ${nm.round + 1} 轮`;
   document.getElementById('feedback').textContent = '';
   renderNM();
@@ -1797,7 +1817,8 @@ function startMemory() {
   nm.timer = setTimeout(flipNMCards, nm.rememberMs);
 }
 
-function setupNMTrain(n) {
+// 重建地铁车厢（认字 10 节 / 数字记忆 3·5·7 节共用）
+function setupTrainCars(n) {
   const train = document.getElementById('train');
   train.querySelectorAll('.train-car').forEach(c => c.remove());
   for (let i = 0; i < n; i++) {
@@ -1808,6 +1829,8 @@ function setupNMTrain(n) {
   }
   trainCars.length = 0;
   for (let i = 0; i < n; i++) trainCars.push(null);
+  // 车厢多时缩小尺寸，否则一列车超宽会被 overflow:hidden 裁掉
+  train.classList.toggle('train-long', n >= 8);
   resetTrain();
 }
 
@@ -2054,7 +2077,7 @@ function spawnConfetti() {
 }
 
 // ===== Train state (game 3 + game 4) =====
-const trainCars = [null, null, null, null];
+const trainCars = [null, null, null, null, null, null, null, null, null, null];  // 认字 10 节
 
 function resetTrain() {
   trainCars.fill(null);
@@ -2991,9 +3014,11 @@ const chineseRanges = {
   hard:   { poolSize: 20, options: 5 },
 };
 
+const CHINESE_CARS = 10;   // 认字：10 节车厢，装满就出发
+
 function startChinese() {
   chinese.level = 1;
-  resetTrain();
+  setupTrainCars(CHINESE_CARS);
   setupChinese();
 }
 
@@ -3101,7 +3126,7 @@ function handleChinese(opt, btn) {
       const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
       if (carEl) flyAnimalToTrain(btn, opt.pic, carEl);
     }
-    const isLastInGroup = (slotIdx === 3);
+    const isLastInGroup = (slotIdx === CHINESE_CARS - 1);   // 装满 10 节才发车
     setTimeout(() => {
       chinese.level++;
       if (chinese.level > chinese.total) {
