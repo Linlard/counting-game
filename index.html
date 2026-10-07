@@ -3194,17 +3194,20 @@ function updateHomeCards() {
   });
 }
 
-function playLevelUpFanfare() {
+// 升级提示音：短促的高音「叮」。
+// 刻意避开 playTrainHorn 的 C5-E5-G5-C6 triangle 上行琶音 —— 那样太像通关汽笛，
+// 而且太长会打断答题节奏。改成 sine 软音色 + 高八度 + 不到 0.25 秒。
+function playLevelUpDing() {
   playMelody([
-    { note: 'C5', dur: 130 }, { note: 'E5', dur: 130 }, { note: 'G5', dur: 130 },
-    { note: 'C6', dur: 190 }, { note: 'G5', dur: 130 }, { note: 'C6', dur: 420 },
-  ], 'triangle');
+    { note: 'E6', dur: 85 },
+    { note: 'G6', dur: 145 },
+  ], 'sine');
 }
 
 // 升级反馈：不弹窗、不需要点确认、不打断学习。
 // 效果只落在等级徽章上：跳一下 + 叮一声，1.3 秒后自动复原。
 function celebrateLevelUp(key) {
-  playLevelUpFanfare();
+  playLevelUpDing();
   const chip = document.querySelector('.xp-chip[data-xp-key="' + key + '"]');
   if (!chip) return;
   chip.classList.add('xp-levelup');
