@@ -1337,11 +1337,6 @@
     <div class="train-car" data-slot="2"></div>
     <div class="train-car" data-slot="3"></div>
     <div class="train-car" data-slot="4"></div>
-    <div class="train-car" data-slot="5"></div>
-    <div class="train-car" data-slot="6"></div>
-    <div class="train-car" data-slot="7"></div>
-    <div class="train-car" data-slot="8"></div>
-    <div class="train-car" data-slot="9"></div>
   </div>
 </div>
 
@@ -2077,7 +2072,7 @@ function spawnConfetti() {
 }
 
 // ===== Train state (game 3 + game 4) =====
-const trainCars = [null, null, null, null, null, null, null, null, null, null];  // 认字 10 节
+const trainCars = [null, null, null, null, null];  // 认字 5 节
 
 function resetTrain() {
   trainCars.fill(null);
@@ -3014,7 +3009,7 @@ const chineseRanges = {
   hard:   { poolSize: 20, options: 5 },
 };
 
-const CHINESE_CARS = 10;   // 认字：10 节车厢，装满就出发
+const CHINESE_CARS = 5;    // 认字：5 节车厢，装满就出发
 
 function startChinese() {
   chinese.level = 1;
@@ -3126,7 +3121,7 @@ function handleChinese(opt, btn) {
       const carEl = document.querySelector(`.train-car[data-slot="${slotIdx}"]`);
       if (carEl) flyAnimalToTrain(btn, opt.pic, carEl);
     }
-    const isLastInGroup = (slotIdx === CHINESE_CARS - 1);   // 装满 10 节才发车
+    const isLastInGroup = (slotIdx === CHINESE_CARS - 1);   // 装满 5 节才发车
     setTimeout(() => {
       chinese.level++;
       if (chinese.level > chinese.total) {
