@@ -1758,6 +1758,7 @@ function handlePoem(val, btn) {
     }, 1600);
   } else {
     btn.classList.add('wrong');
+    lowerXp('memory');
     showFeedback('🤔 再想想哦');
     setTimeout(() => btn.classList.remove('wrong'), 400);
   }
@@ -2579,6 +2580,7 @@ function handleMath(n, btn) {
     }, 2000);
   } else {
     btn.classList.add('wrong');
+    lowerXp('math');
     showFeedback('🤔 再算一算哦');
     speak('再算一算哦');
     setTimeout(() => btn.classList.remove('wrong'), 500);
@@ -2723,6 +2725,7 @@ function handleCounting(n, btn) {
     }, 2500);
   } else {
     btn.classList.add('wrong');
+    lowerXp('counting');
     showFeedback('🤔 再数一数哦');
     speak('再数一数哦');
     setTimeout(() => btn.classList.remove('wrong'), 500);
@@ -2916,6 +2919,7 @@ function handleParking(airport) {
     }, 1800);
   } else {
     airport.classList.add('wrong');
+    lowerXp('parking');
     showFeedback('🤔 再看看数字');
     speak('再看看数字');
     setTimeout(() => airport.classList.remove('wrong'), 500);
@@ -3117,6 +3121,7 @@ function handleChinese(opt, btn) {
     }, 1500);
   } else {
     btn.classList.add('wrong');
+    lowerXp(chineseXpKey());
     showFeedback('🤔 再看看字');
     speak('再看看字');
     setTimeout(() => btn.classList.remove('wrong'), 500);
@@ -3125,6 +3130,7 @@ function handleChinese(opt, btn) {
 
 // ===== XP 升级系统（每个游戏一条独立进度线）=====
 const XP_PER_ANSWER = 10;
+const XP_PENALTY    = 5;     // 答错扣分：半个正反馈。再重会让孩子不敢再试
 const XP_CURVE_MAX  = 10;    // 10 级以内曲线加速，之后每级固定
 const XP_AFTER_MAX  = 350;
 // 达到 lv 级所需的累计经验：Lv2=50(5题) Lv3=150 Lv4=300 … Lv10=2250，之后每级 +350
@@ -3145,16 +3151,19 @@ function levelOf(key) {
   return lv;
 }
 
-// 发经验：答错不扣分，只在升级时放礼炮
+// 经验增减：amount 可为负（答错扣分），最低到 0 不会变负数
 function addXp(key, amount) {
   if (!settings.xp || !(key in settings.xp)) return;
   const before = levelOf(key);
-  settings.xp[key] = xpOf(key) + amount;
+  settings.xp[key] = Math.max(0, xpOf(key) + amount);
   saveSettings();
-  if (levelOf(key) > before) celebrateLevelUp(key);
+  if (levelOf(key) > before) celebrateLevelUp(key);   // 只在升级时反馈，扣分不提示
   updateXpChips();
   updateHomeCards();
 }
+
+// 答错扣分
+function lowerXp(key) { addXp(key, -XP_PENALTY); }
 
 function xpBarHtml(key) {
   const xp = xpOf(key), lv = levelOf(key);
