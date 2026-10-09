@@ -802,6 +802,22 @@
   .math-num { font-size: clamp(22px, 5vw, 36px); font-weight: 900; color: #5d4037; }
   .math-sign { font-size: clamp(24px, 6vw, 44px); font-weight: 900; color: #FF6B6B; }
   .math-q { font-size: clamp(26px, 6vw, 48px); font-weight: 900; color: #FF8C42; }
+  /* 等号后的答案槽：答对后车车飞进来落定，形成完整数字句 3 + 2 = 5 */
+  .math-slot {
+    min-width: 78px; min-height: 58px;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    border: 3px dashed #FFB347; border-radius: 14px;
+    background: rgba(255,255,255,.55);
+    padding: 2px 10px;
+    transition: background .25s, border-color .25s;
+  }
+  .math-slot.filled { border-style: solid; border-color: #43E97B; background: rgba(230,255,240,.8); }
+  .math-slot .slot-car { font-size: 30px; line-height: 1; animation: slotCarIn .45s cubic-bezier(0.34,1.56,0.64,1); }
+  .math-slot .slot-num { font-size: clamp(26px, 6vw, 44px); font-weight: 900; color: #E8730C; }
+  @keyframes slotCarIn {
+    0% { transform: scale(0.2) rotate(-40deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
 
   /* ===== Game 3: chinese character ===== */
   .character-display {
@@ -2526,7 +2542,7 @@ function setupMath() {
         <div class="math-sign">+</div>
         <div class="math-term">${dots(b)}<div class="math-num">${b}</div></div>
         <div class="math-sign">=</div>
-        <div class="math-q">?</div>
+        <div class="math-slot" id="mathSlot"><div class="math-q">?</div></div>
       </div>
     </div>
     <div class="choices" id="mathChoices"></div>
@@ -2559,6 +2575,39 @@ function setupMath() {
   setTimeout(() => speak(`${a} 加 ${b} 等于几？`), 600);
 }
 
+// 答对后：车车从选项飞到等号后，落定成完整等式 3 + 2 = 5
+function flyMathAnswer(btnEl, n) {
+  const slot = document.getElementById('mathSlot');
+  if (!slot) return;
+  const btnRect = btnEl.getBoundingClientRect();
+  const slotRect = slot.getBoundingClientRect();
+  const iconEl = btnEl.querySelector('.icon');
+  const carEmoji = iconEl ? iconEl.textContent : '🚗';
+
+  const flyer = document.createElement('div');
+  flyer.className = 'flyer';
+  flyer.textContent = carEmoji;
+  flyer.style.fontSize = '38px';
+  flyer.style.lineHeight = '1';
+  flyer.style.left = (btnRect.left + btnRect.width / 2 - 19) + 'px';
+  flyer.style.top  = (btnRect.top  + btnRect.height / 2 - 19) + 'px';
+  document.body.appendChild(flyer);
+
+  const dx = slotRect.left + slotRect.width / 2 - (btnRect.left + btnRect.width / 2);
+  const dy = slotRect.top  + slotRect.height / 2 - (btnRect.top + btnRect.height / 2);
+  flyer.offsetHeight;   // 强制回流，保证过渡生效
+  requestAnimationFrame(() => {
+    flyer.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(0.8)';
+    flyer.style.opacity = '0.85';
+  });
+  flyer.addEventListener('transitionend', () => {
+    flyer.remove();
+    slot.classList.add('filled');
+    slot.innerHTML = '<span class="slot-car">' + carEmoji + '</span><span class="slot-num">' + n + '</span>';
+    playTrainChug();          // 车车开进站的那声"叮隆"
+  }, { once: true });
+}
+
 function handleMath(n, btn) {
   if (counting.lockInput) return;
   const a = counting.mathA, b = counting.mathB;
@@ -2567,6 +2616,7 @@ function handleMath(n, btn) {
     counting.lockInput = true;
     addXp('math', XP_PER_ANSWER);
     btn.classList.add('correct');
+    flyMathAnswer(btn, n);          // 车车飞到等号后 → 形成 3 + 2 = 5
     showFeedback('🎉 答对啦！');
     speak(`答对啦，${a} 加 ${b} 等于 ${n}`);
     document.querySelectorAll('#mathChoices .car-btn').forEach(x => x.disabled = true);
