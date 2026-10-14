@@ -418,23 +418,30 @@
   .solar-stars { position: absolute; inset: 0; z-index: 0; }
   /* 星座：画在星空层（轨道环与行星之下），四角摆放避开轨道椭圆 */
   .constellation {
-    position: absolute; width: 112px; height: 86px;
+    position: absolute; width: 140px; height: 108px;
     cursor: pointer; z-index: 1;
   }
-  .constellation svg { width: 100%; height: 100%; overflow: visible; display: block; }
-  .c-star { fill: #CFE0FF; opacity: .85; transition: fill .25s, opacity .25s; }
-  .c-line { stroke: rgba(160,200,255,.42); stroke-width: 1.2; transition: stroke .25s, stroke-width .25s; }
-  .constellation .c-name {
-    position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%);
-    font-size: 11px; font-weight: 900; color: #9FB6E0; white-space: nowrap;
-    text-shadow: 0 1px 4px rgba(0,0,0,.9);
-    opacity: .62; transition: opacity .25s, color .25s;
+  .constellation svg {
+    width: 100%; height: 100%; overflow: visible; display: block;
+    /* 星点光晕：在满天闪烁的星星里也要一眼看得见 */
+    filter: drop-shadow(0 0 5px rgba(150,200,255,.85));
   }
-  .constellation.active .c-star { fill: #FFE58A; opacity: 1; }
-  .constellation.active .c-line { stroke: rgba(255,210,120,.85); stroke-width: 1.8; }
-  .constellation.active .c-name { opacity: 1; color: #FFE58A; }
+  .c-star { fill: #EAF3FF; opacity: 1; transition: fill .25s; }
+  .c-line { stroke: rgba(190,220,255,.8); stroke-width: 1.7; transition: stroke .25s, stroke-width .25s; }
+  .constellation .c-name {
+    position: absolute; left: 50%; top: -13px; transform: translateX(-50%);
+    font-size: 13px; font-weight: 900; color: #DCE9FF; white-space: nowrap;
+    background: rgba(16,30,68,.88); border: 1.5px solid rgba(160,200,255,.5);
+    border-radius: 11px; padding: 2px 10px;
+    text-shadow: 0 1px 3px rgba(0,0,0,.9);
+    transition: color .25s, border-color .25s, background .25s;
+  }
+  .constellation.active .c-star { fill: #FFE58A; }
+  .constellation.active svg { filter: drop-shadow(0 0 8px rgba(255,210,120,.95)); }
+  .constellation.active .c-line { stroke: rgba(255,214,130,.95); stroke-width: 2.4; }
+  .constellation.active .c-name { color: #FFE58A; border-color: #FFE58A; background: rgba(60,40,10,.9); }
   @media (max-width: 600px) {
-    .constellation { width: 88px; height: 68px; }
+    .constellation { width: 104px; height: 80px; }
     .constellation .c-name { font-size: 9.5px; }
   }
   .star {
@@ -2378,25 +2385,25 @@ const polar = (f, deg) => {
 // 保留可辨认的轮廓（北斗的勺子、猎户的腰带+四肢、天蝎的弯尾+钳、狮子的镰刀+三角）
 const CONSTELLATIONS = [
   {
-    name: '北斗七星', pos: { left: 2.5, top: 17.5 },
+    name: '北斗七星', pos: { left: 2.5, top: 19 },
     stars: [[8,20],[16,58],[50,66],[43,30],[68,44],[83,63],[94,86]],
     links: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]],
     dist: '约 123 光年', season: '四季都能看到', fact: '像个大勺子，顺着勺口两颗星就能找到北极星',
   },
   {
-    name: '猎户座', pos: { right: 2.5, top: 17.5 },
+    name: '猎户座', pos: { right: 2.5, top: 19 },
     stars: [[14,24],[38,10],[45,52],[53,50],[61,48],[68,80],[80,72]],
     links: [[0,1],[0,2],[1,4],[2,3],[3,4],[2,5],[4,6],[5,6]],
     dist: '约 1,300 光年', season: '冬天的主角', fact: '中间三颗亮星排成一条腰带，一眼就能认出来',
   },
   {
-    name: '天蝎座', pos: { left: 2.5, top: 67 },
+    name: '天蝎座', pos: { left: 2.5, top: 66 },
     stars: [[20,14],[32,28],[38,42],[43,55],[50,68],[60,78],[72,85],[85,93]],
     links: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7]],
     dist: '约 550 光年', season: '夏天的傍晚', fact: '弯弯的尾巴像蝎子，还有一颗红红的"心宿二"',
   },
   {
-    name: '狮子座', pos: { right: 2.5, top: 67 },
+    name: '狮子座', pos: { right: 2.5, top: 66 },
     stars: [[10,82],[26,58],[50,55],[78,46],[56,30],[34,32]],
     links: [[0,1],[1,2],[2,3],[2,4],[4,5]],
     dist: '约 250 光年', season: '春天抬头可见', fact: '前面是镰刀形的头，后面是三角形的身子',
@@ -2504,7 +2511,7 @@ function renderConstellation(c, i) {
            '" x2="' + c.stars[b][0] + '" y2="' + c.stars[b][1] + '" class="c-line"/>';
   });
   c.stars.forEach(([x, y]) => {
-    svg += '<circle cx="' + x + '" cy="' + y + '" r="3.2" class="c-star"/>';
+    svg += '<circle cx="' + x + '" cy="' + y + '" r="4.2" class="c-star"/>';
   });
   svg += '</svg><span class="c-name">' + c.name + '</span>';
   box.innerHTML = svg;
