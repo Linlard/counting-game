@@ -416,6 +416,27 @@
     box-shadow: inset 0 0 70px rgba(0,0,0,.65);
   }
   .solar-stars { position: absolute; inset: 0; z-index: 0; }
+  /* 星座：画在星空层（轨道环与行星之下），四角摆放避开轨道椭圆 */
+  .constellation {
+    position: absolute; width: 112px; height: 86px;
+    cursor: pointer; z-index: 1;
+  }
+  .constellation svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .c-star { fill: #CFE0FF; opacity: .85; transition: fill .25s, opacity .25s; }
+  .c-line { stroke: rgba(160,200,255,.42); stroke-width: 1.2; transition: stroke .25s, stroke-width .25s; }
+  .constellation .c-name {
+    position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%);
+    font-size: 11px; font-weight: 900; color: #9FB6E0; white-space: nowrap;
+    text-shadow: 0 1px 4px rgba(0,0,0,.9);
+    opacity: .62; transition: opacity .25s, color .25s;
+  }
+  .constellation.active .c-star { fill: #FFE58A; opacity: 1; }
+  .constellation.active .c-line { stroke: rgba(255,210,120,.85); stroke-width: 1.8; }
+  .constellation.active .c-name { opacity: 1; color: #FFE58A; }
+  @media (max-width: 600px) {
+    .constellation { width: 88px; height: 68px; }
+    .constellation .c-name { font-size: 9.5px; }
+  }
   .star {
     position: absolute; border-radius: 50%; background: #fff; cursor: pointer;
     box-shadow: 0 0 6px 1px rgba(255,255,255,.85);
@@ -2352,6 +2373,36 @@ const polar = (f, deg) => {
   return { x: 50 + f * ORBIT_RX * Math.cos(r), y: 50 + f * ORBIT_RY * Math.sin(r) };
 };
 
+// ===== 星座（画在星空层，轨道椭圆四角）=====
+// 星点坐标用 0-100 归一化框；links 为连线索引对。形状按常见星图简化，
+// 保留可辨认的轮廓（北斗的勺子、猎户的腰带+四肢、天蝎的弯尾+钳、狮子的镰刀+三角）
+const CONSTELLATIONS = [
+  {
+    name: '北斗七星', pos: { left: 2.5, top: 17.5 },
+    stars: [[8,20],[16,58],[50,66],[43,30],[68,44],[83,63],[94,86]],
+    links: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]],
+    dist: '约 123 光年', season: '四季都能看到', fact: '像个大勺子，顺着勺口两颗星就能找到北极星',
+  },
+  {
+    name: '猎户座', pos: { right: 2.5, top: 17.5 },
+    stars: [[14,24],[38,10],[45,52],[53,50],[61,48],[68,80],[80,72]],
+    links: [[0,1],[0,2],[1,4],[2,3],[3,4],[2,5],[4,6],[5,6]],
+    dist: '约 1,300 光年', season: '冬天的主角', fact: '中间三颗亮星排成一条腰带，一眼就能认出来',
+  },
+  {
+    name: '天蝎座', pos: { left: 2.5, top: 67 },
+    stars: [[20,14],[32,28],[38,42],[43,55],[50,68],[60,78],[72,85],[85,93]],
+    links: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7]],
+    dist: '约 550 光年', season: '夏天的傍晚', fact: '弯弯的尾巴像蝎子，还有一颗红红的"心宿二"',
+  },
+  {
+    name: '狮子座', pos: { right: 2.5, top: 67 },
+    stars: [[10,82],[26,58],[50,55],[78,46],[56,30],[34,32]],
+    links: [[0,1],[1,2],[2,3],[2,4],[4,5]],
+    dist: '约 250 光年', season: '春天抬头可见', fact: '前面是镰刀形的头，后面是三角形的身子',
+  },
+];
+
 function playTwinkle() {
   playMelody([
     { note: 'C6', dur: 120 },
@@ -2378,6 +2429,10 @@ function startSolar() {
       <div class="solar-info solar-info--bottom" id="solarInfoBot"></div>
     </div>
   `;
+
+  // 星座：画在星空层，轨道椭圆四角（椭圆在那里最窄，有天然空地）
+  const starsEl0 = document.getElementById('solarStars');
+  CONSTELLATIONS.forEach((c, i) => starsEl0.appendChild(renderConstellation(c, i)));
 
   // 星星：随机大小 / 位置 / 闪烁周期 / 延迟
   const starsEl = document.getElementById('solarStars');
@@ -2432,6 +2487,52 @@ function startSolar() {
   });
 
   setTimeout(() => speak('点一点太阳和星球，认一认它们的名字'), 600);
+}
+
+// 生成一个星座（SVG 星点 + 连线），画进星空层
+function renderConstellation(c, i) {
+  const box = document.createElement('div');
+  box.className = 'constellation';
+  box.dataset.cIdx = i;
+  // 左右双锚定：右侧星座用 right，窄屏才不会被挤出场景
+  if (c.pos.left !== undefined) { box.style.left = c.pos.left + '%'; box.style.right = 'auto'; }
+  else { box.style.right = c.pos.right + '%'; box.style.left = 'auto'; }
+  box.style.top = c.pos.top + '%';
+  let svg = '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">';
+  c.links.forEach(([a, b]) => {
+    svg += '<line x1="' + c.stars[a][0] + '" y1="' + c.stars[a][1] +
+           '" x2="' + c.stars[b][0] + '" y2="' + c.stars[b][1] + '" class="c-line"/>';
+  });
+  c.stars.forEach(([x, y]) => {
+    svg += '<circle cx="' + x + '" cy="' + y + '" r="3.2" class="c-star"/>';
+  });
+  svg += '</svg><span class="c-name">' + c.name + '</span>';
+  box.innerHTML = svg;
+  box.addEventListener('click', (e) => { e.stopPropagation(); pickConstellation(i, box); });
+  return box;
+}
+
+function pickConstellation(i, box) {
+  const c = CONSTELLATIONS[i];
+  document.querySelectorAll('.constellation').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.solar-sun, .planet').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.solar-ring').forEach(r => r.classList.remove('lit'));
+  box.classList.add('active');
+  playTwinkle();
+  const t = document.getElementById('solarInfoTop');
+  const b = document.getElementById('solarInfoBot');
+  if (t) t.innerHTML = '<div class="solar-name">' + c.name +
+                       '</div><div class="solar-fact">' + c.fact + '</div>';
+  if (b) b.innerHTML = '<div class="solar-stats">' +
+      '<span class="st"><span class="k">距离</span><span class="v">' + c.dist + '</span></span>' +
+      '<span class="st"><span class="k">时令</span><span class="v">' + c.season + '</span></span>' +
+      '</div>';
+  speak(c.name + '，' + c.fact);
+  if (!settings.solarFound.includes(c.name)) {
+    settings.solarFound.push(c.name);
+    saveSettings();
+    addXp('solar', XP_PER_ANSWER);
+  }
 }
 
 function pickSolar(data, el, baseCls) {
