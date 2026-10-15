@@ -419,7 +419,7 @@
   /* 星座：画在星空层（轨道环与行星之下），四角摆放避开轨道椭圆 */
   .constellation {
     position: absolute; width: 140px; height: 108px;
-    cursor: pointer; z-index: 1;
+    cursor: pointer; z-index: 1; pointer-events: auto;
   }
   .constellation svg {
     width: 100%; height: 100%; overflow: visible; display: block;
@@ -448,13 +448,16 @@
     position: absolute; border-radius: 50%; background: #fff; cursor: pointer;
     box-shadow: 0 0 6px 1px rgba(255,255,255,.85);
     animation: twinkle var(--d,2.2s) ease-in-out var(--delay,0s) infinite;
+    pointer-events: auto;   /* 同样被轨道层挡住过，这里一并修好 */
   }
   @keyframes twinkle {
     0%, 100% { opacity: .22; transform: scale(.65); }
     50%      { opacity: 1;   transform: scale(1.2); }
   }
 
-  .solar-orbit-area { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 1; }
+  /* 轨道层铺满全场景且透明 —— 透明元素照样接点击，会把下层星空的
+     星座/星星全部吞掉。必须透传，只让太阳和行星各自开 auto。 */
+  .solar-orbit-area { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 1; pointer-events: none; }
   .solar-ring {
     position: absolute; left: 50%; top: 50%;
     transform: translate(-50%, -50%);
@@ -474,7 +477,7 @@
     background: radial-gradient(circle at 34% 30%, #fff6c9 0%, #ffd54a 38%, #ff9f1a 72%, #f57c00 100%);
     box-shadow: 0 0 40px 8px rgba(255,180,40,.45), inset -6px -8px 18px rgba(180,80,0,.4);
     animation: sunPulse 4.2s ease-in-out infinite;
-    cursor: pointer; z-index: 3;
+    cursor: pointer; z-index: 3; pointer-events: auto;
   }
   .solar-sun::before { content: ''; position: absolute; inset: -14px; }
   @keyframes sunPulse {
@@ -484,14 +487,14 @@
   .solar-sun.active { box-shadow: 0 0 58px 14px rgba(255,200,60,.7), inset -6px -8px 18px rgba(180,80,0,.4); }
 
   /* 整个行星系统绕太阳缓慢自转：300s 一圈，慢到小朋友仍能点中 */
-  .solar-rotor { position: absolute; inset: 0; z-index: 2; animation: solarRotate 300s linear infinite; }
+  .solar-rotor { position: absolute; inset: 0; z-index: 2; pointer-events: none; animation: solarRotate 300s linear infinite; }
   @keyframes solarRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
   /* 每颗星反向自转 → 跟着轨道跑，但文字始终朝上 */
   .planet {
     position: absolute; transform: translate(-50%, -50%);
     animation: solarCounter 300s linear infinite;
-    cursor: pointer; z-index: 2;
+    cursor: pointer; z-index: 2; pointer-events: auto;
   }
   @keyframes solarCounter {
     from { transform: translate(-50%,-50%) rotate(0deg); }
@@ -1579,18 +1582,89 @@ function playTrainChug() {
   ], 'sine');
 }
 
+// ===== TTS 语音（Android 兼容）=====
+// Android Chrome 的 Web Speech API 基本不可用：speechSynthesis 存在，但不发声，
+// 而且要等 voiceschanged、还要一次用户手势解锁。所以不能只靠它：
+//   · 非 Android → 继续用系统 TTS（离线、快）
+//   · Android     → 默认走在线中文 TTS
+//   · 加 ?tts=sys / ?tts=net 可随时强制切换，方便对比
+let _ttsSysVoiced = false;
+let _ttsUnlocked = false;
+let _ttsAudio = null;
+const _isAndroid = /Android/i.test(navigator.userAgent || '');
+let _ttsForce = '';
+try { _ttsForce = (new URLSearchParams(window.location.search || '').get('tts') || '').toLowerCase(); } catch (e) {}
+
+// 探测系统 TTS 是否真有中文语音（列表为空不代表不可用，Android 常见）
+function probeSysTTS() {
+  if (!('speechSynthesis' in window)) return;
+  const once = () => {
+    let vs = [];
+    try { vs = window.speechSynthesis.getVoices() || []; } catch (e) {}
+    _ttsSysVoiced = vs.some(v => /^zh/i.test(v.lang || ''));
+  };
+  once();
+  try { window.speechSynthesis.onvoiceschanged = once; } catch (e) {}
+  setTimeout(once, 400);
+  setTimeout(once, 1500);
+}
+
+// Android 上系统 TTS 要先被一次真实手势「解锁」，否则永远静音
+function unlockSysTTS() {
+  if (_ttsUnlocked || !('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0; u.lang = 'zh-CN';
+    window.speechSynthesis.speak(u);
+    _ttsUnlocked = true;
+  } catch (e) {}
+}
+
+// 在线中文/英文 TTS 兜底（Google Translate 公共接口，返回 mp3）
+// 注意：会把要念的词发给 Google（只是「猫」「小狗」这类词，无隐私内容）
+function speakNet(text, lang) {
+  try {
+    if (typeof Audio === 'undefined') return;
+    const tl = lang === 'en' ? 'en' : 'zh-CN';
+    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=' + tl +
+                '&q=' + encodeURIComponent(String(text).slice(0, 180));
+    if (!_ttsAudio) { _ttsAudio = new Audio(); _ttsAudio.preload = 'auto'; }
+    if (_ttsAudio.getAttribute('src') !== url) _ttsAudio.setAttribute('src', url);
+    const pr = _ttsAudio.play();
+    if (pr && pr.catch) pr.catch(() => {});
+  } catch (e) {}
+}
+
+function ttsPrefersNet() {
+  if (_ttsForce === 'net') return true;
+  if (_ttsForce === 'sys') return false;
+  return _isAndroid;
+}
+
+function speakViaSys(text, lang, rate, pitch) {
+  if (!('speechSynthesis' in window)) return false;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    u.rate = rate;
+    if (pitch != null) u.pitch = pitch;
+    window.speechSynthesis.speak(u);
+    return true;
+  } catch (e) { return false; }
+}
+
+function speak(text) {
+  if (!settings.musicOn || !text) return;
+  if (!ttsPrefersNet() && speakViaSys(text, 'zh-CN', 0.85, null)) return;
+  speakNet(text, 'zh');
+}
+
 function speakEnglish(text) {
-  if (!settings.musicOn) return;
-  if ('speechSynthesis' in window) {
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      u.rate = 0.7;
-      u.pitch = 1.1;
-      window.speechSynthesis.speak(u);
-    } catch (e) {}
-  }
+  if (!settings.musicOn || !text) return;
+  if (!ttsPrefersNet() && speakViaSys(text, 'en-US', 0.7, 1.1)) return;
+  speakNet(text, 'en');
 }
 
 // ============================================================================
@@ -2053,18 +2127,7 @@ function setChineseTheme(theme) {
   }
 }
 
-function speak(text) {
-  if (!settings.musicOn) return;
-  if ('speechSynthesis' in window) {
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'zh-CN';
-      u.rate = 0.85;
-      window.speechSynthesis.speak(u);
-    } catch (e) {}
-  }
-}
+
 function showFeedback(text) {
   const fb = document.getElementById('feedback');
   fb.textContent = text;
@@ -3390,6 +3453,10 @@ function celebrateLevelUp(key) {
 
 // ===== Bootstrap =====
 loadSettings();
+probeSysTTS();                 // 探测系统中文语音
+// Android 上首次真实手势解锁系统 TTS
+['pointerdown','touchstart','keydown'].forEach(ev =>
+  window.addEventListener(ev, unlockSysTTS, { once: true, passive: true }));
 updateHomeCards();
 updateMusicBtn();
 updateDiffBtns();
