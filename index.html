@@ -1042,6 +1042,19 @@
     font-size: 24px;
     margin-bottom: 24px;
   }
+  /* 本轮正确率 */
+  .win-acc { margin-bottom: 22px; }
+  .win-acc .acc-stars { font-size: 38px; line-height: 1; letter-spacing: 3px; }
+  .win-acc .acc-pct {
+    font-size: 50px; font-weight: 900; line-height: 1.15; margin: 2px 0 2px;
+    text-shadow: 3px 3px 0 rgba(0,0,0,.22);
+  }
+  .win-acc .acc-detail { font-size: 19px; font-weight: 700; opacity: .95; }
+  @media (max-width: 600px) {
+    .win-acc .acc-pct { font-size: 40px; }
+    .win-acc .acc-stars { font-size: 31px; }
+    .win-acc .acc-detail { font-size: 16px; }
+  }
   .win-card button {
     background: #fff;
     color: #FF2525;
@@ -1390,6 +1403,7 @@
   <div class="win-card">
     <h2 id="winTitle">🎉 通关啦 🎉</h2>
     <p id="winMessage">小宝贝太棒了！</p>
+    <div class="win-acc" id="winAcc"></div>
     <button onclick="restartGame()">再玩一次</button>
   </div>
 </div>
@@ -2139,9 +2153,27 @@ function showFeedback(text) {
 function updateLevel(level, total) {
   document.getElementById('gameLevel').textContent = `第 ${level} 关 / 共 ${total} 关`;
 }
+// ===== 本轮正确率 =====
+// 每局开始时清零，答对/答错各记一次，通关时算百分比。
+// 用星级+鼓励语而不是光给百分比：全对要狠狠表扬，错了也要看到"继续加油"而不是打击。
+const roundAcc = { correct: 0, wrong: 0 };
+function resetAccuracy() { roundAcc.correct = 0; roundAcc.wrong = 0; }
+function accuracyHtml() {
+  const t = roundAcc.correct + roundAcc.wrong;
+  if (!t) return '';
+  const pct = Math.round(roundAcc.correct / t * 100);
+  const stars = pct === 100 ? '⭐⭐⭐' : pct >= 80 ? '⭐⭐' : pct >= 60 ? '⭐' : '💪';
+  const word  = pct === 100 ? '全部答对！' : pct >= 80 ? '很棒！' : pct >= 60 ? '不错哦' : '继续加油';
+  return '<div class="acc-stars">' + stars + '</div>'
+       + '<div class="acc-pct">正确率 ' + pct + '%</div>'
+       + '<div class="acc-detail">答对 ' + roundAcc.correct + ' / ' + t + ' 题 · ' + word + '</div>';
+}
+
 function showWin(title, message, speakText) {
   document.getElementById('winTitle').textContent = title;
   document.getElementById('winMessage').textContent = message;
+  const accEl = document.getElementById('winAcc');
+  if (accEl) accEl.innerHTML = accuracyHtml();
   document.getElementById('winOverlay').classList.add('show');
   spawnConfetti();
   spawnFireworks();
@@ -2791,6 +2823,7 @@ function handleMath(n, btn) {
   const t = counting.mathTarget;
   if (n === t) {
     counting.lockInput = true;
+    roundAcc.correct++;
     addXp('math', XP_PER_ANSWER);
     btn.classList.add('correct');
     flyMathAnswer(btn, n);          // 车车飞到等号后 → 形成 3 + 2 = 5
@@ -2807,6 +2840,7 @@ function handleMath(n, btn) {
     }, 2000);
   } else {
     btn.classList.add('wrong');
+    roundAcc.wrong++;
     lowerXp('math');
     showFeedback('🤔 再算一算哦');
     speak('再算一算哦');
@@ -2816,6 +2850,7 @@ function handleMath(n, btn) {
 
 function startCounting() {
   counting.level = 1;
+  resetAccuracy();
   // 重置停车场（每次进入游戏从空开始）
   document.querySelectorAll('.parking-lot .lot-spot').forEach(s => {
     s.textContent = '';
@@ -2934,6 +2969,7 @@ function handleCounting(n, btn) {
   if (counting.lockInput) return;
   if (n === counting.currentCount) {
     counting.lockInput = true;
+    roundAcc.correct++;
     addXp('counting', XP_PER_ANSWER);
     showFeedback('🎉 答对啦！');
     speak(`答对啦，有${counting.currentCount}只`);
@@ -2952,6 +2988,7 @@ function handleCounting(n, btn) {
     }, 2500);
   } else {
     btn.classList.add('wrong');
+    roundAcc.wrong++;
     lowerXp('counting');
     showFeedback('🤔 再数一数哦');
     speak('再数一数哦');
@@ -3054,6 +3091,7 @@ const parking = { level: 1, total: 10, target: 0, lockInput: false };
 
 function startParking() {
   parking.level = 1;
+  resetAccuracy();
   setupParking();
 }
 
@@ -3130,6 +3168,7 @@ function handleParking(airport) {
   const v = parseInt(airport.dataset.value);
   if (v === parking.target) {
     parking.lockInput = true;
+    roundAcc.correct++;
     addXp('parking', XP_PER_ANSWER);
     showFeedback('🎉 答对啦！');
     speak(`${numberToChinese(parking.target)}就是${parking.target}`);
@@ -3146,6 +3185,7 @@ function handleParking(airport) {
     }, 1800);
   } else {
     airport.classList.add('wrong');
+    roundAcc.wrong++;
     lowerXp('parking');
     showFeedback('🤔 再看看数字');
     speak('再看看数字');
@@ -3234,6 +3274,7 @@ const CHINESE_CARS = 5;    // 认字：5 节车厢，装满就出发
 
 function startChinese() {
   chinese.level = 1;
+  resetAccuracy();
   setupTrainCars(CHINESE_CARS);
   setupChinese();
 }
@@ -3330,6 +3371,7 @@ function handleChinese(opt, btn) {
   if (chinese.lockInput) return;
   if (opt.word === chinese.current.word) {
     chinese.lockInput = true;
+    roundAcc.correct++;
     addXp(chineseXpKey(), XP_PER_ANSWER);
     btn.classList.add('correct');
     showFeedback('🎉 对啦！');
@@ -3355,6 +3397,7 @@ function handleChinese(opt, btn) {
     }, 1500);
   } else {
     btn.classList.add('wrong');
+    roundAcc.wrong++;
     lowerXp(chineseXpKey());
     showFeedback('🤔 再看看字');
     speak('再看看字');
