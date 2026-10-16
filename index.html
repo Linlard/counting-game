@@ -1050,6 +1050,16 @@
     text-shadow: 3px 3px 0 rgba(0,0,0,.22);
   }
   .win-acc .acc-detail { font-size: 19px; font-weight: 700; opacity: .95; }
+  /* 通关弹窗里的等级进度：跟正确率并排显示，原有经验值不变 */
+  .win-lv:not(:empty) {
+    margin: 0 0 22px; padding-top: 16px;
+    border-top: 2px dashed rgba(255,255,255,.45);
+  }
+  .win-lv .win-lv-label { font-size: 15px; font-weight: 700; opacity: .9; margin-bottom: 8px; }
+  .win-lv .xp-chip {
+    background: rgba(255,255,255,.92); transform: scale(1.18);
+    transform-origin: center; box-shadow: 0 3px 10px rgba(0,0,0,.22);
+  }
   @media (max-width: 600px) {
     .win-acc .acc-pct { font-size: 40px; }
     .win-acc .acc-stars { font-size: 31px; }
@@ -1404,6 +1414,7 @@
     <h2 id="winTitle">🎉 通关啦 🎉</h2>
     <p id="winMessage">小宝贝太棒了！</p>
     <div class="win-acc" id="winAcc"></div>
+    <div class="win-lv" id="winLv"></div>
     <button onclick="restartGame()">再玩一次</button>
   </div>
 </div>
@@ -2169,11 +2180,27 @@ function accuracyHtml() {
        + '<div class="acc-detail">答对 ' + roundAcc.correct + ' / ' + t + ' 题 · ' + word + '</div>';
 }
 
+// 当前游戏对应的经验进度键（通关弹窗里显示等级用）
+function currentXpKey() {
+  if (typeof currentGame === 'undefined') return null;
+  if (currentGame === 'counting') return currentCountingMode() === 'math' ? 'math' : 'counting';
+  if (currentGame === 'parking') return 'parking';
+  if (currentGame === 'chinese') return chineseXpKey();
+  return null;   // 太阳系/古诗没有 10 题通关
+}
+
 function showWin(title, message, speakText) {
   document.getElementById('winTitle').textContent = title;
   document.getElementById('winMessage').textContent = message;
   const accEl = document.getElementById('winAcc');
   if (accEl) accEl.innerHTML = accuracyHtml();
+  const lvBox = document.getElementById('winLv');
+  if (lvBox) {
+    const k = currentXpKey();
+    lvBox.innerHTML = k
+      ? '<div class="win-lv-label">这个游戏的进度</div>' + xpBarHtml(k)
+      : '';
+  }
   document.getElementById('winOverlay').classList.add('show');
   spawnConfetti();
   spawnFireworks();
