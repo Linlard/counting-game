@@ -1454,7 +1454,11 @@ let settings = {
   poemMode: 'chain',
   xp: {
     solar: 0, counting: 0, math: 0, parking: 0,
-    'chinese-w2p': 0, 'chinese-p2w': 0, memory: 0,
+    // 看字选图按主题各自独立算等级；'chinese-w2p' 旧键保留仅用于迁移老存档
+    'chinese-w2p': 0,
+    'chinese-w2p-animals': 0, 'chinese-w2p-vehicles': 0, 'chinese-w2p-food': 0,
+    'chinese-w2p-school': 0, 'chinese-w2p-provinces': 0,
+    'chinese-p2w': 0, memory: 0,
   },
   solarFound: [],
 };
@@ -1487,6 +1491,13 @@ function loadSettings() {
         mergedXp[k] = Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0;
       });
       settings.xp = mergedXp;
+      // 迁移：老存档把看字选图的分数存在单一的 chinese-w2p 里，
+      // 现在拆成按主题 5 条。把老分数并进「当前所在主题」那条，避免进度凭空消失。
+      const legacyW2p = Number(settings.xp['chinese-w2p']);
+      const w2pKey = 'chinese-w2p-' + (settings.chineseTheme || 'animals');
+      if (Number.isFinite(legacyW2p) && legacyW2p > 0 && (settings.xp[w2pKey] || 0) === 0) {
+        settings.xp[w2pKey] = legacyW2p;
+      }
       if (!Array.isArray(settings.solarFound)) settings.solarFound = [];
     }
   } catch (e) {}
@@ -3442,9 +3453,13 @@ function xpAtLevel(lv) {
   if (lv <= XP_CURVE_MAX) return 25 * lv * (lv - 1);
   return 25 * XP_CURVE_MAX * (XP_CURVE_MAX - 1) + (lv - XP_CURVE_MAX) * XP_AFTER_MAX;
 }
-// 认字两个模式各自独立：看字选图 = chinese-w2p，看图选字 = chinese-p2w
+// 认字的经验进度：
+//   看图选字（pic2word）→ chinese-p2w，保持 1 条不变
+//   看字选图（word2pic）→ 按主题各算各的：chinese-w2p-{主题}
+//   太阳系/古诗没有 10 题通关，不参与
 function chineseXpKey() {
-  return settings.chineseMode === 'pic2word' ? 'chinese-p2w' : 'chinese-w2p';
+  if (settings.chineseMode === 'pic2word') return 'chinese-p2w';
+  return 'chinese-w2p-' + (settings.chineseTheme || 'animals');
 }
 
 function xpOf(key) { return (settings.xp && settings.xp[key]) || 0; }
@@ -3495,7 +3510,10 @@ function updateXpChips() {
 
 function updateHomeCards() {
   document.querySelectorAll('.game-card').forEach(card => {
-    const key = card.dataset.xp;
+    // 看字选图的等级按主题分 5 条，卡片要跟着当前主题走，不能用静态 data-xp
+    const key = (card.dataset.game === 'chinese' && card.dataset.mode === 'word2pic')
+      ? chineseXpKey()
+      : card.dataset.xp;
     if (!settings.xp || !(key in settings.xp)) return;
     let badge = card.querySelector('.card-lv');
     if (!badge) {
