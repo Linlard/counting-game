@@ -836,7 +836,8 @@
   /* 等号后的答案槽：答对后车车飞进来落定，形成完整数字句 3 + 2 = 5 */
   .math-slot {
     min-width: 78px; min-height: 58px;
-    display: flex; align-items: center; justify-content: center; gap: 4px;
+    /* 竖排：图案在上、数字在下 —— 和题干 .math-term 写法一致 */
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     border: 3px dashed #FFB347; border-radius: 14px;
     background: rgba(255,255,255,.55);
     padding: 2px 10px;
@@ -845,6 +846,16 @@
   .math-slot.filled { border-style: solid; border-color: #43E97B; background: rgba(230,255,240,.8); }
   .math-slot .slot-car { font-size: 30px; line-height: 1; animation: slotCarIn .45s cubic-bezier(0.34,1.56,0.64,1); }
   .math-slot .slot-num { font-size: clamp(26px, 6vw, 44px); font-weight: 900; color: #E8730C; }
+  /* 答案里的图案：比题干小一号，12 个以内保证不撑破布局 */
+  .math-slot .slot-dots {
+    font-size: clamp(15px, 3.2vw, 24px);
+    line-height: 1.15; max-width: 200px;
+    word-break: break-all; text-align: center;
+  }
+  @media (max-width: 600px) {
+    .math-slot .slot-dots { font-size: 15px; max-width: 150px; }
+    .math-slot .slot-num  { font-size: 28px; }
+  }
   @keyframes slotCarIn {
     0% { transform: scale(0.2) rotate(-40deg); opacity: 0; }
     100% { transform: scale(1) rotate(0); opacity: 1; }
@@ -2774,6 +2785,8 @@ function setupMath() {
   // 两个加数用同一种动物：加法的意义就是把两组相同的东西合并
   // （3 个苹果 + 2 只兔子不成立，3 个苹果 + 2 个苹果才是"合并"）
   const emo = ANIMALS[rand(0, ANIMALS.length - 1)];
+  // handleMath 是另一个函数，读不到这里的局部变量，答案要用就得挂在共享状态上
+  counting.mathEmo = emo; counting.mathVisual = range.visual;
   counting.currentCar = CARS[rand(0, CARS.length - 1)];
 
   const dots = (n) => range.visual ? `<div class="math-dots">${emo.repeat(n)}</div>` : '';
@@ -2823,7 +2836,11 @@ function setupMath() {
 }
 
 // 答对后：车车从选项飞到等号后，落定成完整等式 3 + 2 = 5
-function flyMathAnswer(btnEl, n) {
+// showDots：这个难度是否显示图案（hard 难度是纯算式，不显示）
+// MAX_DOTS：超过这个数就不摆图案了 —— 20 个图案在手机上会糊成一片，反而看不清
+const MATH_MAX_DOTS = 12;
+
+function flyMathAnswer(btnEl, n, emo, showDots) {
   const slot = document.getElementById('mathSlot');
   if (!slot) return;
   const btnRect = btnEl.getBoundingClientRect();
@@ -2847,12 +2864,21 @@ function flyMathAnswer(btnEl, n) {
     flyer.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(0.8)';
     flyer.style.opacity = '0.85';
   });
-  flyer.addEventListener('transitionend', () => {
+  // 落定逻辑只做一次：transitionend 触发，或 1.2s 兜底（万一过渡没触发也不会卡住不填）
+  let settled = false;
+  const settle = () => {
+    if (settled) return;
+    settled = true;
     flyer.remove();
     slot.classList.add('filled');
-    slot.innerHTML = '<span class="slot-car">' + carEmoji + '</span><span class="slot-num">' + n + '</span>';
+    // 答案和题干写法一致：有图案就摆图案，没有就只给数字
+    const showN = showDots && emo && n <= MATH_MAX_DOTS;
+    slot.innerHTML = (showN ? '<span class="slot-dots">' + emo.repeat(n) + '</span>' : '')
+                     + '<span class="slot-num">' + n + '</span>';
     playTrainChug();          // 车车开进站的那声"叮隆"
-  }, { once: true });
+  };
+  flyer.addEventListener('transitionend', settle, { once: true });
+  setTimeout(settle, 1200);
 }
 
 function handleMath(n, btn) {
@@ -2864,7 +2890,7 @@ function handleMath(n, btn) {
     roundAcc.correct++;
     addXp('math', XP_PER_ANSWER);
     btn.classList.add('correct');
-    flyMathAnswer(btn, n);          // 车车飞到等号后 → 形成 3 + 2 = 5
+    flyMathAnswer(btn, n, counting.mathEmo, counting.mathVisual);   // 答案写成和题干一样的样子
     showFeedback('🎉 答对啦！');
     speak(`答对啦，${a} 加 ${b} 等于 ${n}`);
     document.querySelectorAll('#mathChoices .car-btn').forEach(x => x.disabled = true);
