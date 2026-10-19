@@ -2826,7 +2826,8 @@ function setupMath() {
   arr.forEach(n => {
     const btn = document.createElement('button');
     btn.className = 'car-btn';
-    btn.innerHTML = `<span class="icon">${counting.currentCar}</span>${n}`;
+    // 图标用题干的动物/水果（原来是随机一辆车，和题面对不上）
+    btn.innerHTML = `<span class="icon">${emo}</span>${n}`;
     btn.onclick = () => handleMath(n, btn);
     choicesEl.appendChild(btn);
   });
