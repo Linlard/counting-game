@@ -48,15 +48,22 @@
   .game-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 12px;
     width: 100%;
     max-width: 760px;
+  }
+  /* 平板够宽就多排一列，7 张卡在 3 列里只要 3 行 —— 不用再拖才能看到记忆游戏 */
+  @media (min-width: 640px) {
+    .game-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  }
+  @media (min-width: 1000px) {
+    .game-grid { grid-template-columns: repeat(4, 1fr); }
   }
   .game-card {
     background: rgba(255,255,255,0.96);
     border: none;
-    border-radius: 24px;
-    padding: 24px 16px;
+    border-radius: 16px;
+    padding: 12px 10px;
     cursor: pointer;
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     transition: transform 0.15s;
@@ -71,16 +78,18 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
   .game-card .emoji {
-    font-size: 64px;
+    font-size: 44px;
     line-height: 1;
   }
   .game-card .name {
-    font-size: 24px;
+    font-size: 16px;
     font-weight: bold;
     color: #333;
+    white-space: nowrap;
   }
   .game-card .desc {
-    font-size: 15px;
+    font-size: 12px;
+    line-height: 1.3;
     color: #777;
   }
 
@@ -1105,7 +1114,7 @@
   @media (max-width: 700px) {
     .home h1 { font-size: 32px; }
     .game-grid { grid-template-columns: 1fr; max-width: 280px; }
-    .game-card .emoji { font-size: 56px; }
+    .game-card .emoji { font-size: 38px; }
     .animal-row { font-size: 40px; letter-spacing: 2px; }
     .car-btn { font-size: 22px; padding: 10px 4px; }
     .car-btn .icon { font-size: 28px; }
