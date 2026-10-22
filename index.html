@@ -888,6 +888,13 @@
     line-height: 1;
     display: inline-block;
   }
+  /* 省份等 SVG 必须给显式尺寸：只写 viewBox 的内联 svg 默认按 height:100% 处理，
+     而这里容器高度是 auto → 解析成 0 → 整张图看不见。用 1em 跟随上面的字号。 */
+  .character-display .big-pic svg {
+    width: 1em;
+    height: 1em;
+    display: block;
+  }
   .character-display .char-hint {
     font-size: 16px;
     color: rgba(255,255,255,0.95);
