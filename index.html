@@ -1381,13 +1381,8 @@
   </div>
   <div class="toolbar">
     <button class="toggle-btn" id="musicToggle" title="音乐开关" aria-label="音乐开关" aria-pressed="true">🔊</button>
-    <div class="toolbar-group" id="chineseThemeGroup" style="display:none">
-      <button class="theme-btn active" data-theme="animals">🐾 动物</button>
-      <button class="theme-btn" data-theme="vehicles">🚗 车车</button>
-      <button class="theme-btn" data-theme="food">🥬 蔬菜水果</button>
-      <button class="theme-btn" data-theme="school">📚 学习用品</button>
-      <button class="theme-btn" data-theme="provinces">🗺️ 中国省份</button>
-    </div>
+    <!-- 主题按钮由 CHINESE_THEMES 自动生成（见脚本底部 buildChineseThemeBtns） -->
+    <div class="toolbar-group" id="chineseThemeGroup" style="display:none"></div>
     <div class="toolbar-spacer"></div>
   </div>
   <div id="gameView"></div>
@@ -1460,6 +1455,18 @@ function shuffle(arr) {
 // ===== Metro SVG (side view): 成都地铁风格 — 白底红斜带 + 圆头 + LED 灯条 + 白门竖窗 =====
 const METRO_SVG_HTML = '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" class="metro-svg"><circle cx="20" cy="68" r="7" fill="#1A1A1A"/><circle cx="20" cy="68" r="3" fill="#888"/><circle cx="44" cy="68" r="7" fill="#1A1A1A"/><circle cx="44" cy="68" r="3" fill="#888"/><circle cx="78" cy="68" r="7" fill="#1A1A1A"/><circle cx="78" cy="68" r="3" fill="#888"/><circle cx="102" cy="68" r="7" fill="#1A1A1A"/><circle cx="102" cy="68" r="3" fill="#888"/><path d="M 8 12 L 116 12 L 116 60 L 8 60 Q -6 36 8 12 Z" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="2.5"/><path d="M 8 28 L 116 16 L 116 22 L 8 34 Z" fill="#E74C3C"/><rect x="10" y="14" width="22" height="3" fill="#FFE53B" stroke="#1A1A1A" stroke-width="0.5"/><rect x="10" y="26" width="22" height="16" rx="3" fill="#1A1A1A"/><rect x="6" y="48" width="28" height="3" fill="#FFE53B" stroke="#1A1A1A" stroke-width="0.5"/><rect x="6" y="48" width="28" height="1" fill="#FFFFFF" opacity="0.6"/><rect x="38" y="26" width="74" height="12" fill="#1A1A1A"/><line x1="52" y1="26" x2="52" y2="38" stroke="#FFFFFF" stroke-width="1.5"/><line x1="68" y1="26" x2="68" y2="38" stroke="#FFFFFF" stroke-width="1.5"/><line x1="84" y1="26" x2="84" y2="38" stroke="#FFFFFF" stroke-width="1.5"/><line x1="100" y1="26" x2="100" y2="38" stroke="#FFFFFF" stroke-width="1.5"/><rect x="44" y="42" width="14" height="18" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.5"/><rect x="49" y="45" width="4" height="12" fill="#1A1A1A"/><rect x="64" y="42" width="14" height="18" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.5"/><rect x="69" y="45" width="4" height="12" fill="#1A1A1A"/><rect x="92" y="42" width="14" height="18" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.5"/><rect x="97" y="45" width="4" height="12" fill="#1A1A1A"/><circle cx="104" cy="14" r="3.5" fill="#FFD700" stroke="#B8860B" stroke-width="0.5"/><rect x="116" y="34" width="6" height="6" fill="#444"/></svg>';
 
+// ===== 认字主题表（单一数据源）=====
+// 等级键、主题按钮、切换白名单都从这里生成 —— 新增主题只加这一行，
+// 不用再去三个地方各写一次（上次拆等级时手写键名就差点漏）。
+const CHINESE_THEMES = [
+  { key: 'animals',   icon: '🐾', label: '动物' },
+  { key: 'sea',       icon: '🐬', label: '海洋动物' },
+  { key: 'vehicles',  icon: '🚗', label: '车车' },
+  { key: 'food',      icon: '🥬', label: '蔬菜水果' },
+  { key: 'school',    icon: '📚', label: '学习用品' },
+  { key: 'provinces', icon: '🗺️', label: '中国省份' },
+];
+
 // ===== Settings (localStorage) =====
 const SETTINGS_KEY = 'countingGameSettings_v1';
 const GAME_KEYS = ['counting', 'parking', 'chinese', 'poem', 'memory'];
@@ -1480,8 +1487,8 @@ let settings = {
     solar: 0, counting: 0, math: 0, parking: 0,
     // 看字选图按主题各自独立算等级；'chinese-w2p' 旧键保留仅用于迁移老存档
     'chinese-w2p': 0,
-    'chinese-w2p-animals': 0, 'chinese-w2p-vehicles': 0, 'chinese-w2p-food': 0,
-    'chinese-w2p-school': 0, 'chinese-w2p-provinces': 0,
+    // 看字选图：每个主题一条独立等级线，键名由主题表生成
+    ...Object.fromEntries(CHINESE_THEMES.map(t => ['chinese-w2p-' + t.key, 0])),
     'chinese-p2w': 0, memory: 0,
   },
   solarFound: [],
@@ -2179,7 +2186,7 @@ function updateChineseThemeBtns() {
   });
 }
 function setChineseTheme(theme) {
-  if (!['animals', 'vehicles', 'food', 'school', 'provinces'].includes(theme)) return;
+  if (!CHINESE_THEMES.some(t => t.key === theme)) return;
   settings.chineseTheme = theme;
   saveSettings();
   updateChineseThemeBtns();
@@ -3286,18 +3293,20 @@ const CHINESE_DATA = {
     { word: '鸭', pic: '🦆' }, { word: '象', pic: '🐘' }, { word: '熊猫', pic: '🐼' },
     { word: '老虎', pic: '🐯' }, { word: '狮子', pic: '🦁' }, { word: '猴', pic: '🐵' },
     { word: '羊', pic: '🐑' }, { word: '青蛙', pic: '🐸' }, { word: '长颈鹿', pic: '🦒' },
-    { word: '企鹅', pic: '🐧' }, { word: '松鼠', pic: '🐿️' }, { word: '海豚', pic: '🐬' },
+    { word: '企鹅', pic: '🐧' }, { word: '松鼠', pic: '🐿️' },
     { word: '猫头鹰', pic: '🦉' }, { word: '鹅', pic: '🦢' }, { word: '蛇', pic: '🐍' },
     { word: '考拉', pic: '🐨' }, { word: '蜗牛', pic: '🐌' }, { word: '刺猬', pic: '🦔' },
-    { word: '蝴蝶', pic: '🦋' }, { word: '蜜蜂', pic: '🐝' }, { word: '乌龟', pic: '🐢' },
-    { word: '螃蟹', pic: '🦀' }, { word: '鱼', pic: '🐟' }, { word: '瓢虫', pic: '🐞' },
-    { word: '河马', pic: '🦛' }, { word: '老鼠', pic: '🐭' }, { word: '龙', pic: '🐉' },
-    { word: '鲸鱼', pic: '🐳' }, { word: '恐龙', pic: '🦖' }, { word: '蜘蛛', pic: '🕷️' },
+    { word: '蝴蝶', pic: '🦋' }, { word: '蜜蜂', pic: '🐝' }, { word: '瓢虫', pic: '🐞' },
+    { word: '河马', pic: '🦛' }, { word: '老鼠', pic: '🐭' }, { word: '龙', pic: '🐉' }, { word: '恐龙', pic: '🦖' }, { word: '蜘蛛', pic: '🕷️' },
     { word: '斑马', pic: '🦓' }, { word: '袋鼠', pic: '🦘' }, { word: '孔雀', pic: '🦚' },
-    { word: '鹦鹉', pic: '🦜' }, { word: '海豹', pic: '🦭' },
-    { word: '蝙蝠', pic: '🦇' },
-    { word: '鲨鱼', pic: '🦈' }, { word: '章鱼', pic: '🐙' }, { word: '虾', pic: '🦐' }, { word: '树懒', pic: '🦥' }, { word: '鹿', pic: '🦌' }, { word: '老鹰', pic: '🦅' }, { word: '蚂蚁', pic: '🐜' }, { word: '鸽子', pic: '🕊️' },
+    { word: '鹦鹉', pic: '🦜' },
+    { word: '蝙蝠', pic: '🦇' }, { word: '树懒', pic: '🦥' }, { word: '鹿', pic: '🦌' }, { word: '老鹰', pic: '🦅' }, { word: '蚂蚁', pic: '🐜' }, { word: '鸽子', pic: '🕊️' },
     { word: '骆驼', pic: '🐪' }, { word: '毛毛虫', pic: '🐛' }, { word: '鳄鱼', pic: '🐊' },
+  ],
+  // 海洋动物：从「动物」里独立出来的类目。按辨识度排序（简单档只取前 10 个）。
+  // 刻意不放章鱼/鱿鱼这类近似的一对，也不放 Emoji 13.0 的水母（部分设备显示不出）。
+  sea: [
+    { word: '鲨鱼', pic: '🦈' }, { word: '海豚', pic: '🐬' }, { word: '鲸鱼', pic: '🐳' }, { word: '虾', pic: '🦐' }, { word: '螃蟹', pic: '🦀' }, { word: '章鱼', pic: '🐙' }, { word: '海豹', pic: '🦭' }, { word: '乌龟', pic: '🐢' }, { word: '鱼', pic: '🐟' }, { word: '水獭', pic: '🦦' }, { word: '热带鱼', pic: '🐠' },
   ],
   vehicles: [
     { word: '汽车', pic: '🚗' }, { word: '飞机', pic: '✈️' }, { word: '船', pic: '🚢' },
@@ -3601,6 +3610,20 @@ document.addEventListener('click', (e) => {
   if (!btn) return;
   setDifficulty(btn.dataset.diffGame, btn.dataset.diff);
 });
+// 按主题表生成按钮（新增主题自动出现，不会漏）
+function buildChineseThemeBtns() {
+  const box = document.getElementById('chineseThemeGroup');
+  if (!box) return;
+  box.innerHTML = '';
+  CHINESE_THEMES.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'theme-btn' + (t.key === settings.chineseTheme ? ' active' : '');
+    b.dataset.theme = t.key;
+    b.textContent = t.icon + ' ' + t.label;
+    box.appendChild(b);
+  });
+}
+buildChineseThemeBtns();
 document.querySelectorAll('.theme-btn').forEach(b => {
   b.addEventListener('click', () => setChineseTheme(b.dataset.theme));
 });
