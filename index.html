@@ -75,7 +75,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
   .game-card .emoji {
-    font-size: 42px;
+    font-size: 52px;
     line-height: 1;
   }
   .game-card .name {
@@ -626,6 +626,37 @@
   .car-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .car-btn.wrong { animation: shake 0.4s; }
 
+  /* ===== 认时钟 ===== */
+  .clock-stage {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 10px 0 4px;
+  }
+  .clock-big { line-height: 0; }
+  .clock-big svg { width: min(48vw, 250px); height: auto; display: block; }
+  .clock-hint {
+    font-size: 15px; font-weight: 800; color: #6b4a2f;
+    background: rgba(255,255,255,.8); border-radius: 12px; padding: 4px 14px;
+  }
+  .clock-choices { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .clock-btn {
+    background: linear-gradient(180deg, #fff 0%, #f5f5f5 100%);
+    border: 4px solid #5d4037; border-radius: 16px;
+    padding: 8px; cursor: pointer; min-width: 76px; min-height: 76px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 5px 0 #5d4037, 0 6px 12px rgba(0,0,0,.15);
+    transition: transform .1s, box-shadow .1s;
+    font-family: inherit;
+  }
+  .clock-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 4px 8px rgba(0,0,0,.1); }
+  .clock-btn svg { width: 86px; height: 86px; display: block; }
+  .clock-btn--num .clock-num { font-size: 46px; font-weight: 900; color: #5d4037; line-height: 1; }
+  .clock-btn.correct {
+    background: linear-gradient(180deg, #43E97B 0%, #38F9D7 100%) !important;
+    border-color: #2E9D5F !important; transform: scale(1.06);
+    box-shadow: 0 4px 0 #2E9D5F, 0 6px 12px rgba(0,0,0,.2);
+  }
+  .clock-btn.wrong { animation: shake 0.4s; }
+
   /* ===== Road + Parking lot (game 1) ===== */
   .road-stage {
     position: relative;
@@ -1118,7 +1149,7 @@
   @media (max-width: 700px) {
     .home h1 { font-size: 32px; }
     .game-grid { grid-template-columns: 1fr; max-width: 280px; }
-    .game-card .emoji { font-size: 38px; }
+    .game-card .emoji { font-size: 46px; }
     .animal-row { font-size: 40px; letter-spacing: 2px; }
     .car-btn { font-size: 22px; padding: 10px 4px; }
     .car-btn .icon { font-size: 28px; }
@@ -1365,6 +1396,11 @@
       <span class="name">看图选字</span>
       <span class="desc">看图选日常物品（4 类）</span>
     </button>
+    <button class="game-card" data-game="clock" data-xp="clock">
+      <span class="emoji">🕐</span>
+      <span class="name">认时钟</span>
+      <span class="desc">看钟面，认出几点（简单整点 中等半点 困难一刻）</span>
+    </button>
     <button class="game-card" data-game="memory" data-xp="memory">
       <span class="emoji">🧠</span>
       <span class="name">数字记忆 V3</span>
@@ -1452,6 +1488,160 @@ function shuffle(arr) {
   return arr;
 }
 
+// ===== 认时钟 =====
+// 简单：只出整点，选项给 4 个大数字（先学"短针指几就是几点"）
+// 中等：整点 + 半点，选项是 4 个小钟面
+// 困难：一刻 / 半点 / 三刻，选项是 4 个小钟面
+const CLOCK_RANGES = {
+  easy:   { minutes: [0],             options: 3, tip: '短针指着几，就是几点' },
+  medium: { minutes: [0, 30],         options: 4, tip: '分针指 12 是整点，指 6 是半点' },
+  hard:   { minutes: [0, 15, 30, 45], options: 4, tip: '一刻是 15 分，三刻是 45 分' },
+};
+const clock = { level: 1, total: 10, lockInput: false, hour: 0, minute: 0, options: [] };
+
+// 画模拟钟面。hour 为 1-12，minute 为 0-59。
+// 0° 方向朝 12 点，所以每个角度都先转 -90°。
+function clockSvg(hour, minute, size) {
+  const S = size || 220;
+  const c = S / 2;
+  const R = c - 8;
+  const rad = (deg) => (deg - 90) * Math.PI / 180;
+  const px = (deg, len) => [c + Math.cos(rad(deg)) * len, c + Math.sin(rad(deg)) * len];
+
+  let ticks = '';
+  for (let i = 0; i < 12; i++) {
+    const big = i % 3 === 0;
+    const [x1, y1] = px(i * 30, R - (big ? 15 : 9));
+    const [x2, y2] = px(i * 30, R - 3);
+    ticks += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) +
+             '" y2="' + y2.toFixed(1) + '" stroke="#5d4037" stroke-width="' + (big ? 4 : 2.4) +
+             '" stroke-linecap="round"/>';
+  }
+  // 只标 12/3/6/9 —— 小朋友认表主要靠这四个数字
+  let nums = '';
+  [[12, 0], [3, 90], [6, 180], [9, 270]].forEach(function (pair) {
+    const [x, y] = px(pair[1], R - 28);
+    nums += '<text x="' + x.toFixed(1) + '" y="' + (y + 6).toFixed(1) + '" text-anchor="middle"' +
+            ' font-size="18" font-weight="bold" fill="#5d4037" font-family="system-ui,sans-serif">' +
+            pair[0] + '</text>';
+  });
+  // 时针：整点时正好指着小时数；半点时往前挪 15°（表盘的真实画法）
+  const ha = (hour % 12) * 30 + minute * 0.5;
+  const ma = minute * 6;
+  const [hx, hy] = px(ha, R * 0.50);
+  const [mx, my] = px(ma, R * 0.76);
+  return '<svg viewBox="0 0 ' + S + ' ' + S + '" width="' + S + '" height="' + S +
+    '" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="' + c + '" cy="' + c + '" r="' + R + '" fill="#fff" stroke="#5d4037" stroke-width="5"/>' +
+    ticks + nums +
+    '<line x1="' + c + '" y1="' + c + '" x2="' + hx.toFixed(1) + '" y2="' + hy.toFixed(1) +
+      '" stroke="#333" stroke-width="8" stroke-linecap="round"/>' +
+    '<line x1="' + c + '" y1="' + c + '" x2="' + mx.toFixed(1) + '" y2="' + my.toFixed(1) +
+      '" stroke="#E8730C" stroke-width="5.5" stroke-linecap="round"/>' +
+    '<circle cx="' + c + '" cy="' + c + '" r="6" fill="#5d4037"/>' +
+    '</svg>';
+}
+
+// 几点几分的中文说法（给朗读用）
+function clockTimeText(h, m) {
+  if (m === 30) return h + '点半';
+  if (m === 15) return h + '点一刻';
+  if (m === 45) return h + '点三刻';
+  return h + '点';
+}
+
+function startClock() {
+  clock.level = 1;
+  resetAccuracy();
+  setupClock();
+}
+
+function setupClock() {
+  const range = CLOCK_RANGES[settings.difficulty.clock] || CLOCK_RANGES.medium;
+  updateLevel(clock.level, clock.total);
+  document.getElementById('feedback').textContent = '';
+
+  const minute = range.minutes[rand(0, range.minutes.length - 1)];
+  const hour = rand(1, 12);
+  clock.hour = hour; clock.minute = minute;
+
+  // 干扰项：同一档的其它时间，避免出现"离太远等于送分"的情况
+  const set = new Set([hour + ':' + minute]);
+  let guard = 0;
+  while (set.size < range.options && guard < 200) {
+    const m = range.minutes[rand(0, range.minutes.length - 1)];
+    const h = rand(1, 12);
+    set.add(h + ':' + m);
+    guard++;
+  }
+  const arr = shuffle([...set]).slice(0, range.options);
+  clock.options = arr;
+
+  document.getElementById('gameView').innerHTML = `
+    <div class="game-stage">
+      <div class="stage-toolbar">
+        <div class="stage-title">钟面是几点？</div>
+        <div class="stage-right">\${diffMiniHtml('clock')}\${xpBarHtml('clock')}</div>
+      </div>
+      <div class="clock-stage">
+        <div class="clock-big">\${clockSvg(hour, minute, 250)}</div>
+        <div class="clock-hint">\${range.tip}</div>
+      </div>
+    </div>
+    <div class="choices clock-choices" id="clockChoices"></div>
+  `;
+
+  const choicesEl = document.getElementById('clockChoices');
+  choicesEl.innerHTML = '';
+  const isWholeHour = range.minutes.length === 1;
+  arr.forEach(function (k) {
+    const parts = k.split(':');
+    const h = Number(parts[0]), m = Number(parts[1]);
+    const btn = document.createElement('button');
+    if (isWholeHour) {
+      // 简单档：选项直接给小时数字
+      btn.className = 'clock-btn clock-btn--num';
+      btn.innerHTML = '<span class="clock-num">' + h + '</span>';
+    } else {
+      btn.className = 'clock-btn';
+      btn.innerHTML = clockSvg(h, m, 86);
+    }
+    btn.onclick = function () { handleClock(h, m, btn); };
+    choicesEl.appendChild(btn);
+  });
+
+  clock.lockInput = false;
+  setTimeout(function () { speak('钟面是几点？'); }, 600);
+}
+
+function handleClock(h, m, btn) {
+  if (clock.lockInput) return;
+  if (h === clock.hour && m === clock.minute) {
+    clock.lockInput = true;
+    roundAcc.correct++;
+    addXp('clock', XP_PER_ANSWER);
+    btn.classList.add('correct');
+    showFeedback('🎉 答对啦！');
+    speak('答对啦，' + clockTimeText(clock.hour, clock.minute));
+    document.querySelectorAll('#clockChoices .clock-btn').forEach(function (x) { x.disabled = true; });
+    setTimeout(function () {
+      clock.level++;
+      if (clock.level > clock.total) {
+        showWin('🎉 认对啦 🎉', '小小时间大师！', '认对啦，小小时间大师！');
+      } else {
+        setupClock();
+      }
+    }, 2000);
+  } else {
+    btn.classList.add('wrong');
+    roundAcc.wrong++;
+    lowerXp('clock');
+    showFeedback('🤔 再看看短针指几');
+    speak('再看看短针指几');
+    setTimeout(function () { btn.classList.remove('wrong'); }, 500);
+  }
+}
+
 // ===== Metro SVG (side view): 成都地铁风格 — 白底红斜带 + 圆头 + LED 灯条 + 白门竖窗 =====
 const METRO_SVG_HTML = '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" class="metro-svg"><circle cx="20" cy="68" r="7" fill="#1A1A1A"/><circle cx="20" cy="68" r="3" fill="#888"/><circle cx="44" cy="68" r="7" fill="#1A1A1A"/><circle cx="44" cy="68" r="3" fill="#888"/><circle cx="78" cy="68" r="7" fill="#1A1A1A"/><circle cx="78" cy="68" r="3" fill="#888"/><circle cx="102" cy="68" r="7" fill="#1A1A1A"/><circle cx="102" cy="68" r="3" fill="#888"/><path d="M 8 12 L 116 12 L 116 60 L 8 60 Q -6 36 8 12 Z" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="2.5"/><path d="M 8 28 L 116 16 L 116 22 L 8 34 Z" fill="#E74C3C"/><rect x="10" y="14" width="22" height="3" fill="#FFE53B" stroke="#1A1A1A" stroke-width="0.5"/><rect x="10" y="26" width="22" height="16" rx="3" fill="#1A1A1A"/><rect x="6" y="48" width="28" height="3" fill="#FFE53B" stroke="#1A1A1A" stroke-width="0.5"/><rect x="6" y="48" width="28" height="1" fill="#FFFFFF" opacity="0.6"/><rect x="38" y="26" width="74" height="12" fill="#1A1A1A"/><line x1="52" y1="26" x2="52" y2="38" stroke="#FFFFFF" stroke-width="1.5"/><line x1="68" y1="26" x2="68" y2="38" stroke="#FFFFFF" stroke-width="1.5"/><line x1="84" y1="26" x2="84" y2="38" stroke="#FFFFFF" stroke-width="1.5"/><line x1="100" y1="26" x2="100" y2="38" stroke="#FFFFFF" stroke-width="1.5"/><rect x="44" y="42" width="14" height="18" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.5"/><rect x="49" y="45" width="4" height="12" fill="#1A1A1A"/><rect x="64" y="42" width="14" height="18" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.5"/><rect x="69" y="45" width="4" height="12" fill="#1A1A1A"/><rect x="92" y="42" width="14" height="18" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.5"/><rect x="97" y="45" width="4" height="12" fill="#1A1A1A"/><circle cx="104" cy="14" r="3.5" fill="#FFD700" stroke="#B8860B" stroke-width="0.5"/><rect x="116" y="34" width="6" height="6" fill="#444"/></svg>';
 
@@ -1479,6 +1669,7 @@ let settings = {
     chinese: 'medium',
     poem: 'medium',
     memory: 'medium',
+    clock: 'medium',
   },
   chineseTheme: 'animals',
   countingMode: 'count',
@@ -1490,7 +1681,7 @@ let settings = {
     'chinese-w2p': 0,
     // 看字选图：每个主题一条独立等级线，键名由主题表生成
     ...Object.fromEntries(CHINESE_THEMES.map(t => ['chinese-w2p-' + t.key, 0])),
-    'chinese-p2w': 0, memory: 0,
+    'chinese-p2w': 0, memory: 0, clock: 0,
   },
   solarFound: [],
 };
@@ -2229,6 +2420,7 @@ function currentXpKey() {
   if (currentGame === 'counting') return currentCountingMode() === 'math' ? 'math' : 'counting';
   if (currentGame === 'parking') return 'parking';
   if (currentGame === 'chinese') return chineseXpKey();
+  if (currentGame === 'clock') return 'clock';
   return null;   // 太阳系/古诗没有 10 题通关
 }
 
@@ -2471,6 +2663,7 @@ function startGame(name) {
   else if (name === 'chinese') startChinese();
   else if (name === 'poem') startPoem();
   else if (name === 'memory') startMemory();
+  else if (name === 'clock') startClock();
 }
 document.querySelectorAll('.game-card').forEach(card => {
   card.addEventListener('click', () => {
