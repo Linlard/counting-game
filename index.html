@@ -1461,6 +1461,7 @@ const METRO_SVG_HTML = '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid 
 const CHINESE_THEMES = [
   { key: 'animals',   icon: '🐾', label: '动物' },
   { key: 'sea',       icon: '🐬', label: '海洋动物' },
+  { key: 'bugs',      icon: '🐛', label: '昆虫小动物' },
   { key: 'vehicles',  icon: '🚗', label: '车车' },
   { key: 'food',      icon: '🥬', label: '蔬菜水果' },
   { key: 'school',    icon: '📚', label: '学习用品' },
@@ -3293,15 +3294,18 @@ const CHINESE_DATA = {
     { word: '鸭', pic: '🦆' }, { word: '象', pic: '🐘' }, { word: '熊猫', pic: '🐼' },
     { word: '老虎', pic: '🐯' }, { word: '狮子', pic: '🦁' }, { word: '猴', pic: '🐵' },
     { word: '羊', pic: '🐑' }, { word: '青蛙', pic: '🐸' }, { word: '长颈鹿', pic: '🦒' },
-    { word: '企鹅', pic: '🐧' }, { word: '松鼠', pic: '🐿️' },
+    { word: '企鹅', pic: '🐧' },
     { word: '猫头鹰', pic: '🦉' }, { word: '鹅', pic: '🦢' }, { word: '蛇', pic: '🐍' },
-    { word: '考拉', pic: '🐨' }, { word: '蜗牛', pic: '🐌' }, { word: '刺猬', pic: '🦔' },
-    { word: '蝴蝶', pic: '🦋' }, { word: '蜜蜂', pic: '🐝' }, { word: '瓢虫', pic: '🐞' },
-    { word: '河马', pic: '🦛' }, { word: '老鼠', pic: '🐭' }, { word: '龙', pic: '🐉' }, { word: '恐龙', pic: '🦖' }, { word: '蜘蛛', pic: '🕷️' },
+    { word: '考拉', pic: '🐨' },
+    { word: '河马', pic: '🦛' }, { word: '龙', pic: '🐉' }, { word: '恐龙', pic: '🦖' },
     { word: '斑马', pic: '🦓' }, { word: '袋鼠', pic: '🦘' }, { word: '孔雀', pic: '🦚' },
     { word: '鹦鹉', pic: '🦜' },
-    { word: '蝙蝠', pic: '🦇' }, { word: '树懒', pic: '🦥' }, { word: '鹿', pic: '🦌' }, { word: '老鹰', pic: '🦅' }, { word: '蚂蚁', pic: '🐜' }, { word: '鸽子', pic: '🕊️' },
-    { word: '骆驼', pic: '🐪' }, { word: '毛毛虫', pic: '🐛' }, { word: '鳄鱼', pic: '🐊' },
+    { word: '蝙蝠', pic: '🦇' }, { word: '树懒', pic: '🦥' }, { word: '鹿', pic: '🦌' }, { word: '老鹰', pic: '🦅' }, { word: '鸽子', pic: '🕊️' },
+    { word: '骆驼', pic: '🐪' }, { word: '鳄鱼', pic: '🐊' },
+  ],
+  // 昆虫小动物：从「动物」里独立出来的类目。简单档取前 10 个最经典的。
+  bugs: [
+    { word: '蝴蝶', pic: '🦋' }, { word: '蜜蜂', pic: '🐝' }, { word: '瓢虫', pic: '🐞' }, { word: '蚂蚁', pic: '🐜' }, { word: '毛毛虫', pic: '🐛' }, { word: '蜗牛', pic: '🐌' }, { word: '蜘蛛', pic: '🕷️' }, { word: '老鼠', pic: '🐭' }, { word: '松鼠', pic: '🐿️' }, { word: '刺猬', pic: '🦔' }, { word: '蟋蟀', pic: '🦗' }, { word: '仓鼠', pic: '🐹' }, { word: '蝎子', pic: '🦂' },
   ],
   // 海洋动物：从「动物」里独立出来的类目。按辨识度排序（简单档只取前 10 个）。
   // 刻意不放章鱼/鱿鱼这类近似的一对，也不放 Emoji 13.0 的水母（部分设备显示不出）。
