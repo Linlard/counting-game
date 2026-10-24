@@ -1581,11 +1581,11 @@ function setupClock() {
     <div class="game-stage">
       <div class="stage-toolbar">
         <div class="stage-title">钟面是几点？</div>
-        <div class="stage-right">\${diffMiniHtml('clock')}\${xpBarHtml('clock')}</div>
+        <div class="stage-right">${diffMiniHtml('clock')}${xpBarHtml('clock')}</div>
       </div>
       <div class="clock-stage">
-        <div class="clock-big">\${clockSvg(hour, minute, 250)}</div>
-        <div class="clock-hint">\${range.tip}</div>
+        <div class="clock-big">${clockSvg(hour, minute, 250)}</div>
+        <div class="clock-hint">${range.tip}</div>
       </div>
     </div>
     <div class="choices clock-choices" id="clockChoices"></div>
