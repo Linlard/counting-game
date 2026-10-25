@@ -649,7 +649,13 @@
   }
   .clock-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 4px 8px rgba(0,0,0,.1); }
   .clock-btn svg { width: 86px; height: 86px; display: block; }
-  .clock-btn--num .clock-num { font-size: 46px; font-weight: 900; color: #5d4037; line-height: 1; }
+  /* 选项是中文文字：八点 / 八点半 / 八点四十五分 */
+  .clock-btn--text { min-width: 104px; padding: 10px 12px; }
+  .clock-btn--text .clock-time {
+    font-size: clamp(19px, 3.4vw, 26px);
+    font-weight: 900; color: #5d4037; line-height: 1.15;
+    white-space: nowrap;
+  }
   .clock-btn.correct {
     background: linear-gradient(180deg, #43E97B 0%, #38F9D7 100%) !important;
     border-color: #2E9D5F !important; transform: scale(1.06);
@@ -1542,12 +1548,19 @@ function clockSvg(hour, minute, size) {
     '</svg>';
 }
 
-// 几点几分的中文说法（给朗读用）
+// 中文数字（1-12）
+const CN_NUM = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+
+// 几点几分的中文说法：选项文字和朗读都用它
+//   8:00 → 八点     8:15 → 八点一刻
+//   8:30 → 八点半   8:45 → 八点四十五分
 function clockTimeText(h, m) {
-  if (m === 30) return h + '点半';
-  if (m === 15) return h + '点一刻';
-  if (m === 45) return h + '点三刻';
-  return h + '点';
+  const n = CN_NUM[((h - 1) % 12 + 12) % 12 + 1] || CN_NUM[12];
+  if (m === 0) return n + '点';
+  if (m === 15) return n + '点一刻';
+  if (m === 30) return n + '点半';
+  if (m === 45) return n + '点四十五分';
+  return n + '点' + (m / 5) + '分';
 }
 
 function startClock() {
@@ -1593,19 +1606,14 @@ function setupClock() {
 
   const choicesEl = document.getElementById('clockChoices');
   choicesEl.innerHTML = '';
-  const isWholeHour = range.minutes.length === 1;
+  // 选项一律用中文文字（八点 / 八点半 / 八点四十五分）——
+  // 读文字比「配两个钟面」容易得多，三档统一这个形式
   arr.forEach(function (k) {
     const parts = k.split(':');
     const h = Number(parts[0]), m = Number(parts[1]);
     const btn = document.createElement('button');
-    if (isWholeHour) {
-      // 简单档：选项直接给小时数字
-      btn.className = 'clock-btn clock-btn--num';
-      btn.innerHTML = '<span class="clock-num">' + h + '</span>';
-    } else {
-      btn.className = 'clock-btn';
-      btn.innerHTML = clockSvg(h, m, 86);
-    }
+    btn.className = 'clock-btn clock-btn--text';
+    btn.innerHTML = '<span class="clock-time">' + clockTimeText(h, m) + '</span>';
     btn.onclick = function () { handleClock(h, m, btn); };
     choicesEl.appendChild(btn);
   });
