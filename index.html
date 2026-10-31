@@ -2687,12 +2687,10 @@ document.querySelectorAll('.game-card').forEach(card => {
   });
 });
 function restartGame() {
-  document.getElementById('winOverlay').classList.remove('show');
-  if (currentGame === 'solar') startSolar();
-  else if (currentGame === 'counting') startCounting();
-  else if (currentGame === 'parking') startParking();
-  else if (currentGame === 'chinese') startChinese();
-  else if (currentGame === 'poem') startPoem();
+  // 走同一个入口，不要在这里再手写一份分支。
+  // 之前这里漏了 clock 和 memory：点「再玩一次」后遮罩关掉但游戏不重开，
+  // 上一题的选项按钮还全是 disabled → 整页点不动（表现为"死机"）。
+  startGame(currentGame);
 }
 
 // ===== Game 0: 太阳系行星（solar）— 轨道图 =====
@@ -3235,7 +3233,12 @@ function setupCounting() {
     if (c >= lo && c <= range.max) choices.add(c);
     attempts++;
   }
-  while (choices.size < 5) choices.add(rand(lo, range.max));
+  // 兜底：范围里凑不出 5 个不同数字时必须停下，否则死循环
+  let guard2 = 0;
+  while (choices.size < 5 && choices.size < (range.max - lo + 1) && guard2 < 200) {
+    choices.add(rand(lo, range.max));
+    guard2++;
+  }
   const arr = shuffle([...choices]).slice(0, 5);
 
   const choicesEl = document.getElementById('countingChoices');
@@ -3418,8 +3421,11 @@ function setupParking() {
     }
     attempts++;
   }
-  while (options.size < 5) {
+  // 兜底：范围里凑不出 5 个不同数字时必须停下，否则死循环
+  let guard2 = 0;
+  while (options.size < 5 && options.size < (range.max - range.min + 1) && guard2 < 200) {
     options.add(rand(range.min, range.max));
+    guard2++;
   }
   const optArr = shuffle([...options]).slice(0, 5);
 
@@ -3595,14 +3601,18 @@ function setupChinese() {
   const numDistractors = range.options - 1;
   const candidates = pool.filter(item => item.word !== chinese.current.word);
   const distractors = shuffle(candidates).slice(0, numDistractors);
-  while (distractors.length < numDistractors) {
+  let guard2 = 0;
+  while (distractors.length < numDistractors && guard2 < 100) {
     const extra = themePool[rand(0, themePool.length - 1)];
     if (!distractors.some(d => d.word === extra.word)) distractors.push(extra);
+    guard2++;
   }
   let options = shuffle([chinese.current, ...distractors]).slice(0, range.options);
-  while (options.length < range.options) {
+  let guard3 = 0;
+  while (options.length < range.options && guard3 < 100) {
     const extra = themePool[rand(0, themePool.length - 1)];
     if (!options.some(o => o.word === extra.word)) options.push(extra);
+    guard3++;
   }
 
   const stageTitle = isPic2Word ? '看图，选对的字' : '看字，选对的图';
