@@ -1659,9 +1659,9 @@ const METRO_SVG_HTML = '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid 
 const CHINESE_THEMES = [
   { key: 'animals',   icon: '🐾', label: '动物' },
   { key: 'sea',       icon: '🐬', label: '海洋动物' },
-  { key: 'bugs',      icon: '🐛', label: '昆虫小动物' },
   { key: 'vehicles',  icon: '🚗', label: '车车' },
   { key: 'food',      icon: '🥬', label: '蔬菜水果' },
+  { key: 'meal',      icon: '🍚', label: '食物' },
   { key: 'school',    icon: '📚', label: '学习用品' },
   { key: 'provinces', icon: '🗺️', label: '中国省份' },
 ];
@@ -1689,6 +1689,7 @@ let settings = {
     'chinese-w2p': 0,
     // 看字选图：每个主题一条独立等级线，键名由主题表生成
     ...Object.fromEntries(CHINESE_THEMES.map(t => ['chinese-w2p-' + t.key, 0])),
+    'chinese-w2p-bugs': 0,   // 旧键：昆虫类目已并回动物，保留仅用于迁移
     'chinese-p2w': 0, memory: 0, clock: 0,
   },
   solarFound: [],
@@ -1728,6 +1729,11 @@ function loadSettings() {
       const w2pKey = 'chinese-w2p-' + (settings.chineseTheme || 'animals');
       if (Number.isFinite(legacyW2p) && legacyW2p > 0 && (settings.xp[w2pKey] || 0) === 0) {
         settings.xp[w2pKey] = legacyW2p;
+      }
+      // 昆虫类目已并回动物：把旧 insects 那条线的分数并到动物，不丢进度
+      const legacyBugs = Number(settings.xp['chinese-w2p-bugs']);
+      if (Number.isFinite(legacyBugs) && legacyBugs > 0 && (settings.xp['chinese-w2p-animals'] || 0) === 0) {
+        settings.xp['chinese-w2p-animals'] = legacyBugs;
       }
       if (!Array.isArray(settings.solarFound)) settings.solarFound = [];
     }
@@ -3508,13 +3514,10 @@ const CHINESE_DATA = {
     { word: '斑马', pic: '🦓' }, { word: '袋鼠', pic: '🦘' }, { word: '孔雀', pic: '🦚' },
     { word: '鹦鹉', pic: '🦜' },
     { word: '蝙蝠', pic: '🦇' }, { word: '树懒', pic: '🦥' }, { word: '鹿', pic: '🦌' }, { word: '老鹰', pic: '🦅' }, { word: '鸽子', pic: '🕊️' },
-    { word: '骆驼', pic: '🐪' }, { word: '鳄鱼', pic: '🐊' },
+    { word: '骆驼', pic: '🐪' }, { word: '鳄鱼', pic: '🐊' }, { word: '蝴蝶', pic: '🦋' }, { word: '蜜蜂', pic: '🐝' }, { word: '瓢虫', pic: '🐞' }, { word: '蚂蚁', pic: '🐜' }, { word: '毛毛虫', pic: '🐛' }, { word: '蜗牛', pic: '🐌' }, { word: '蜘蛛', pic: '🕷️' }, { word: '老鼠', pic: '🐭' }, { word: '松鼠', pic: '🐿️' }, { word: '刺猬', pic: '🦔' }, { word: '蟋蟀', pic: '🦗' }, { word: '仓鼠', pic: '🐹' }, { word: '蝎子', pic: '🦂' },
   ],
   // 昆虫小动物：从「动物」里独立出来的类目。简单档取前 10 个最经典的。
-  bugs: [
-    { word: '蝴蝶', pic: '🦋' }, { word: '蜜蜂', pic: '🐝' }, { word: '瓢虫', pic: '🐞' }, { word: '蚂蚁', pic: '🐜' }, { word: '毛毛虫', pic: '🐛' }, { word: '蜗牛', pic: '🐌' }, { word: '蜘蛛', pic: '🕷️' }, { word: '老鼠', pic: '🐭' }, { word: '松鼠', pic: '🐿️' }, { word: '刺猬', pic: '🦔' }, { word: '蟋蟀', pic: '🦗' }, { word: '仓鼠', pic: '🐹' }, { word: '蝎子', pic: '🦂' },
-  ],
-  // 海洋动物：从「动物」里独立出来的类目。按辨识度排序（简单档只取前 10 个）。
+    // 海洋动物：从「动物」里独立出来的类目。按辨识度排序（简单档只取前 10 个）。
   // 刻意不放章鱼/鱿鱼这类近似的一对，也不放 Emoji 13.0 的水母（部分设备显示不出）。
   sea: [
     { word: '鲨鱼', pic: '🦈' }, { word: '海豚', pic: '🐬' }, { word: '鲸鱼', pic: '🐳' }, { word: '虾', pic: '🦐' }, { word: '螃蟹', pic: '🦀' }, { word: '章鱼', pic: '🐙' }, { word: '海豹', pic: '🦭' }, { word: '乌龟', pic: '🐢' }, { word: '鱼', pic: '🐟' }, { word: '水獭', pic: '🦦' }, { word: '热带鱼', pic: '🐠' },
@@ -3544,8 +3547,11 @@ const CHINESE_DATA = {
     { word: '黄瓜', pic: '🥒' }, { word: '辣椒', pic: '🌶️' }, { word: '土豆', pic: '🥔' },
     { word: '南瓜', pic: '🎃' }, { word: '蘑菇', pic: '🍄' }, { word: '西兰花', pic: '🥦' },
     { word: '大蒜', pic: '🧄' }, { word: '洋葱', pic: '🧅' }, { word: '生菜', pic: '🥬' },
-    { word: '蓝莓', pic: '🫐' }, { word: '橄榄', pic: '🫒' }, { word: '猕猴桃', pic: '🥝' },
-    { word: '灯笼椒', pic: '🫑' },
+    { word: '甜瓜', pic: '🍈' }, { word: '栗子', pic: '🌰' }, { word: '猕猴桃', pic: '🥝' },
+  ],
+  // 食物：主食/肉蛋奶/零食/饮品。与上面的「蔬菜水果」不重叠。
+  meal: [
+    { word: '米饭', pic: '🍚' }, { word: '面条', pic: '🍜' }, { word: '面包', pic: '🍞' }, { word: '披萨', pic: '🍕' }, { word: '饺子', pic: '🥟' }, { word: '鸡蛋', pic: '🥚' }, { word: '牛奶', pic: '🥛' }, { word: '排骨', pic: '🍖' }, { word: '鸡腿', pic: '🍗' }, { word: '培根', pic: '🥓' }, { word: '奶酪', pic: '🧀' }, { word: '冰淇淋', pic: '🍦' }, { word: '甜甜圈', pic: '🍩' }, { word: '曲奇', pic: '🍪' }, { word: '巧克力', pic: '🍫' }, { word: '糖果', pic: '🍬' }, { word: '爆米花', pic: '🍿' }, { word: '蜂蜜', pic: '🍯' }, { word: '花生', pic: '🥜' }, { word: '华夫饼', pic: '🧇' }, { word: '饮料', pic: '🥤' }, { word: '咖啡', pic: '☕' }, { word: '茶', pic: '🍵' },
   ],
   school: [
     { word: '铅笔', pic: '✏️' }, { word: '书', pic: '📚' }, { word: '剪刀', pic: '✂️' },
