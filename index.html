@@ -1659,6 +1659,7 @@ const METRO_SVG_HTML = '<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid 
 const CHINESE_THEMES = [
   { key: 'animals',   icon: '🐾', label: '动物' },
   { key: 'sea',       icon: '🐬', label: '海洋动物' },
+  { key: 'bugs',      icon: '🐛', label: '昆虫小动物' },
   { key: 'vehicles',  icon: '🚗', label: '车车' },
   { key: 'food',      icon: '🥬', label: '蔬菜水果' },
   { key: 'meal',      icon: '🍚', label: '食物' },
@@ -1689,7 +1690,6 @@ let settings = {
     'chinese-w2p': 0,
     // 看字选图：每个主题一条独立等级线，键名由主题表生成
     ...Object.fromEntries(CHINESE_THEMES.map(t => ['chinese-w2p-' + t.key, 0])),
-    'chinese-w2p-bugs': 0,   // 旧键：昆虫类目已并回动物，保留仅用于迁移
     'chinese-p2w': 0, memory: 0, clock: 0,
   },
   solarFound: [],
@@ -1729,11 +1729,6 @@ function loadSettings() {
       const w2pKey = 'chinese-w2p-' + (settings.chineseTheme || 'animals');
       if (Number.isFinite(legacyW2p) && legacyW2p > 0 && (settings.xp[w2pKey] || 0) === 0) {
         settings.xp[w2pKey] = legacyW2p;
-      }
-      // 昆虫类目已并回动物：把旧 insects 那条线的分数并到动物，不丢进度
-      const legacyBugs = Number(settings.xp['chinese-w2p-bugs']);
-      if (Number.isFinite(legacyBugs) && legacyBugs > 0 && (settings.xp['chinese-w2p-animals'] || 0) === 0) {
-        settings.xp['chinese-w2p-animals'] = legacyBugs;
       }
       if (!Array.isArray(settings.solarFound)) settings.solarFound = [];
     }
@@ -3517,7 +3512,11 @@ const CHINESE_DATA = {
     { word: '斑马', pic: '🦓' }, { word: '袋鼠', pic: '🦘' }, { word: '孔雀', pic: '🦚' },
     { word: '鹦鹉', pic: '🦜' },
     { word: '蝙蝠', pic: '🦇' }, { word: '树懒', pic: '🦥' }, { word: '鹿', pic: '🦌' }, { word: '老鹰', pic: '🦅' }, { word: '鸽子', pic: '🕊️' },
-    { word: '骆驼', pic: '🐪' }, { word: '鳄鱼', pic: '🐊' }, { word: '蝴蝶', pic: '🦋' }, { word: '蜜蜂', pic: '🐝' }, { word: '瓢虫', pic: '🐞' }, { word: '蚂蚁', pic: '🐜' }, { word: '毛毛虫', pic: '🐛' }, { word: '蜗牛', pic: '🐌' }, { word: '蜘蛛', pic: '🕷️' }, { word: '老鼠', pic: '🐭' }, { word: '松鼠', pic: '🐿️' }, { word: '刺猬', pic: '🦔' }, { word: '蟋蟀', pic: '🦗' }, { word: '仓鼠', pic: '🐹' }, { word: '蝎子', pic: '🦂' },
+    { word: '骆驼', pic: '🐪' }, { word: '鳄鱼', pic: '🐊' },
+  ],
+  // 昆虫小动物：蝴蝶蜜蜂瓢虫蚂蚁、毛毛虫蜗牛、蜘蛛、老鼠松鼠刺猬、蟋蟀仓鼠蝎子。
+  bugs: [
+    { word: '蝴蝶', pic: '🦋' }, { word: '蜜蜂', pic: '🐝' }, { word: '瓢虫', pic: '🐞' }, { word: '蚂蚁', pic: '🐜' }, { word: '毛毛虫', pic: '🐛' }, { word: '蜗牛', pic: '🐌' }, { word: '蜘蛛', pic: '🕷️' }, { word: '老鼠', pic: '🐭' }, { word: '松鼠', pic: '🐿️' }, { word: '刺猬', pic: '🦔' }, { word: '蟋蟀', pic: '🦗' }, { word: '仓鼠', pic: '🐹' }, { word: '蝎子', pic: '🦂' },
   ],
   // 昆虫小动物：从「动物」里独立出来的类目。简单档取前 10 个最经典的。
     // 海洋动物：从「动物」里独立出来的类目。按辨识度排序（简单档只取前 10 个）。
